@@ -228,7 +228,11 @@ module.exports = grammar({
       $.array
     ),
 
-    symbol: $ => token(seq(':', choice(stringBody("'"), stringBody('"', $.interpolation), identifierChars(), operatorChars()))),
+    symbol: $ => choice(
+      token(seq(':', choice(identifierChars(), operatorChars())))
+      // seq(':"', $._double_quoted_body),
+      // seq(":'", $._single_quoted_body)
+    ),
     integer: $ => (/0b[01](_?[01])*|0[oO]?[0-7](_?[0-7])*|(0d)?\d(_?\d)*|0x[0-9a-fA-F](_?[0-9a-fA-F])*/),
     float: $ => (/\d(_?\d)*\.\d(_?\d)*([eE]\d(_?\d)*)?/),
     boolean: $ => choice('true', 'false', 'TRUE', 'FALSE'),
@@ -240,36 +244,36 @@ module.exports = grammar({
       $._percent,
       $._percent_q
     ),
-    _single_quoted: $ => stringBody("'"),
-    _double_quoted: $ => stringBody('"', $.interpolation),
+    _single_quoted: $ => stringBody('', "'"),
+    _double_quoted: $ => stringBody('', '"', $.interpolation),
     _percent: $ => choice(
-      seq(/%Q?/, choice.apply(null, unbalancedDelimiters.split('').map(d => seq(stringBody(d, $.interpolation))))),
-      seq(/%Q?/, $._percent_angle),
-      seq(/%Q?/, $._percent_bracket),
-      seq(/%Q?/, $._percent_paren),
-      seq(/%Q?/, $._percent_brace)
+      seq(/%Q?/, choice.apply(null, unbalancedDelimiters.split('').map(d => seq(stringBody(/%Q?/, d, $.interpolation))))),
+      seq(/%Q?</, $._percent_angle, '>'),
+      seq(/%Q?\{/, $._percent_bracket, '}'),
+      seq(/%Q?\(/, $._percent_paren, ')'),
+      seq(/%Q?\[/, $._percent_brace, ']')
     ),
-    _percent_angle: $ => balancedStringBody($._percent_angle, '<', '>', $.interpolation),
-    _percent_bracket: $ => balancedStringBody($._percent_bracket, '[', ']', $.interpolation),
-    _percent_paren: $ => balancedStringBody($._percent_paren, '(', ')', $.interpolation),
-    _percent_brace: $ => balancedStringBody($._percent_brace, '{', '}', $.interpolation),
+    _percent_angle: $ => balancedInner($._percent_angle, '<', '>', $.interpolation),
+    _percent_bracket: $ => balancedInner($._percent_bracket, '[', ']', $.interpolation),
+    _percent_paren: $ => balancedInner($._percent_paren, '(', ')', $.interpolation),
+    _percent_brace: $ => balancedInner($._percent_brace, '{', '}', $.interpolation),
     _percent_q: $ => choice(
-      seq('%q', choice.apply(null, unbalancedDelimiters.split('').map(d => seq(stringBody(d))))),
-      seq('%q', $._percent_q_angle),
-      seq('%q', $._percent_q_bracket),
-      seq('%q', $._percent_q_paren),
-      seq('%q', $._percent_q_brace)
+      choice.apply(null, unbalancedDelimiters.split('').map(d => seq(stringBody('%q', d)))),
+      seq('%q<', $._percent_q_angle, '>'),
+      seq('%q[', $._percent_q_bracket, ']'),
+      seq('%q(', $._percent_q_paren, ')'),
+      seq('%q{', $._percent_q_brace, '}')
     ),
-    _percent_q_angle: $ => balancedStringBody($._percent_q_angle, '<', '>'),
-    _percent_q_bracket: $ => balancedStringBody($._percent_q_bracket, '[', ']'),
-    _percent_q_paren: $ => balancedStringBody($._percent_q_paren, '(', ')'),
-    _percent_q_brace: $ => balancedStringBody($._percent_q_brace, '{', '}'),
+    _percent_q_angle: $ => balancedInner($._percent_q_angle, '<', '>'),
+    _percent_q_bracket: $ => balancedInner($._percent_q_bracket, '[', ']'),
+    _percent_q_paren: $ => balancedInner($._percent_q_paren, '(', ')'),
+    _percent_q_brace: $ => balancedInner($._percent_q_brace, '{', '}'),
     interpolation: $ => seq(token(prec(20, '#{')), $._expression, '}'),
 
     subshell: $ => choice(
       $._backticks
     ),
-    _backticks: $ => stringBody('`'),
+    _backticks: $ => stringBody('', '`'),
 
     array: $ => seq('[', $._array_items, ']'),
     _array_items: $ => optional(seq($._expression, optional(seq(',', $._array_items)))),
@@ -282,11 +286,19 @@ module.exports = grammar({
 });
 
 /// Describes the body of a string literal bounded by `delimiter`, and optionally containing (potentially recursive) references to `insert`.
-function stringBody (delimiter, insert) {
+function stringBody (leading, delimiter, insert) {
   if (typeof insert === 'undefined') {
-    return RegExp('\\' + delimiter + '(\\\\.|[^\\\\\\' + delimiter + '])*\\' + delimiter);
+    return seq(leading, delimiter, repeat(choice(/\\./, RegExp('[^\\\\\\' + delimiter + ']'))), delimiter);
   } else {
-    return seq(delimiter, repeat(choice(/\\./, insert, RegExp('[^\\\\\\' + delimiter + ']'))), delimiter);
+    return seq(leading, delimiter, repeat(choice(/\\./, insert, RegExp('[^\\\\\\' + delimiter + ']'))), delimiter);
+  }
+}
+
+function balancedInner (me, open, close, insert) {
+  if (typeof insert === 'undefined') {
+    return repeat(choice(/\\./, seq(open, me, close), RegExp('[^\\\\\\' + open + '\\' + close + ']')));
+  } else {
+    return repeat(choice(/\\./, seq(open, me, close), insert, RegExp('[^\\\\\\' + open + '\\' + close + ']')));
   }
 }
 
