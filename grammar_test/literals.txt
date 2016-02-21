@@ -1,0 +1,434 @@
+======
+symbol
+======
+
+:foo
+
+---
+
+(program (symbol))
+
+====================
+single quoted symbol
+====================
+
+:'foo bar'
+
+---
+
+(program (symbol))
+
+====================
+double quoted symbol
+====================
+
+:"foo bar"
+
+---
+
+(program (symbol))
+
+=======================================
+double quoted symbol with interpolation
+=======================================
+
+:"foo #{bar}"
+
+---
+
+(program (symbol (interpolation (identifier))))
+
+=======
+integer
+=======
+
+1234
+
+---
+
+(program (integer))
+
+=======================
+integer with underscore
+=======================
+
+1_234
+
+---
+
+(program (integer))
+
+===========================
+integer with decimal prefix
+===========================
+
+0d1_234
+
+---
+
+(program (integer))
+
+===============================
+integer with hexadecimal prefix
+===============================
+
+0xa_bcd_ef0_123_456_789
+
+---
+
+(program (integer))
+
+=========================
+integer with octal prefix
+=========================
+
+01234567
+0o1234567
+
+---
+
+(program (integer) (integer))
+
+==========================
+integer with binary prefix
+==========================
+
+0b1_0
+
+---
+
+(program (integer))
+
+=====
+float
+=====
+
+1.234_5e678_90
+
+---
+
+(program (float))
+
+=======
+boolean
+=======
+
+true
+
+---
+
+(program (boolean))
+
+===
+nil
+===
+
+nil
+
+---
+
+(program (nil))
+
+====================
+single-quoted string
+====================
+
+''
+' '
+'  '
+
+---
+
+(program (string) (string) (string))
+
+==============================================
+single-quoted string with escaped single quote
+==============================================
+
+'\''
+
+---
+
+(program (string))
+
+===========================================
+single-quoted string with escaped backslash
+===========================================
+
+'\\'
+
+---
+
+(program (string))
+
+=================================================
+single-quoted string with backslash and character
+=================================================
+
+'\d'
+
+---
+
+(program (string))
+
+====================
+double-quoted string
+====================
+
+""
+" "
+"  "
+
+---
+
+(program (string) (string) (string))
+
+==============================================
+double-quoted string with escaped double quote
+==============================================
+
+"\""
+
+---
+
+(program (string))
+
+===========================================
+double-quoted string with escaped backslash
+===========================================
+
+"\\"
+
+---
+
+(program (string))
+
+=================================================
+double-quoted string with backslash and character
+=================================================
+
+"\d"
+
+---
+
+(program (string))
+
+=============
+interpolation
+=============
+
+"#{foo}"
+
+---
+
+(program (string (interpolation (identifier))))
+
+=====================
+escaped interpolation
+=====================
+
+"\#{foo}"
+
+---
+
+(program (string))
+
+===========================================
+percent q string with unbalanced delimiters
+===========================================
+
+%q=a=
+%q!a!
+%q@a@
+%q$a$
+%q%a%
+%q^a^
+%q&a&
+%q*a*
+%q-a-
+%q+a+
+%q/a/
+%q|a|
+%q?a?
+%q\a\
+%q.a.
+%q,a,
+%q:a:
+%q;a;
+%q'a'
+%q"a"
+%q)a)
+%q]a]
+%q}a}
+%q>a>
+%q`a`
+%q~a~
+%q_a_
+%q#a#
+
+---
+
+(program (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string))
+
+=========================================
+percent q string with balanced delimiters
+=========================================
+
+%q<a<b>c>
+%q{a{b}c}
+%q[a[b]c]
+%q(a(b)c)
+
+---
+
+(program (string) (string) (string) (string))
+
+===========================================
+percent q string with unbalanced delimiters
+===========================================
+
+%=a=
+%!a!
+%@a@
+%$a$
+%%a%
+%^a^
+%&a&
+%*a*
+%-a-
+%+a+
+%/a/
+%|a|
+%?a?
+%\a\
+%.a.
+%,a,
+%:a:
+%;a;
+%'a'
+%"a"
+%)a)
+%]a]
+%}a}
+%>a>
+%`a`
+%~a~
+%_a_
+%#a#
+
+---
+
+(program (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string))
+
+===========================================
+percent q string with unbalanced delimiters
+===========================================
+
+%Q=a=
+%Q!a!
+%Q@a@
+%Q$a$
+%Q%a%
+%Q^a^
+%Q&a&
+%Q*a*
+%Q-a-
+%Q+a+
+%Q/a/
+%Q|a|
+%Q?a?
+%Q\a\
+%Q.a.
+%Q,a,
+%Q:a:
+%Q;a;
+%Q'a'
+%Q"a"
+%Q)a)
+%Q]a]
+%Q}a}
+%Q>a>
+%Q`a`
+%Q~a~
+%Q_a_
+%Q#a#
+
+---
+
+(program (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string) (string))
+
+=========================================
+percent string with balanced delimiters
+=========================================
+
+%<a<b>c>
+%{a{b}c}
+%[a[b]c]
+%(a(b)c)
+
+---
+
+(program (string) (string) (string) (string))
+
+=========================================
+percent Q string with balanced delimiters
+=========================================
+
+%Q<a<b>c>
+%Q{a{b}c}
+%Q[a[b]c]
+%Q(a(b)c)
+
+---
+
+(program (string) (string) (string) (string))
+
+==================
+backticks subshell
+==================
+
+`/usr/bin/env test blah blah`
+
+---
+
+(program (subshell))
+
+==============================
+backticks subshell with escape
+==============================
+
+`/usr/bin/env test blah \`blah\``
+
+---
+
+(program (subshell))
+
+===========
+empty array
+===========
+
+[]
+
+---
+
+(program (array))
+
+=====
+array
+=====
+
+[ foo, bar ]
+
+---
+
+(program (array (identifier) (identifier)))
+
+=========================
+array with trailing comma
+=========================
+
+[ foo, ]
+
+---
+
+(program (array (identifier)))

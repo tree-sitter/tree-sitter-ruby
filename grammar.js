@@ -20,6 +20,8 @@ const PREC = {
   COMPLEMENT: 85,
 };
 
+const unbalancedDelimiters = '!@#$%^&*)]}>|\\=/+-~`\'",.?:;_';
+
 module.exports = grammar({
   name: 'ruby',
 
@@ -32,7 +34,7 @@ module.exports = grammar({
   rules: {
     program: $ => sep($._statement, $._terminator),
 
-  	_statement: $ => choice(
+    _statement: $ => choice(
       $._declaration,
       seq($._call, "do", optional("|", commaSep($._block_variable), "|"), sep($._statement, $._terminator), "end"),
       seq("undef", $._function_name),
@@ -126,7 +128,7 @@ module.exports = grammar({
     ),
     _function_call: $ => choice("super"),
 
-  	_expression: $ => choice(
+    _expression: $ => choice(
       $._argument,
       $.yield,
       $.and,
@@ -148,12 +150,12 @@ module.exports = grammar({
       $.unary_minus,
       $.exponential,
       $.complement,
-      $.symbol
+      $._literal
     ),
 
-  	_argument: $ => choice($._primary),
+    _argument: $ => choice($._primary),
 
-  	_primary: $ => choice(
+    _primary: $ => choice(
       seq("(", sep($._statement, $._terminator), ")"),
       $._lhs
     ),
@@ -202,11 +204,11 @@ module.exports = grammar({
       $.subscript_expression,
       $.member_access
     ),
-  	_variable: $ => choice($.identifier , 'nil', 'self'),
+    _variable: $ => choice($.identifier , 'self'),
 
-  	identifier: $ => token(seq(repeat(choice('@', '$')), identifierChars())),
+    identifier: $ => token(seq(repeat(choice('@', '$')), identifierChars())),
 
-  	comment: $ => token(choice(
+    comment: $ => token(choice(
       seq('#', /.*/),
       seq(
         '=begin\n',
@@ -215,14 +217,98 @@ module.exports = grammar({
       )
     )),
 
-    symbol: $ => token(seq(':', choice(identifierChars(), operatorChars()))),
+    _literal: $ => choice(
+      $.symbol,
+      $.integer,
+      $.float,
+      $.boolean,
+      $.nil,
+      $.string,
+      $.subshell,
+      $.array
+    ),
+
+    symbol: $ => choice(
+      token(seq(':', choice(identifierChars(), operatorChars())))
+      // seq(':"', $._double_quoted_body),
+      // seq(":'", $._single_quoted_body)
+    ),
+    integer: $ => (/0b[01](_?[01])*|0[oO]?[0-7](_?[0-7])*|(0d)?\d(_?\d)*|0x[0-9a-fA-F](_?[0-9a-fA-F])*/),
+    float: $ => (/\d(_?\d)*\.\d(_?\d)*([eE]\d(_?\d)*)?/),
+    boolean: $ => choice('true', 'false', 'TRUE', 'FALSE'),
+    nil: $ => choice('nil', 'NIL'),
+
+    string: $ => choice(
+      $._single_quoted,
+      $._double_quoted,
+      $._percent,
+      $._percent_q
+    ),
+    _single_quoted: $ => stringBody('', "'"),
+    _double_quoted: $ => stringBody('', '"', $.interpolation),
+    _percent: $ => choice(
+      seq(/%Q?/, choice.apply(null, unbalancedDelimiters.split('').map(d => seq(stringBody(/%Q?/, d, $.interpolation))))),
+      seq(/%Q?</, $._percent_angle, '>'),
+      seq(/%Q?\{/, $._percent_bracket, '}'),
+      seq(/%Q?\(/, $._percent_paren, ')'),
+      seq(/%Q?\[/, $._percent_brace, ']')
+    ),
+    _percent_angle: $ => balancedInner($._percent_angle, '<', '>', $.interpolation),
+    _percent_bracket: $ => balancedInner($._percent_bracket, '[', ']', $.interpolation),
+    _percent_paren: $ => balancedInner($._percent_paren, '(', ')', $.interpolation),
+    _percent_brace: $ => balancedInner($._percent_brace, '{', '}', $.interpolation),
+    _percent_q: $ => choice(
+      choice.apply(null, unbalancedDelimiters.split('').map(d => seq(stringBody('%q', d)))),
+      seq('%q<', $._percent_q_angle, '>'),
+      seq('%q[', $._percent_q_bracket, ']'),
+      seq('%q(', $._percent_q_paren, ')'),
+      seq('%q{', $._percent_q_brace, '}')
+    ),
+    _percent_q_angle: $ => balancedInner($._percent_q_angle, '<', '>'),
+    _percent_q_bracket: $ => balancedInner($._percent_q_bracket, '[', ']'),
+    _percent_q_paren: $ => balancedInner($._percent_q_paren, '(', ')'),
+    _percent_q_brace: $ => balancedInner($._percent_q_brace, '{', '}'),
+    interpolation: $ => seq(token(prec(20, '#{')), $._expression, '}'),
+
+    subshell: $ => choice(
+      $._backticks
+    ),
+    _backticks: $ => stringBody('', '`'),
+
+    array: $ => seq('[', $._array_items, ']'),
+    _array_items: $ => optional(seq($._expression, optional(seq(',', $._array_items)))),
 
     _function_name: $ => choice($.identifier, operatorChars()),
 
     _line_break: $ => '\n',
-  	_terminator: $ => choice($._line_break, ';'),
+    _terminator: $ => choice($._line_break, ';'),
   }
 });
+
+/// Describes the body of a string literal bounded by `delimiter`, and optionally containing (potentially recursive) references to `insert`.
+function stringBody (leading, delimiter, insert) {
+  if (typeof insert === 'undefined') {
+    return seq(leading, delimiter, repeat(choice(/\\./, RegExp('[^\\\\\\' + delimiter + ']'))), delimiter);
+  } else {
+    return seq(leading, delimiter, repeat(choice(/\\./, insert, RegExp('[^\\\\\\' + delimiter + ']'))), delimiter);
+  }
+}
+
+function balancedInner (me, open, close, insert) {
+  if (typeof insert === 'undefined') {
+    return repeat(choice(/\\./, seq(open, me, close), RegExp('[^\\\\\\' + open + '\\' + close + ']')));
+  } else {
+    return repeat(choice(/\\./, seq(open, me, close), insert, RegExp('[^\\\\\\' + open + '\\' + close + ']')));
+  }
+}
+
+function balancedStringBody (me, open, close, insert) {
+  if (typeof insert === 'undefined') {
+    return seq(open, repeat(choice(/\\./, me, RegExp('[^\\\\\\' + open + '\\' + close + ']'))), close);
+  } else {
+    return seq(open, repeat(choice(/\\./, me, insert, RegExp('[^\\\\\\' + open + '\\' + close + ']'))), close);
+  }
+}
 
 function identifierChars () {
   return /[a-zA-Z_][a-zA-Z0-9_]*/;
@@ -246,8 +332,4 @@ function commaSep1 (rule) {
 
 function commaSep (rule) {
   return optional(commaSep1(rule));
-}
-
-function optionalParens (rule) {
-  return choice(seq("(", rule, ")"), rule)
 }
