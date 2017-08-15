@@ -339,6 +339,16 @@ complex
 
 (program (unary (complex)) (complex) (complex) (complex) (complex) (complex))
 
+========
+rational
+========
+
+2/3r
+
+---
+
+(program (binary (integer) (rational (integer))))
+
 =======
 boolean
 =======

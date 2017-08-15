@@ -1952,6 +1952,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "rational"
+        },
+        {
+          "type": "SYMBOL",
           "name": "string"
         },
         {
@@ -4122,6 +4126,19 @@
         "type": "PATTERN",
         "value": "(\\d+)?(\\+|-)?(\\d+)i"
       }
+    },
+    "rational": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "integer"
+        },
+        {
+          "type": "STRING",
+          "value": "r"
+        }
+      ]
     },
     "super": {
       "type": "STRING",
