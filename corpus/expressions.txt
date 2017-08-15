@@ -923,10 +923,13 @@ lambda expression with body
 ==================
 
 lambda { foo }
+lambda(&block) { foo }
 
 ---
 
-(program (lambda (block (identifier))))
+(program
+  (lambda (block (identifier)))
+  (lambda (lambda_parameters (block_parameter (identifier))) (block (identifier))))
 
 ====================
 lambda expression with an arg

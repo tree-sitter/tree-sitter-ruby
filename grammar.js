@@ -662,7 +662,7 @@ module.exports = grammar({
     ),
 
     lambda: $ => choice(
-      prec.left(seq('lambda', optional(choice($.block, $.do_block)))),
+      prec.left(seq('lambda', optional($.lambda_parameters), optional(choice($.block, $.do_block)))),
       seq('->', optional($.lambda_parameters), choice($.block, $.do_block))
     ),
 
