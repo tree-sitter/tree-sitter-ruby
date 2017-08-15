@@ -126,10 +126,10 @@ module.exports = grammar({
       seq($._simple_formal_parameter, ',', commaSep1($._formal_parameter), $._terminator)
     )),
 
-    lambda_parameters: $ => choice(
+    lambda_parameters: $ => prec.right(choice(
       seq('(', commaSep($._formal_parameter), ')'),
-      $._simple_formal_parameter
-    ),
+      commaSep1($._simple_formal_parameter)
+    )),
 
     block_parameters: $ => seq(
       '|',
