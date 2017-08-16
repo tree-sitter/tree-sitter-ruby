@@ -151,7 +151,7 @@ module.exports = grammar({
     destructured_parameter: $ => seq('(', commaSep1($._formal_parameter), ')'),
     splat_parameter: $ => seq('*', optional($.identifier)),
     hash_splat_parameter: $ => seq('**', optional($.identifier)),
-    block_parameter: $ => seq('&', $.identifier),
+    block_parameter: $ => seq('&', $._arg),
     keyword_parameter: $ => prec.right(PREC.BITWISE_OR + 1, seq($.identifier, $._keyword_colon, optional($._arg))),
     optional_parameter: $ => prec(PREC.BITWISE_OR + 1, seq($.identifier, '=', $._arg)),
 

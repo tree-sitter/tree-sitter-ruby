@@ -919,17 +919,19 @@ lambda { lambda }
   (lambda (block (lambda))))
 
 ==================
-lambda expression with body
+lambda expressions
 ==================
 
 lambda { foo }
 lambda(&block) { foo }
+lambda(&lambda{})
 
 ---
 
 (program
   (lambda (block (identifier)))
-  (lambda (lambda_parameters (block_parameter (identifier))) (block (identifier))))
+  (lambda (lambda_parameters (block_parameter (identifier))) (block (identifier)))
+  (lambda (lambda_parameters (block_parameter (lambda (block))))))
 
 ====================
 lambda expression with an arg
