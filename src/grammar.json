@@ -3659,21 +3659,8 @@
       "value": "[A-Z][a-zA-Z0-9_]*(\\?|\\!)?"
     },
     "identifier": {
-      "type": "CHOICE",
-      "members": [
-        {
-          "type": "PATTERN",
-          "value": "[a-z_][a-zA-Z0-9_]*(\\?|\\!)?"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "_proc_keyword"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "_lambda_keyword"
-        }
-      ]
+      "type": "PATTERN",
+      "value": "[a-z_][a-zA-Z0-9_]*(\\?|\\!)?"
     },
     "instance_variable": {
       "type": "PATTERN",
@@ -4693,112 +4680,38 @@
       ]
     },
     "lambda": {
-      "type": "CHOICE",
+      "type": "SEQ",
       "members": [
         {
-          "type": "PREC_LEFT",
-          "value": 1,
-          "content": {
-            "type": "SEQ",
-            "members": [
-              {
-                "type": "CHOICE",
-                "members": [
-                  {
-                    "type": "SYMBOL",
-                    "name": "_lambda_keyword"
-                  },
-                  {
-                    "type": "SYMBOL",
-                    "name": "_proc_keyword"
-                  }
-                ]
-              },
-              {
-                "type": "CHOICE",
-                "members": [
-                  {
-                    "type": "SYMBOL",
-                    "name": "lambda_parameters"
-                  },
-                  {
-                    "type": "SEQ",
-                    "members": [
-                      {
-                        "type": "CHOICE",
-                        "members": [
-                          {
-                            "type": "SYMBOL",
-                            "name": "lambda_parameters"
-                          },
-                          {
-                            "type": "BLANK"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "CHOICE",
-                        "members": [
-                          {
-                            "type": "SYMBOL",
-                            "name": "block"
-                          },
-                          {
-                            "type": "SYMBOL",
-                            "name": "do_block"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
+          "type": "STRING",
+          "value": "->"
         },
         {
-          "type": "SEQ",
+          "type": "CHOICE",
           "members": [
             {
-              "type": "STRING",
-              "value": "->"
+              "type": "SYMBOL",
+              "name": "lambda_parameters"
             },
             {
-              "type": "CHOICE",
-              "members": [
-                {
-                  "type": "SYMBOL",
-                  "name": "lambda_parameters"
-                },
-                {
-                  "type": "BLANK"
-                }
-              ]
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "block"
             },
             {
-              "type": "CHOICE",
-              "members": [
-                {
-                  "type": "SYMBOL",
-                  "name": "block"
-                },
-                {
-                  "type": "SYMBOL",
-                  "name": "do_block"
-                }
-              ]
+              "type": "SYMBOL",
+              "name": "do_block"
             }
           ]
         }
       ]
-    },
-    "_proc_keyword": {
-      "type": "STRING",
-      "value": "proc"
-    },
-    "_lambda_keyword": {
-      "type": "STRING",
-      "value": "lambda"
     },
     "empty_statement": {
       "type": "PREC",
