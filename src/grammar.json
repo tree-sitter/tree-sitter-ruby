@@ -3659,8 +3659,21 @@
       "value": "[A-Z][a-zA-Z0-9_]*(\\?|\\!)?"
     },
     "identifier": {
-      "type": "PATTERN",
-      "value": "[a-z_][a-zA-Z0-9_]*(\\?|\\!)?"
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "[a-z_][a-zA-Z0-9_]*(\\?|\\!)?"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_proc_keyword"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_lambda_keyword"
+        }
+      ]
     },
     "instance_variable": {
       "type": "PATTERN",
@@ -4684,7 +4697,7 @@
       "members": [
         {
           "type": "PREC_LEFT",
-          "value": 0,
+          "value": 1,
           "content": {
             "type": "SEQ",
             "members": [
@@ -4692,12 +4705,12 @@
                 "type": "CHOICE",
                 "members": [
                   {
-                    "type": "STRING",
-                    "value": "lambda"
+                    "type": "SYMBOL",
+                    "name": "_lambda_keyword"
                   },
                   {
-                    "type": "STRING",
-                    "value": "proc"
+                    "type": "SYMBOL",
+                    "name": "_proc_keyword"
                   }
                 ]
               },
@@ -4709,28 +4722,34 @@
                     "name": "lambda_parameters"
                   },
                   {
-                    "type": "BLANK"
-                  }
-                ]
-              },
-              {
-                "type": "CHOICE",
-                "members": [
-                  {
-                    "type": "CHOICE",
+                    "type": "SEQ",
                     "members": [
                       {
-                        "type": "SYMBOL",
-                        "name": "block"
+                        "type": "CHOICE",
+                        "members": [
+                          {
+                            "type": "SYMBOL",
+                            "name": "lambda_parameters"
+                          },
+                          {
+                            "type": "BLANK"
+                          }
+                        ]
                       },
                       {
-                        "type": "SYMBOL",
-                        "name": "do_block"
+                        "type": "CHOICE",
+                        "members": [
+                          {
+                            "type": "SYMBOL",
+                            "name": "block"
+                          },
+                          {
+                            "type": "SYMBOL",
+                            "name": "do_block"
+                          }
+                        ]
                       }
                     ]
-                  },
-                  {
-                    "type": "BLANK"
                   }
                 ]
               }
@@ -4772,6 +4791,14 @@
           ]
         }
       ]
+    },
+    "_proc_keyword": {
+      "type": "STRING",
+      "value": "proc"
+    },
+    "_lambda_keyword": {
+      "type": "STRING",
+      "value": "lambda"
     },
     "empty_statement": {
       "type": "PREC",

@@ -502,7 +502,11 @@ module.exports = grammar({
 
     constant: $ => /[A-Z][a-zA-Z0-9_]*(\?|\!)?/,
 
-    identifier: $ => /[a-z_][a-zA-Z0-9_]*(\?|\!)?/,
+    identifier: $ => choice(
+      /[a-z_][a-zA-Z0-9_]*(\?|\!)?/,
+      $._proc_keyword,
+      $._lambda_keyword
+    ),
 
     instance_variable: $ => /@[a-zA-Z_][a-zA-Z0-9_]*/,
 
@@ -662,9 +666,18 @@ module.exports = grammar({
     ),
 
     lambda: $ => choice(
-      prec.left(seq(choice('lambda', 'proc'), optional($.lambda_parameters), optional(choice($.block, $.do_block)))),
+      prec.left(1, seq(
+        choice($._lambda_keyword, $._proc_keyword),
+        choice(
+          $.lambda_parameters,
+          seq(optional($.lambda_parameters), choice($.block, $.do_block))
+        )
+      )),
       seq('->', optional($.lambda_parameters), choice($.block, $.do_block))
     ),
+
+    _proc_keyword: $ => 'proc',
+    _lambda_keyword: $ => 'lambda',
 
     empty_statement: $ => prec(-1, ';'),
 
