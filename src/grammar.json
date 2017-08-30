@@ -885,8 +885,8 @@
           "value": "class"
         },
         {
-          "type": "STRING",
-          "value": "<<"
+          "type": "SYMBOL",
+          "name": "_singleton_class_left_angle_left_langle"
         },
         {
           "type": "SYMBOL",
@@ -4862,6 +4862,10 @@
     {
       "type": "SYMBOL",
       "name": "_binary_star"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_singleton_class_left_angle_left_langle"
     }
   ],
   "inline": []
