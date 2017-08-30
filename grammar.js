@@ -169,7 +169,7 @@ module.exports = grammar({
 
     singleton_class: $ => seq(
       'class',
-      $._singleton_class_left_angle_left_langle,
+      alias($._singleton_class_left_angle_left_langle, '<<'),
       $._arg,
       $._terminator,
       optional($._body_statement),

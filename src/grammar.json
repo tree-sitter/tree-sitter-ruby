@@ -885,8 +885,13 @@
           "value": "class"
         },
         {
-          "type": "SYMBOL",
-          "name": "_singleton_class_left_angle_left_langle"
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_singleton_class_left_angle_left_langle"
+          },
+          "named": false,
+          "value": "<<"
         },
         {
           "type": "SYMBOL",
