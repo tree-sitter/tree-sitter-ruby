@@ -37,7 +37,8 @@ enum TokenType {
   UNARY_MINUS,
   BINARY_MINUS,
   BINARY_STAR,
-  SINGLETON_CLASS_LEFT_ANGLE_LEFT_ANGLE
+  SINGLETON_CLASS_LEFT_ANGLE_LEFT_ANGLE,
+  RESERVED_KEYWORD_IDENTIFIER
 };
 
 struct Literal {
@@ -77,6 +78,46 @@ TokenType SIMPLE_TOKEN_TYPES[] = {
   SIMPLE_SUBSHELL,
   SIMPLE_REGEX,
   SIMPLE_WORD_LIST,
+};
+
+// Can be used as keyword arguments syntax for hash parameter in a method call (e.g. `foo unless: true`).
+string RESERVED_IDENTIFIERS[] = {
+  "alias",
+  "and",
+  "begin",
+  "break",
+  "case",
+  "class",
+  "def",
+  "defined",
+  "do",
+  "else",
+  "elsif",
+  "end",
+  "ensure",
+  "false",
+  "for",
+  "if",
+  "in",
+  "module",
+  "next",
+  "nil",
+  "not",
+  "or",
+  "redo",
+  "rescue",
+  "retry",
+  "return",
+  "self",
+  "super",
+  "then",
+  "true",
+  "undef",
+  "unless",
+  "until",
+  "when",
+  "while",
+  "yield",
 };
 
 struct Scanner {
@@ -634,6 +675,54 @@ struct Scanner {
     }
   }
 
+  bool scan_reserved_keyword_identifier(TSLexer *lexer, const bool *valid_symbols) {
+    if (!valid_symbols[RESERVED_KEYWORD_IDENTIFIER]) return false;
+    if (!iswalpha(lexer->lookahead)) return false;
+
+    // printf("-----> scanning for reserved keywords, lookahead = '%c'\n", lexer->lookahead);
+    vector<string> matching_identifiers;
+    size_t position_in_word = 0;
+
+    for (const string &identifier : RESERVED_IDENTIFIERS) {
+      matching_identifiers.push_back(identifier);
+    }
+
+    for (;;) {
+      if (lexer->lookahead == 0) break;
+
+      for (vector<string>::iterator iter = matching_identifiers.begin(); iter != matching_identifiers.end();) {
+        // printf("-----> trying to match \"%s\": ", iter->c_str());
+        if (position_in_word < iter->length() && lexer->lookahead == (*iter)[position_in_word]) {
+          // printf("matched '%c'\n", lexer->lookahead);
+          ++iter;
+        } else {
+          matching_identifiers.erase(iter);
+          // printf("not matched\n");
+        }
+      }
+
+      if (matching_identifiers.empty()) break;
+
+      advance(lexer);
+      position_in_word++;
+
+      if(lexer->lookahead == ':') {
+        for (vector<string>::iterator iter = matching_identifiers.begin(); iter != matching_identifiers.end(); ++iter) {
+          if(position_in_word == iter->length()) {
+            advance(lexer);
+            lexer->result_symbol = RESERVED_KEYWORD_IDENTIFIER;
+            // printf("-----> done, found reserved keyword identifier \"%s\"\n", iter->c_str());
+            return true;
+          }
+        }
+        break;
+      }
+    }
+
+    // printf("-----> done\n");
+    return false;
+  }
+
   bool scan(TSLexer *lexer, const bool *valid_symbols) {
     has_leading_whitespace = false;
     bool found_heredoc_starting_linebreak = false;
@@ -754,6 +843,8 @@ struct Scanner {
         }
       }
     }
+
+    if (scan_reserved_keyword_identifier(lexer, valid_symbols)) return true;
 
     if (valid_symbols[STRING_MIDDLE] && ! literal_stack.empty()) {
       Literal &literal = literal_stack.back();
