@@ -654,6 +654,14 @@ foo B: true
   (method_call (identifier) (argument_list (pair (constant) (true)))))
 
 ===============================
+method call with reserved keyword arg
+===============================
+
+foo if: :a
+
+---
+
+===============================
 method call with paren args
 ===============================
 
