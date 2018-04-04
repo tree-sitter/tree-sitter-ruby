@@ -797,7 +797,6 @@ struct Scanner {
     }
 
     if (valid_symbols[RESERVED_KEYWORD_IDENTIFIER] && iswalpha(lexer->lookahead)) {
-      // printf("-----> scanning for reserved keywords, lookahead = '%c'\n", lexer->lookahead);
       vector<string> matching_identifiers;
       size_t position_in_word = 0;
 
@@ -809,13 +808,10 @@ struct Scanner {
         if (lexer->lookahead == 0) break;
 
         for (vector<string>::iterator iter = matching_identifiers.begin(); iter != matching_identifiers.end();) {
-          // printf("-----> trying to match \"%s\": ", iter->c_str());
           if (position_in_word < iter->length() && lexer->lookahead == (*iter)[position_in_word]) {
-            // printf("matched '%c'\n", lexer->lookahead);
             ++iter;
           } else {
             matching_identifiers.erase(iter);
-            // printf("not matched\n");
           }
         }
 
@@ -829,7 +825,6 @@ struct Scanner {
             if(position_in_word == iter->length()) {
               advance(lexer);
               lexer->result_symbol = RESERVED_KEYWORD_IDENTIFIER;
-              // printf("-----> done, found reserved keyword identifier \"%s\"\n", iter->c_str());
               return true;
             }
           }
@@ -837,7 +832,6 @@ struct Scanner {
         }
       }
 
-      // printf("-----> done\n");
       return false;
     }
 
