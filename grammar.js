@@ -59,7 +59,7 @@ module.exports = grammar({
     $._binary_minus,
     $._binary_star,
     $._singleton_class_left_angle_left_langle,
-    $._reserved_keyword_identifier
+    $._identifier_hash_key
   ],
 
   extras: $ => [
@@ -621,7 +621,7 @@ module.exports = grammar({
             ),
             $._keyword_colon
           ),
-          alias($._reserved_keyword_identifier, $.identifier)
+          alias($._identifier_hash_key, $.identifier)
         ),
         $._arg
       ),

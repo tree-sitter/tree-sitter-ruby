@@ -4340,7 +4340,7 @@
                     "type": "ALIAS",
                     "content": {
                       "type": "SYMBOL",
-                      "name": "_reserved_keyword_identifier"
+                      "name": "_identifier_hash_key"
                     },
                     "named": true,
                     "value": "identifier"
@@ -4597,7 +4597,7 @@
     },
     {
       "type": "SYMBOL",
-      "name": "_reserved_keyword_identifier"
+      "name": "_identifier_hash_key"
     }
   ],
   "inline": []

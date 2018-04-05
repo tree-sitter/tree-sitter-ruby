@@ -38,7 +38,7 @@ enum TokenType {
   BINARY_MINUS,
   BINARY_STAR,
   SINGLETON_CLASS_LEFT_ANGLE_LEFT_ANGLE,
-  RESERVED_KEYWORD_IDENTIFIER
+  IDENTIFIER_HASH_KEY
 };
 
 struct Literal {
@@ -78,46 +78,6 @@ TokenType SIMPLE_TOKEN_TYPES[] = {
   SIMPLE_SUBSHELL,
   SIMPLE_REGEX,
   SIMPLE_WORD_LIST,
-};
-
-// Can be used as keyword arguments syntax for hash parameter in a method call (e.g. `foo unless: true`).
-string RESERVED_IDENTIFIERS[] = {
-  "alias",
-  "and",
-  "begin",
-  "break",
-  "case",
-  "class",
-  "def",
-  "defined",
-  "do",
-  "else",
-  "elsif",
-  "end",
-  "ensure",
-  "false",
-  "for",
-  "if",
-  "in",
-  "module",
-  "next",
-  "nil",
-  "not",
-  "or",
-  "redo",
-  "rescue",
-  "retry",
-  "return",
-  "self",
-  "super",
-  "then",
-  "true",
-  "undef",
-  "unless",
-  "until",
-  "when",
-  "while",
-  "yield",
 };
 
 struct Scanner {
@@ -796,43 +756,25 @@ struct Scanner {
       }
     }
 
-    if (valid_symbols[RESERVED_KEYWORD_IDENTIFIER] && iswalpha(lexer->lookahead)) {
-      vector<string> matching_identifiers;
-      size_t position_in_word = 0;
-
-      for (const string &identifier : RESERVED_IDENTIFIERS) {
-        matching_identifiers.push_back(identifier);
-      }
-
+    if (valid_symbols[IDENTIFIER_HASH_KEY]) {
       for (;;) {
         if (lexer->lookahead == 0) break;
 
-        for (vector<string>::iterator iter = matching_identifiers.begin(); iter != matching_identifiers.end();) {
-          if (position_in_word < iter->length() && lexer->lookahead == (*iter)[position_in_word]) {
-            ++iter;
-          } else {
-            matching_identifiers.erase(iter);
-          }
-        }
-
-        if (matching_identifiers.empty()) break;
-
-        advance(lexer);
-        position_in_word++;
-
-        if(lexer->lookahead == ':') {
-          for (vector<string>::iterator iter = matching_identifiers.begin(); iter != matching_identifiers.end(); ++iter) {
-            if(position_in_word == iter->length()) {
-              advance(lexer);
-              lexer->result_symbol = RESERVED_KEYWORD_IDENTIFIER;
+        if (iswalpha(lexer->lookahead)) {
+          advance(lexer);
+          if (lexer->lookahead == ':') {
+            advance(lexer);
+            if (lexer->lookahead != ':') {
+              lexer->result_symbol = IDENTIFIER_HASH_KEY;
               return true;
+            } else {
+              return false;
             }
           }
+        } else {
           break;
         }
       }
-
-      return false;
     }
 
     if (valid_symbols[STRING_MIDDLE] && ! literal_stack.empty()) {
