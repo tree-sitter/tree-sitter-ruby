@@ -229,6 +229,7 @@ struct Scanner {
           if (!open_heredocs.empty() && !*found_heredoc_starting_linebreak) {
             skip(lexer);
             *found_heredoc_starting_linebreak = true;
+            // printf("found_heredoc_starting_linebreak\n");
             return true;
           } else if (valid_symbols[LINE_BREAK]) {
             advance(lexer);
@@ -704,6 +705,7 @@ struct Scanner {
     }
 
     if (valid_symbols[HEREDOC_BODY_BEGINNING] && !open_heredocs.empty() && found_heredoc_starting_linebreak) {
+      // printf("scanning for heredoc body beginning");
       if (literal_stack.empty()) {
         switch (scan_heredoc_content(lexer)) {
           case Error:
