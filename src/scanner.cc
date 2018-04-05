@@ -1,11 +1,13 @@
 #include <tree_sitter/parser.h>
 #include <vector>
+#include <set>
 #include <string>
 #include <cwctype>
 
 namespace {
 
 using std::vector;
+using std::set;
 using std::string;
 
 enum TokenType {
@@ -78,6 +80,45 @@ TokenType SIMPLE_TOKEN_TYPES[] = {
   SIMPLE_SUBSHELL,
   SIMPLE_REGEX,
   SIMPLE_WORD_LIST,
+};
+
+// const IDENTIFIER_CHARS = /[^\s:;`"'@$#.,|^&<=>+\-*/\\%?!~()\[\]{}]*/;
+set<char> NON_ALPHA_NUM_CHARS = {
+  '\n',
+  '\r',
+  '\t',
+  ' ',
+  ':',
+  ';',
+  '`',
+  '"',
+  '\'',
+  '@',
+  '$',
+  '#',
+  '.',
+  ',',
+  '|',
+  '^',
+  '&',
+  '<',
+  '=',
+  '>',
+  '+',
+  '-',
+  '*',
+  '/',
+  '\\',
+  '%',
+  '?',
+  '!',
+  '~',
+  '(',
+  ')',
+  '[',
+  ']',
+  '{',
+  '}',
 };
 
 struct Scanner {
@@ -295,6 +336,10 @@ struct Scanner {
     }
   }
 
+  bool is_iden_char(char c) {
+    return NON_ALPHA_NUM_CHARS.find(c) == NON_ALPHA_NUM_CHARS.end();
+  }
+
   bool scan_symbol_identifier(TSLexer *lexer) {
     if (lexer->lookahead == '@') {
       advance(lexer);
@@ -305,13 +350,13 @@ struct Scanner {
       advance(lexer);
     }
 
-    if (iswalnum(lexer->lookahead) || (lexer->lookahead == '_')) {
+    if (is_iden_char(lexer->lookahead)) {
       advance(lexer);
     } else if (!scan_operator(lexer)) {
       return false;
     }
 
-    while (iswalnum(lexer->lookahead) || (lexer->lookahead == '_')) {
+    while (is_iden_char(lexer->lookahead)) {
       advance(lexer);
     }
 

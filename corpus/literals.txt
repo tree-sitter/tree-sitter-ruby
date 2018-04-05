@@ -12,10 +12,12 @@ symbol
 :$foo
 :$0
 :_bar
+:åäö
 
 ---
 
 (program
+  (symbol)
   (symbol)
   (symbol)
   (symbol)
@@ -1399,3 +1401,22 @@ end
 ---
 
 (program (lambda (lambda_parameters (identifier)) (do_block (integer))))
+
+====================
+non-ascii identifiers
+====================
+
+Cß
+@äö
+@@äö
+:äö
+äö
+
+---
+
+(program
+  (constant)
+  (instance_variable)
+  (class_variable)
+  (symbol)
+  (identifier))
