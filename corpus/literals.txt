@@ -748,6 +748,24 @@ SQL
   (argument_list)))
 
 ========================================
+heredocs with method continuation part 2
+========================================
+
+joins(<<~SQL).
+   `foo`
+SQL
+where("a")
+
+---
+
+(program
+  (method_call
+    (call
+      (method_call (identifier) (argument_list (heredoc_beginning)))
+      (heredoc_end) (identifier))
+    (argument_list (string))))
+
+========================================
 heredocs with interpolation
 ========================================
 
