@@ -81,7 +81,7 @@ TokenType SIMPLE_TOKEN_TYPES[] = {
 };
 
 // Can be used as keyword arguments syntax for hash parameter in a method call (e.g. `foo unless: true`).
-string RESERVED_IDENTIFIERS[] = {
+vector<string> RESERVED_IDENTIFIERS = {
   "alias",
   "and",
   "begin",
@@ -797,12 +797,8 @@ struct Scanner {
     }
 
     if (valid_symbols[RESERVED_KEYWORD_IDENTIFIER] && iswalpha(lexer->lookahead)) {
-      vector<string> matching_identifiers;
       size_t position_in_word = 0;
-
-      for (const string &identifier : RESERVED_IDENTIFIERS) {
-        matching_identifiers.push_back(identifier);
-      }
+      vector<string> matching_identifiers(RESERVED_IDENTIFIERS);
 
       for (;;) {
         if (lexer->lookahead == 0) break;
