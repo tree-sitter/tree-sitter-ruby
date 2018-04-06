@@ -1,13 +1,11 @@
 #include <tree_sitter/parser.h>
 #include <vector>
-#include <set>
 #include <string>
 #include <cwctype>
 
 namespace {
 
 using std::vector;
-using std::set;
 using std::string;
 
 enum TokenType {
@@ -82,8 +80,7 @@ TokenType SIMPLE_TOKEN_TYPES[] = {
   SIMPLE_WORD_LIST,
 };
 
-// const IDENTIFIER_CHARS = /[^\s:;`"'@$#.,|^&<=>+\-*/\\%?!~()\[\]{}]*/;
-set<char> NON_ALPHA_NUM_CHARS = {
+const char NON_IDENTIFIER_CHARS[] = {
   '\n',
   '\r',
   '\t',
@@ -337,7 +334,7 @@ struct Scanner {
   }
 
   bool is_iden_char(char c) {
-    return NON_ALPHA_NUM_CHARS.find(c) == NON_ALPHA_NUM_CHARS.end();
+    return memchr(&NON_IDENTIFIER_CHARS, c, sizeof(NON_IDENTIFIER_CHARS)) == NULL;
   }
 
   bool scan_symbol_identifier(TSLexer *lexer) {
