@@ -589,6 +589,19 @@ string chaining
   (chained_string (string) (string) (string))
   (chained_string (string) (string)))
 
+==========================
+newline-delimited strings
+==========================
+
+flash[:notice] = "Pattern addition failed for '%s' in '%s'", %
+                  [pattern, key]
+
+----
+
+(program (assignment
+  (element_reference (identifier) (symbol))
+  (right_assignment_list (string) (string))))
+
 ========================================
 Single character string literals
 ========================================
