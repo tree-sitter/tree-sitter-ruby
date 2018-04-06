@@ -506,7 +506,9 @@ struct Scanner {
           case '#':
           case '/':
           case '\\':
-          case '\n':
+          // TODO: Allow newline delimited strings, but need to resolve
+          // ambiguity when % is a valid operator.
+          // case '\n':
           case '@':
           case '$':
           case '%':
