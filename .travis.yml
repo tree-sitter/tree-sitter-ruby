@@ -5,6 +5,10 @@ sudo: false
 node_js:
   - "node"
 
+os:
+- linux
+- osx
+
 compiler: clang-3.6
 
 env:
@@ -17,6 +21,11 @@ addons:
       - ubuntu-toolchain-r-test
     packages:
       - clang-3.6
+
+script:
+  - npm test
+  - npm run prebuild
+  - npm run prebuild:upload -u ${PREBUILD_UPLOAD}
 
 branches:
   only:

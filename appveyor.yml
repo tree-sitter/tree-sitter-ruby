@@ -5,6 +5,7 @@ environment:
 
 platform:
   - x64
+  - x86
 
 install:
   - ps: Install-Product node $env:nodejs_version
@@ -14,6 +15,8 @@ install:
 
 test_script:
   - npm run test-windows
+  - npm run prebuild
+  - npm run prebuild:upload -u %PREBUILD_UPLOAD%
 
 build: off
 
