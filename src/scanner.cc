@@ -219,6 +219,12 @@ struct Scanner {
 
   bool scan_whitespace(TSLexer *lexer, const bool *valid_symbols, bool *found_heredoc_starting_linebreak) {
     for (;;) {
+      if (valid_symbols[LINE_BREAK] && lexer->is_at_included_range_start(lexer)) {
+        lexer->mark_end(lexer);
+        lexer->result_symbol = LINE_BREAK;
+        return true;
+      }
+
       switch (lexer->lookahead) {
         case ' ':
         case '\t':
