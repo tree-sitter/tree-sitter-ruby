@@ -235,7 +235,6 @@ struct Scanner {
           if (!open_heredocs.empty() && !*found_heredoc_starting_linebreak) {
             skip(lexer);
             *found_heredoc_starting_linebreak = true;
-            return true;
           } else if (valid_symbols[LINE_BREAK]) {
             advance(lexer);
             lexer->mark_end(lexer);
@@ -248,8 +247,8 @@ struct Scanner {
             }
           } else {
             skip(lexer);
-            break;
           }
+          break;
         case '\\':
           skip(lexer);
           if (lexer->lookahead == '\n' || lexer->lookahead == '\r') {
@@ -564,15 +563,6 @@ struct Scanner {
     }
   }
 
-  bool scan_interpolation_close(TSLexer *lexer) {
-    if (lexer->lookahead == '}') {
-      advance(lexer);
-      return true;
-    } else {
-      return false;
-    }
-  }
-
   string scan_heredoc_word(TSLexer *lexer) {
     string result;
     int32_t quote;
@@ -619,14 +609,17 @@ struct Scanner {
 
     for (;;) {
       if (position_in_word == heredoc.word.size()) {
+        lexer->mark_end(lexer);
         while (lexer->lookahead == ' ' || lexer->lookahead == '\t') advance(lexer);
         if (lookahead_is_line_end(lexer)) {
           open_heredocs.erase(open_heredocs.begin());
           return End;
         }
       }
+
       if (lexer->lookahead == 0) {
         open_heredocs.erase(open_heredocs.begin());
+        lexer->mark_end(lexer);
         return End;
       }
 
@@ -637,6 +630,7 @@ struct Scanner {
         position_in_word = 0;
         look_for_heredoc_end = false;
         if (lexer->lookahead == '#') {
+          lexer->mark_end(lexer);
           advance(lexer);
           if (lexer->lookahead == '{') {
             advance(lexer);
@@ -666,6 +660,7 @@ struct Scanner {
             advance(lexer);
           }
         }
+        lexer->mark_end(lexer);
         return End;
       }
 
@@ -676,6 +671,7 @@ struct Scanner {
         literal.nesting_depth++;
         advance(lexer);
       } else if (literal.allows_interpolation && lexer->lookahead == '#') {
+        lexer->mark_end(lexer);
         advance(lexer);
         if (lexer->lookahead == '{') {
           advance(lexer);
@@ -686,6 +682,7 @@ struct Scanner {
         advance(lexer);
       } else if (lexer->lookahead == 0) {
         advance(lexer);
+        lexer->mark_end(lexer);
         return Error;
       } else {
         advance(lexer);
@@ -706,18 +703,16 @@ struct Scanner {
     if (!scan_whitespace(lexer, valid_symbols, &found_heredoc_starting_linebreak)) return false;
     if (lexer->result_symbol == LINE_BREAK) return true;
 
-    if (valid_symbols[HEREDOC_BODY_MIDDLE] && !open_heredocs.empty()) {
-      if (scan_interpolation_close(lexer)) {
-        switch (scan_heredoc_content(lexer)) {
-          case Error:
-            return false;
-          case Interpolation:
-            lexer->result_symbol = HEREDOC_BODY_MIDDLE;
-            return true;
-          case End:
-            lexer->result_symbol = HEREDOC_BODY_END;
-            return true;
-        }
+    if (valid_symbols[HEREDOC_BODY_MIDDLE] && !valid_symbols[LINE_BREAK] && !open_heredocs.empty()) {
+      switch (scan_heredoc_content(lexer)) {
+        case Error:
+          return false;
+        case Interpolation:
+          lexer->result_symbol = HEREDOC_BODY_MIDDLE;
+          return true;
+        case End:
+          lexer->result_symbol = HEREDOC_BODY_END;
+          return true;
       }
     }
 
@@ -831,19 +826,16 @@ struct Scanner {
 
     if (valid_symbols[STRING_MIDDLE] && ! literal_stack.empty()) {
       Literal &literal = literal_stack.back();
-
-      if (scan_interpolation_close(lexer)) {
-        switch (scan_content(lexer, literal)) {
-          case Error:
-            return false;
-          case Interpolation:
-            lexer->result_symbol = STRING_MIDDLE;
-            return true;
-          case End:
-            literal_stack.pop_back();
-            lexer->result_symbol = STRING_END;
-            return true;
-        }
+      switch (scan_content(lexer, literal)) {
+        case Error:
+          return false;
+        case Interpolation:
+          lexer->result_symbol = STRING_MIDDLE;
+          return true;
+        case End:
+          literal_stack.pop_back();
+          lexer->result_symbol = STRING_END;
+          return true;
       }
     }
 
