@@ -1893,6 +1893,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "character"
+        },
+        {
+          "type": "SYMBOL",
           "name": "chained_string"
         },
         {
@@ -4046,7 +4050,7 @@
         }
       ]
     },
-    "_character_literal": {
+    "character": {
       "type": "PATTERN",
       "value": "\\?(\\\\\\S({[0-9]*}|[0-9]*|-\\S([MC]-\\S)?)?|\\S)"
     },
@@ -4073,10 +4077,6 @@
         {
           "type": "SYMBOL",
           "name": "_simple_string"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "_character_literal"
         },
         {
           "type": "SEQ",

@@ -638,17 +638,17 @@ foo(?/)
 ---
 
 (program
-  (string)
-  (string)
-  (string)
-  (string)
-  (string)
-  (string)
-  (string)
-  (string)
-  (string)
-  (string)
-  (method_call (identifier) (argument_list (string))))
+  (character)
+  (character)
+  (character)
+  (character)
+  (character)
+  (character)
+  (character)
+  (character)
+  (character)
+  (character)
+  (method_call (identifier) (argument_list (character))))
 
 ========================================
 nested strings with different delimiters

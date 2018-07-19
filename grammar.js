@@ -304,6 +304,7 @@ module.exports = grammar({
       $.complex,
       $.rational,
       $.string,
+      $.character,
       $.chained_string,
       $.regex,
       $.lambda,
@@ -560,7 +561,7 @@ module.exports = grammar({
 
     chained_string: $ => seq($.string, repeat1($.string)),
 
-    _character_literal: $ => /\?(\\\S({[0-9]*}|[0-9]*|-\S([MC]-\S)?)?|\S)/,
+    character: $ => /\?(\\\S({[0-9]*}|[0-9]*|-\S([MC]-\S)?)?|\S)/,
 
     interpolation: $ => seq(
       '#{', $._statement, '}'
@@ -568,7 +569,6 @@ module.exports = grammar({
 
     string: $ => choice(
       $._simple_string,
-      $._character_literal,
       seq(
         $._string_beginning,
         sep1($.interpolation, $._string_middle),
