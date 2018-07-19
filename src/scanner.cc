@@ -10,36 +10,37 @@ using std::vector;
 using std::string;
 
 enum TokenType {
-  SIMPLE_STRING,
+  LINE_BREAK,
+
+  // Delimited literals
   SIMPLE_SYMBOL,
-  SIMPLE_SUBSHELL,
-  SIMPLE_REGEX,
-  SIMPLE_WORD_LIST,
-  SIMPLE_HEREDOC_BODY,
-  STRING_BEGINNING,
-  SYMBOL_BEGINNING,
-  SUBSHELL_BEGINNING,
-  REGEX_BEGINNING,
-  WORD_LIST_BEGINNING,
-  HEREDOC_BODY_BEGINNING,
-  STRING_MIDDLE,
-  HEREDOC_BODY_MIDDLE,
+  STRING_START,
+  SYMBOL_START,
+  SUBSHELL_START,
+  REGEX_START,
+  WORD_LIST_START,
+  HEREDOC_BODY_START,
+  STRING_CONTENT,
+  HEREDOC_CONTENT,
   STRING_END,
   HEREDOC_BODY_END,
-  HEREDOC_BEGINNING,
-  LINE_BREAK,
+  HEREDOC_START,
+
+  // Whitespace-sensitive tokens
   FORWARD_SLASH,
   ELEMENT_REFERENCE_LEFT_BRACKET,
   BLOCK_AMPERSAND,
   SPLAT_STAR,
   ARGUMENT_LIST_LEFT_PAREN,
-  SCOPE_DOUBLE_COLON,
+  INFIX_SCOPE_COLONS,
   KEYWORD_COLON,
   UNARY_MINUS,
   BINARY_MINUS,
   BINARY_STAR,
   SINGLETON_CLASS_LEFT_ANGLE_LEFT_ANGLE,
-  IDENTIFIER_HASH_KEY
+  IDENTIFIER_HASH_KEY,
+
+  NONE
 };
 
 struct Literal {
@@ -65,20 +66,12 @@ struct Heredoc {
   bool end_word_indentation_allowed;
 };
 
-TokenType BEGINNING_TOKEN_TYPES[] = {
-  STRING_BEGINNING,
-  SYMBOL_BEGINNING,
-  SUBSHELL_BEGINNING,
-  REGEX_BEGINNING,
-  WORD_LIST_BEGINNING,
-};
-
-TokenType SIMPLE_TOKEN_TYPES[] = {
-  SIMPLE_STRING,
-  SIMPLE_SYMBOL,
-  SIMPLE_SUBSHELL,
-  SIMPLE_REGEX,
-  SIMPLE_WORD_LIST,
+TokenType START_TOKEN_TYPES[] = {
+  STRING_START,
+  SYMBOL_START,
+  SUBSHELL_START,
+  REGEX_START,
+  WORD_LIST_START,
 };
 
 const char NON_IDENTIFIER_CHARS[] = {
@@ -204,20 +197,10 @@ struct Scanner {
     lexer->advance(lexer, false);
   }
 
-  bool lookahead_is_line_end(TSLexer *lexer) {
-    if (lexer->lookahead == '\n') {
-      return true;
-    } else if (lexer->lookahead == '\r') {
-      skip(lexer);
-      if (lexer->lookahead == '\n') {
-        return true;
-      }
-    }
+  bool scan_whitespace(TSLexer *lexer, const bool *valid_symbols) {
+    bool heredoc_body_start_is_valid = !open_heredocs.empty() && valid_symbols[HEREDOC_BODY_START];
+    bool crossed_newline = false;
 
-    return false;
-  }
-
-  bool scan_whitespace(TSLexer *lexer, const bool *valid_symbols, bool *found_heredoc_starting_linebreak) {
     for (;;) {
       if (valid_symbols[LINE_BREAK] && lexer->is_at_included_range_start(lexer)) {
         lexer->mark_end(lexer);
@@ -232,30 +215,30 @@ struct Scanner {
           skip(lexer);
           break;
         case '\n':
-          if (!open_heredocs.empty() && !*found_heredoc_starting_linebreak) {
+          if (heredoc_body_start_is_valid) {
             skip(lexer);
-            *found_heredoc_starting_linebreak = true;
-          } else if (valid_symbols[LINE_BREAK]) {
-            advance(lexer);
+            lexer->result_symbol = HEREDOC_BODY_START;
+            return true;
+          } else if (valid_symbols[LINE_BREAK] && !crossed_newline) {
             lexer->mark_end(lexer);
-            while (lexer->lookahead == ' ' || lexer->lookahead == '\t' || lookahead_is_line_end(lexer)) { skip(lexer); }
-            if (lexer->lookahead == '.') { // Method continuation ignores newline.
-              break;
-            } else {
-              lexer->result_symbol = LINE_BREAK;
-              return true;
-            }
+            advance(lexer);
+            crossed_newline = true;
           } else {
             skip(lexer);
           }
           break;
         case '\\':
-          skip(lexer);
-          if (lexer->lookahead == '\n' || lexer->lookahead == '\r') {
+          advance(lexer);
+          if (iswspace(lexer->lookahead)) {
             skip(lexer);
+          } else {
+            return false;
           }
           break;
         default:
+          if (crossed_newline && lexer->lookahead != '.') {
+            lexer->result_symbol = LINE_BREAK;
+          }
           return true;
       }
     }
@@ -384,7 +367,6 @@ struct Scanner {
       case '"':
         literal.type = Literal::STRING;
         literal.open_delimiter = literal.close_delimiter = lexer->lookahead;
-        literal.nesting_depth = 1;
         literal.allows_interpolation = true;
         advance(lexer);
         return true;
@@ -392,25 +374,22 @@ struct Scanner {
       case '\'':
         literal.type = Literal::STRING;
         literal.open_delimiter = literal.close_delimiter = lexer->lookahead;
-        literal.nesting_depth = 1;
         literal.allows_interpolation = false;
         advance(lexer);
         return true;
 
       case '`':
-        if (!valid_symbols[SIMPLE_SUBSHELL]) return false;
+        if (!valid_symbols[SUBSHELL_START]) return false;
         literal.type = Literal::SUBSHELL;
         literal.open_delimiter = literal.close_delimiter = lexer->lookahead;
-        literal.nesting_depth = 1;
         literal.allows_interpolation = true;
         advance(lexer);
         return true;
 
       case '/':
-        if (!valid_symbols[SIMPLE_REGEX]) return false;
+        if (!valid_symbols[REGEX_START]) return false;
         literal.type = Literal::REGEX;
         literal.open_delimiter = literal.close_delimiter = lexer->lookahead;
-        literal.nesting_depth = 1;
         literal.allows_interpolation = true;
         advance(lexer);
         if (valid_symbols[FORWARD_SLASH]) {
@@ -432,28 +411,28 @@ struct Scanner {
             break;
 
           case 'r':
-            if (!valid_symbols[SIMPLE_REGEX]) return false;
+            if (!valid_symbols[REGEX_START]) return false;
             literal.type = Literal::REGEX;
             literal.allows_interpolation = true;
             advance(lexer);
             break;
 
           case 'x':
-            if (!valid_symbols[SIMPLE_SUBSHELL]) return false;
+            if (!valid_symbols[SUBSHELL_START]) return false;
             literal.type = Literal::SUBSHELL;
             literal.allows_interpolation = true;
             advance(lexer);
             break;
 
           case 'q':
-            if (!valid_symbols[SIMPLE_STRING]) return false;
+            if (!valid_symbols[STRING_START]) return false;
             literal.type = Literal::STRING;
             literal.allows_interpolation = false;
             advance(lexer);
             break;
 
           case 'Q':
-            if (!valid_symbols[SIMPLE_STRING]) return false;
+            if (!valid_symbols[STRING_START]) return false;
             literal.type = Literal::STRING;
             literal.allows_interpolation = true;
             advance(lexer);
@@ -461,7 +440,7 @@ struct Scanner {
 
           case 'w':
           case 'i':
-            if (!valid_symbols[SIMPLE_WORD_LIST]) return false;
+            if (!valid_symbols[WORD_LIST_START]) return false;
             literal.type = Literal::WORD_LIST;
             literal.allows_interpolation = false;
             advance(lexer);
@@ -469,14 +448,14 @@ struct Scanner {
 
           case 'W':
           case 'I':
-            if (!valid_symbols[SIMPLE_WORD_LIST]) return false;
+            if (!valid_symbols[WORD_LIST_START]) return false;
             literal.type = Literal::WORD_LIST;
             literal.allows_interpolation = true;
             advance(lexer);
             break;
 
           default:
-            if (!valid_symbols[SIMPLE_STRING]) return false;
+            if (!valid_symbols[STRING_START]) return false;
             literal.type = Literal::STRING;
             literal.allows_interpolation = true;
             break;
@@ -486,25 +465,21 @@ struct Scanner {
           case '(':
             literal.open_delimiter = '(';
             literal.close_delimiter = ')';
-            literal.nesting_depth = 1;
             break;
 
           case '[':
             literal.open_delimiter = '[';
             literal.close_delimiter = ']';
-            literal.nesting_depth = 1;
             break;
 
           case '{':
             literal.open_delimiter = '{';
             literal.close_delimiter = '}';
-            literal.nesting_depth = 1;
             break;
 
           case '<':
             literal.open_delimiter = '<';
             literal.close_delimiter = '>';
-            literal.nesting_depth = 1;
             break;
 
           case '\n':
@@ -549,7 +524,6 @@ struct Scanner {
           case '\'':
             literal.open_delimiter = lexer->lookahead;
             literal.close_delimiter = lexer->lookahead;
-            literal.nesting_depth = 1;
             break;
           default:
             return false;
@@ -595,32 +569,41 @@ struct Scanner {
     return result;
   }
 
-  enum ScanContentResult {
-    Error,
-    Interpolation,
-    End
-  };
-
-  ScanContentResult scan_heredoc_content(TSLexer *lexer) {
-    if (open_heredocs.empty()) return Error;
+  bool scan_heredoc_content(TSLexer *lexer) {
     Heredoc heredoc = open_heredocs.front();
     size_t position_in_word = 0;
     bool look_for_heredoc_end = true;
+    bool has_content = false;
 
     for (;;) {
       if (position_in_word == heredoc.word.size()) {
-        lexer->mark_end(lexer);
-        while (lexer->lookahead == ' ' || lexer->lookahead == '\t') advance(lexer);
-        if (lookahead_is_line_end(lexer)) {
-          open_heredocs.erase(open_heredocs.begin());
-          return End;
+        if (!has_content) lexer->mark_end(lexer);
+        while (lexer->lookahead == ' ' ||
+               lexer->lookahead == '\t' ||
+               lexer->lookahead == '\r') advance(lexer);
+        if (lexer->lookahead == '\n') {
+          if (has_content) {
+            lexer->result_symbol = HEREDOC_CONTENT;
+          } else {
+            open_heredocs.erase(open_heredocs.begin());
+            lexer->result_symbol = HEREDOC_BODY_END;
+          }
+          return true;
+        } else {
+          has_content = true;
+          position_in_word = 0;
         }
       }
 
       if (lexer->lookahead == 0) {
-        open_heredocs.erase(open_heredocs.begin());
         lexer->mark_end(lexer);
-        return End;
+        if (has_content) {
+          lexer->result_symbol = HEREDOC_CONTENT;
+        } else {
+          open_heredocs.erase(open_heredocs.begin());
+          lexer->result_symbol = HEREDOC_BODY_END;
+        }
+        return true;
       }
 
       if (lexer->lookahead == heredoc.word[position_in_word] && look_for_heredoc_end) {
@@ -630,43 +613,59 @@ struct Scanner {
         position_in_word = 0;
         look_for_heredoc_end = false;
         if (lexer->lookahead == '#') {
-          lexer->mark_end(lexer);
           advance(lexer);
           if (lexer->lookahead == '{') {
             advance(lexer);
-            return Interpolation;
-          }
-        } else if (lookahead_is_line_end(lexer)) {
-          advance(lexer);
-          look_for_heredoc_end = true;
-          while (lexer->lookahead == ' ' || lexer->lookahead == '\t') {
-            advance(lexer);
-            if (!heredoc.end_word_indentation_allowed) {
-              look_for_heredoc_end = false;
+            if (has_content) {
+              lexer->result_symbol = HEREDOC_CONTENT;
+              return true;
+            } else {
+              return false;
             }
           }
-        } else {
+          lexer->mark_end(lexer);
+        } else if (lexer->lookahead == '\n') {
+          has_content = true;
+          look_for_heredoc_end = true;
           advance(lexer);
+          while (lexer->lookahead == ' ' || lexer->lookahead == '\t') {
+            advance(lexer);
+            if (!heredoc.end_word_indentation_allowed) look_for_heredoc_end = false;
+          }
+          lexer->mark_end(lexer);
+        } else {
+          has_content = true;
+          advance(lexer);
+          lexer->mark_end(lexer);
         }
       }
     }
   }
 
-  ScanContentResult scan_content(TSLexer *lexer, Literal &literal) {
-    for (;;) {
-      if (literal.nesting_depth == 0) {
-        if (literal.type == Literal::REGEX) {
-          while (iswlower(lexer->lookahead)) {
-            advance(lexer);
-          }
-        }
-        lexer->mark_end(lexer);
-        return End;
-      }
+  bool scan_content(TSLexer *lexer) {
+    Literal &literal = literal_stack.back();
+    bool has_content = false;
 
+    for (;;) {
       if (lexer->lookahead == literal.close_delimiter) {
-        literal.nesting_depth--;
-        advance(lexer);
+        lexer->mark_end(lexer);
+        if (literal.nesting_depth == 1) {
+          if (has_content) {
+            lexer->result_symbol = STRING_CONTENT;
+          } else {
+            literal_stack.pop_back();
+            advance(lexer);
+            if (literal.type == Literal::REGEX) {
+              while (iswlower(lexer->lookahead)) advance(lexer);
+            }
+            lexer->result_symbol = STRING_END;
+            lexer->mark_end(lexer);
+          }
+          return true;
+        } else {
+          literal.nesting_depth--;
+          advance(lexer);
+        }
       } else if (lexer->lookahead == literal.open_delimiter) {
         literal.nesting_depth++;
         advance(lexer);
@@ -674,8 +673,13 @@ struct Scanner {
         lexer->mark_end(lexer);
         advance(lexer);
         if (lexer->lookahead == '{') {
-          advance(lexer);
-          return Interpolation;
+          if (has_content) {
+            advance(lexer);
+            lexer->result_symbol = STRING_CONTENT;
+            return true;
+          } else {
+            return false;
+          }
         }
       } else if (lexer->lookahead == '\\') {
         advance(lexer);
@@ -683,130 +687,178 @@ struct Scanner {
       } else if (lexer->lookahead == 0) {
         advance(lexer);
         lexer->mark_end(lexer);
-        return Error;
+        return false;
       } else {
         advance(lexer);
       }
+
+      has_content = true;
     }
   }
 
   bool scan(TSLexer *lexer, const bool *valid_symbols) {
     has_leading_whitespace = false;
-    bool found_heredoc_starting_linebreak = false;
 
-    if (valid_symbols[ELEMENT_REFERENCE_LEFT_BRACKET] && lexer->lookahead == '[') {
-      advance(lexer);
-      lexer->result_symbol = ELEMENT_REFERENCE_LEFT_BRACKET;
-      return true;
-    }
+    // Operatos that must not be preceded by whitespace
+    switch (lexer->lookahead) {
+      case '[':
+        if (valid_symbols[ELEMENT_REFERENCE_LEFT_BRACKET]) {
+          advance(lexer);
+          lexer->result_symbol = ELEMENT_REFERENCE_LEFT_BRACKET;
+          return true;
+        }
+        break;
 
-    if (!scan_whitespace(lexer, valid_symbols, &found_heredoc_starting_linebreak)) return false;
-    if (lexer->result_symbol == LINE_BREAK) return true;
+      case ':':
+        if (valid_symbols[KEYWORD_COLON] || valid_symbols[INFIX_SCOPE_COLONS]) {
+          advance(lexer);
 
-    if (valid_symbols[HEREDOC_BODY_MIDDLE] && !valid_symbols[LINE_BREAK] && !open_heredocs.empty()) {
-      switch (scan_heredoc_content(lexer)) {
-        case Error:
+          if (valid_symbols[INFIX_SCOPE_COLONS] && lexer->lookahead == ':') {
+            advance(lexer);
+            if (!iswspace(lexer->lookahead)) {
+              lexer->result_symbol = INFIX_SCOPE_COLONS;
+              return true;
+            }
+          } else if (valid_symbols[KEYWORD_COLON]) {
+            lexer->result_symbol = KEYWORD_COLON;
+            return true;
+          }
+
           return false;
-        case Interpolation:
-          lexer->result_symbol = HEREDOC_BODY_MIDDLE;
+        }
+        break;
+
+      case '(':
+        if (valid_symbols[ARGUMENT_LIST_LEFT_PAREN]) {
+          advance(lexer);
+          lexer->result_symbol = ARGUMENT_LIST_LEFT_PAREN;
           return true;
-        case End:
-          lexer->result_symbol = HEREDOC_BODY_END;
-          return true;
-      }
+        }
+        break;
+
+      default:
+        break;
     }
 
-    if (valid_symbols[HEREDOC_BODY_BEGINNING] && !open_heredocs.empty() && found_heredoc_starting_linebreak) {
-      if (literal_stack.empty()) {
-        switch (scan_heredoc_content(lexer)) {
-          case Error:
+    // Literal contents
+    if (valid_symbols[STRING_CONTENT] && !literal_stack.empty()) {
+      return scan_content(lexer);
+    }
+
+    if (valid_symbols[HEREDOC_CONTENT] && !valid_symbols[LINE_BREAK] && !open_heredocs.empty()) {
+      return scan_heredoc_content(lexer);
+    }
+
+    lexer->result_symbol = NONE;
+    if (!scan_whitespace(lexer, valid_symbols)) return false;
+    if (lexer->result_symbol != NONE) return true;
+
+    // Operators that may be preceded by whitespace
+    switch (lexer->lookahead) {
+      case '&':
+        if (valid_symbols[BLOCK_AMPERSAND]) {
+          advance(lexer);
+          if (lexer->lookahead != '&' &&
+              lexer->lookahead != '.' &&
+              lexer->lookahead != '=' &&
+              !iswspace(lexer->lookahead)) {
+            lexer->result_symbol = BLOCK_AMPERSAND;
+            return true;
+          } else {
             return false;
-          case Interpolation:
-            lexer->result_symbol = HEREDOC_BODY_BEGINNING;
+          }
+        }
+        break;
+
+      case '<':
+        if (valid_symbols[SINGLETON_CLASS_LEFT_ANGLE_LEFT_ANGLE]) {
+          advance(lexer);
+          if (lexer->lookahead == '<') {
+            advance(lexer);
+            lexer->result_symbol = SINGLETON_CLASS_LEFT_ANGLE_LEFT_ANGLE;
             return true;
-          case End:
-            lexer->result_symbol = SIMPLE_HEREDOC_BODY;
+          } else {
+            return false;
+          }
+        }
+        break;
+
+      case '*':
+        if (valid_symbols[SPLAT_STAR] || valid_symbols[BINARY_STAR]) {
+          advance(lexer);
+          if (lexer->lookahead == '*' || lexer->lookahead == '=') return false;
+          if (valid_symbols[SPLAT_STAR] && !iswspace(lexer->lookahead)) {
+            lexer->result_symbol = SPLAT_STAR;
             return true;
+          } else if (valid_symbols[BINARY_STAR]) {
+            lexer->result_symbol = BINARY_STAR;
+            return true;
+          } else if (valid_symbols[SPLAT_STAR]) {
+            lexer->result_symbol = SPLAT_STAR;
+            return true;
+          } else {
+            return false;
+          }
         }
-      }
-    }
+        break;
 
-    if (valid_symbols[BLOCK_AMPERSAND] && lexer->lookahead == '&') {
-      advance(lexer);
-      if (lexer->lookahead != '&' && lexer->lookahead != '.' && lexer->lookahead != '=' && lexer->lookahead != ' ' && lexer->lookahead != '\t' && !lookahead_is_line_end(lexer)) {
-        lexer->result_symbol = BLOCK_AMPERSAND;
-        return true;
-      } else {
-        return false;
-      }
-    }
-
-    if (valid_symbols[SINGLETON_CLASS_LEFT_ANGLE_LEFT_ANGLE] && lexer->lookahead == '<') {
-      advance(lexer);
-      if (lexer->lookahead == '<') {
-        advance(lexer);
-        lexer->result_symbol = SINGLETON_CLASS_LEFT_ANGLE_LEFT_ANGLE;
-        return true;
-      } else {
-        return false;
-      }
-    }
-
-    if ((valid_symbols[SPLAT_STAR] || valid_symbols[BINARY_STAR]) && lexer->lookahead == '*') {
-      advance(lexer);
-      if (lexer->lookahead == '*' || lexer->lookahead == '=') return false;
-
-      if (valid_symbols[SPLAT_STAR] && lexer->lookahead != ' ' && lexer->lookahead != '\t' && !lookahead_is_line_end(lexer)) {
-        lexer->result_symbol = SPLAT_STAR;
-        return true;
-      } else if (valid_symbols[BINARY_STAR]) {
-        lexer->result_symbol = BINARY_STAR;
-        return true;
-      } else if (valid_symbols[SPLAT_STAR]) {
-        lexer->result_symbol = SPLAT_STAR;
-        return true;
-      } else {
-        return false;
-      }
-    }
-
-    if ((valid_symbols[KEYWORD_COLON] || valid_symbols[SCOPE_DOUBLE_COLON]) && lexer->lookahead == ':' && !has_leading_whitespace) {
-      advance(lexer);
-
-      if (valid_symbols[SCOPE_DOUBLE_COLON] && lexer->lookahead == ':') {
-        advance(lexer);
-        if (lexer->lookahead != ' ' && lexer->lookahead != '\t' && lexer->lookahead != '\n' && lexer->lookahead != '\r') {
-          lexer->result_symbol = SCOPE_DOUBLE_COLON;
-          return true;
+      case '-':
+        if (valid_symbols[UNARY_MINUS] || valid_symbols[BINARY_MINUS]) {
+          advance(lexer);
+          if (lexer->lookahead != '=' && lexer->lookahead != '>') {
+            if (valid_symbols[UNARY_MINUS] && has_leading_whitespace && !iswspace(lexer->lookahead)) {
+              lexer->result_symbol = UNARY_MINUS;
+            } else if (valid_symbols[BINARY_MINUS]) {
+              lexer->result_symbol = BINARY_MINUS;
+            } else {
+              lexer->result_symbol = UNARY_MINUS;
+            }
+            return true;
+          } else {
+            return false;
+          }
         }
-      } else if (valid_symbols[KEYWORD_COLON]) {
-        lexer->result_symbol = KEYWORD_COLON;
-        return true;
-      } else {
-        return false;
-      }
-    }
+        break;
 
-    if (valid_symbols[ARGUMENT_LIST_LEFT_PAREN] && lexer->lookahead == '(' && !has_leading_whitespace) {
-      advance(lexer);
-      lexer->result_symbol = ARGUMENT_LIST_LEFT_PAREN;
-      return true;
-    }
+      case ':':
+        if (valid_symbols[SIMPLE_SYMBOL]) {
+          Literal literal;
+          literal.type = Literal::SYMBOL;
+          literal.nesting_depth = 1;
+          advance(lexer);
 
-    if ((valid_symbols[UNARY_MINUS] || valid_symbols[BINARY_MINUS]) && lexer->lookahead == '-') {
-      advance(lexer);
-      if (lexer->lookahead != '=' && lexer->lookahead != '>') {
-        if (valid_symbols[UNARY_MINUS] && has_leading_whitespace && lexer->lookahead != ' ' && lexer->lookahead != '\t') {
-          lexer->result_symbol = UNARY_MINUS;
-          return true;
-        } else if (valid_symbols[BINARY_MINUS]) {
-          lexer->result_symbol = BINARY_MINUS;
-          return true;
-        } else {
-          lexer->result_symbol = UNARY_MINUS;
-          return true;
+          switch (lexer->lookahead) {
+            case '"':
+              advance(lexer);
+              literal.open_delimiter = '"';
+              literal.close_delimiter = '"';
+              literal.allows_interpolation = true;
+              literal_stack.push_back(literal);
+              lexer->result_symbol = SYMBOL_START;
+              return true;
+
+            case '\'':
+              advance(lexer);
+              literal.open_delimiter = '\'';
+              literal.close_delimiter = '\'';
+              literal.allows_interpolation = false;
+              literal_stack.push_back(literal);
+              lexer->result_symbol = SYMBOL_START;
+              return true;
+
+            default:
+              if (scan_symbol_identifier(lexer)) {
+                lexer->result_symbol = SIMPLE_SYMBOL;
+                return true;
+              }
+          }
+
+          return false;
         }
-      }
+        break;
+
+      default:
+        break;
     }
 
     if (valid_symbols[IDENTIFIER_HASH_KEY] && iswalpha(lexer->lookahead)) {
@@ -824,51 +876,11 @@ struct Scanner {
       return false;
     }
 
-    if (valid_symbols[STRING_MIDDLE] && ! literal_stack.empty()) {
-      Literal &literal = literal_stack.back();
-      switch (scan_content(lexer, literal)) {
-        case Error:
-          return false;
-        case Interpolation:
-          lexer->result_symbol = STRING_MIDDLE;
-          return true;
-        case End:
-          literal_stack.pop_back();
-          lexer->result_symbol = STRING_END;
-          return true;
-      }
-    }
-
-    if (valid_symbols[SIMPLE_STRING] || valid_symbols[SIMPLE_SYMBOL]) {
+    if (valid_symbols[STRING_START]) {
       Literal literal;
+      literal.nesting_depth = 1;
 
-      if (lexer->lookahead == ':' && valid_symbols[SIMPLE_SYMBOL]) {
-        literal.type = Literal::SYMBOL;
-        advance(lexer);
-
-        switch (lexer->lookahead) {
-          case '"':
-            literal.open_delimiter = '"';
-            literal.close_delimiter = '"';
-            literal.nesting_depth = 1;
-            literal.allows_interpolation = true;
-            advance(lexer);
-            break;
-
-          case '\'':
-            literal.open_delimiter = '\'';
-            literal.close_delimiter = '\'';
-            literal.nesting_depth = 1;
-            literal.allows_interpolation = false;
-            advance(lexer);
-            break;
-
-          default:
-            if (!scan_symbol_identifier(lexer)) return false;
-            lexer->result_symbol = SIMPLE_SYMBOL;
-            return true;
-        }
-      } else if (lexer->lookahead == '<') {
+      if (lexer->lookahead == '<') {
         advance(lexer);
         if (lexer->lookahead != '<') return false;
         advance(lexer);
@@ -882,22 +894,16 @@ struct Scanner {
         heredoc.word = scan_heredoc_word(lexer);
         if (heredoc.word.empty()) return false;
         open_heredocs.push_back(heredoc);
-        lexer->result_symbol = HEREDOC_BEGINNING;
+        lexer->result_symbol = HEREDOC_START;
         return true;
-      } else {
-        if (!scan_open_delimiter(lexer, literal, valid_symbols)) return false;
       }
 
-      switch (scan_content(lexer, literal)) {
-        case Error:
-          return false;
-        case Interpolation:
-          literal_stack.push_back(literal);
-          lexer->result_symbol = BEGINNING_TOKEN_TYPES[literal.type];
-          return true;
-        case End:
-          lexer->result_symbol = SIMPLE_TOKEN_TYPES[literal.type];
-          return true;
+      if (scan_open_delimiter(lexer, literal, valid_symbols)) {
+        literal_stack.push_back(literal);
+        lexer->result_symbol = START_TOKEN_TYPES[literal.type];
+        return true;
+      } else {
+        return false;
       }
     }
 

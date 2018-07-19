@@ -1046,7 +1046,7 @@ empty percent w array
 
 ---
 
-(program (array))
+(program (word_array))
 
 ==========================
 unbalanced percent w array
@@ -1056,7 +1056,7 @@ unbalanced percent w array
 
 ---
 
-(program (array))
+(program (word_array))
 
 ===============
 percent w array
@@ -1066,7 +1066,7 @@ percent w array
 
 ---
 
-(program (array))
+(program (word_array))
 
 ===================================
 percent W array with interpolations
@@ -1076,7 +1076,7 @@ percent W array with interpolations
 
 ---
 
-(program (array (interpolation (identifier))))
+(program (word_array (interpolation (identifier))))
 
 =====================
 empty percent i array
@@ -1086,7 +1086,7 @@ empty percent i array
 
 ---
 
-(program (array))
+(program (word_array))
 
 ==========================
 unbalanced percent i array
@@ -1096,7 +1096,7 @@ unbalanced percent i array
 
 ---
 
-(program (array))
+(program (word_array))
 
 ===============
 percent i array
@@ -1106,7 +1106,7 @@ percent i array
 
 ---
 
-(program (array))
+(program (word_array))
 
 ====================================
 percent I array with interpolations
@@ -1116,7 +1116,7 @@ percent I array with interpolations
 
 ---
 
-(program (array (interpolation (identifier))))
+(program (word_array (interpolation (identifier))))
 
 ==========
 empty hash
