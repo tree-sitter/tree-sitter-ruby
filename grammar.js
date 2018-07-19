@@ -47,7 +47,7 @@ module.exports = grammar({
     $._string_content,
     $._heredoc_content,
     $._string_end,
-    $._heredoc_body_end,
+    $.heredoc_end,
     $.heredoc_beginning,
 
     // Whitespace-sensitive tokens
@@ -337,7 +337,7 @@ module.exports = grammar({
       $._primary,
       alias($._element_reference_left_bracket, '['),
       optional($._argument_list_with_trailing_comma),
-      optional($.heredoc_end),
+      optional($.heredoc_body),
       ']'
     )),
 
@@ -352,7 +352,7 @@ module.exports = grammar({
     call: $ => prec.left(PREC.BITWISE_AND + 1, seq(
       $._primary,
       choice('.', '&.'),
-      repeat($.heredoc_end),
+      repeat($.heredoc_body),
       choice($.identifier, $.operator, $.constant, $.argument_list_with_parens)
     )),
 
@@ -371,9 +371,9 @@ module.exports = grammar({
     argument_list: $ => prec.right(seq(
       choice(
         $._argument_list_with_parens,
-        sep1($._argument, seq(',', optional($.heredoc_end)))
+        sep1($._argument, seq(',', optional($.heredoc_body)))
       ),
-      repeat($.heredoc_end)
+      repeat($.heredoc_body)
     )),
 
     argument_list_with_parens: $ => $._argument_list_with_parens,
@@ -381,14 +381,14 @@ module.exports = grammar({
     _argument_list_with_parens: $ => seq(
       alias($._argument_list_left_paren, '('),
       optional($._argument_list_with_trailing_comma),
-      optional($.heredoc_end),
+      optional($.heredoc_body),
       ')'
     ),
 
     _argument_list_with_trailing_comma: $ => sepTrailing(
       $._argument_list_with_trailing_comma,
       $._argument,
-      prec.right(seq(',', optional($.heredoc_end)))
+      prec.right(seq(',', optional($.heredoc_body)))
     ),
 
     _argument: $ => choice(
@@ -588,29 +588,29 @@ module.exports = grammar({
       alias($._string_end, '/')
     ),
 
-    heredoc_end: $ => seq(
+    heredoc_body: $ => seq(
       $._heredoc_body_start,
       repeat(choice($._heredoc_content, $.interpolation)),
-      $._heredoc_body_end
+      $.heredoc_end
     ),
 
     array: $ => seq(
       '[',
       optional($._argument_list_with_trailing_comma),
-      optional($.heredoc_end),
+      optional($.heredoc_body),
       ']'
     ),
 
     hash: $ => seq(
       '{',
       optional($._hash_items),
-      optional($.heredoc_end),
+      optional($.heredoc_body),
       '}'
     ),
 
     _hash_items: $ => seq(
       $.pair,
-      optional(prec.right(seq(',', optional($.heredoc_end), optional($._hash_items))))
+      optional(prec.right(seq(',', optional($.heredoc_body), optional($._hash_items))))
     ),
 
     pair: $ => prec(-1, choice(
@@ -634,7 +634,7 @@ module.exports = grammar({
 
     _terminator: $ => choice(
       $._line_break,
-      $.heredoc_end,
+      $.heredoc_body,
       ';'
     ),
   }

@@ -2054,7 +2054,7 @@
             "members": [
               {
                 "type": "SYMBOL",
-                "name": "heredoc_end"
+                "name": "heredoc_body"
               },
               {
                 "type": "BLANK"
@@ -2144,7 +2144,7 @@
             "type": "REPEAT",
             "content": {
               "type": "SYMBOL",
-              "name": "heredoc_end"
+              "name": "heredoc_body"
             }
           },
           {
@@ -2377,7 +2377,7 @@
                               "members": [
                                 {
                                   "type": "SYMBOL",
-                                  "name": "heredoc_end"
+                                  "name": "heredoc_body"
                                 },
                                 {
                                   "type": "BLANK"
@@ -2401,7 +2401,7 @@
             "type": "REPEAT",
             "content": {
               "type": "SYMBOL",
-              "name": "heredoc_end"
+              "name": "heredoc_body"
             }
           }
         ]
@@ -2440,7 +2440,7 @@
           "members": [
             {
               "type": "SYMBOL",
-              "name": "heredoc_end"
+              "name": "heredoc_body"
             },
             {
               "type": "BLANK"
@@ -2482,7 +2482,7 @@
                     "members": [
                       {
                         "type": "SYMBOL",
-                        "name": "heredoc_end"
+                        "name": "heredoc_body"
                       },
                       {
                         "type": "BLANK"
@@ -4246,7 +4246,7 @@
         }
       ]
     },
-    "heredoc_end": {
+    "heredoc_body": {
       "type": "SEQ",
       "members": [
         {
@@ -4271,7 +4271,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "_heredoc_body_end"
+          "name": "heredoc_end"
         }
       ]
     },
@@ -4299,7 +4299,7 @@
           "members": [
             {
               "type": "SYMBOL",
-              "name": "heredoc_end"
+              "name": "heredoc_body"
             },
             {
               "type": "BLANK"
@@ -4336,7 +4336,7 @@
           "members": [
             {
               "type": "SYMBOL",
-              "name": "heredoc_end"
+              "name": "heredoc_body"
             },
             {
               "type": "BLANK"
@@ -4374,7 +4374,7 @@
                     "members": [
                       {
                         "type": "SYMBOL",
-                        "name": "heredoc_end"
+                        "name": "heredoc_body"
                       },
                       {
                         "type": "BLANK"
@@ -4538,7 +4538,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "heredoc_end"
+          "name": "heredoc_body"
         },
         {
           "type": "STRING",
@@ -4605,7 +4605,7 @@
     },
     {
       "type": "SYMBOL",
-      "name": "_heredoc_body_end"
+      "name": "heredoc_end"
     },
     {
       "type": "SYMBOL",
