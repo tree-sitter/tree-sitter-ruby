@@ -44,15 +44,7 @@ enum TokenType {
 };
 
 struct Literal {
-  enum Type {
-    STRING,
-    SYMBOL,
-    SUBSHELL,
-    REGEX,
-    WORD_LIST
-  };
-
-  Type type;
+  TokenType type;
   int32_t open_delimiter;
   int32_t close_delimiter;
   uint32_t nesting_depth;
@@ -61,17 +53,8 @@ struct Literal {
 
 struct Heredoc {
   Heredoc() : end_word_indentation_allowed(false) {}
-
   string word;
   bool end_word_indentation_allowed;
-};
-
-TokenType START_TOKEN_TYPES[] = {
-  STRING_START,
-  SYMBOL_START,
-  SUBSHELL_START,
-  REGEX_START,
-  WORD_LIST_START,
 };
 
 const char NON_IDENTIFIER_CHARS[] = {
@@ -167,7 +150,7 @@ struct Scanner {
     uint8_t literal_depth = buffer[i++];
     for (unsigned j = 0; j < literal_depth; j++) {
       Literal literal;
-      literal.type = static_cast<Literal::Type>(buffer[i++]);
+      literal.type = static_cast<TokenType>(buffer[i++]);
       literal.open_delimiter = buffer[i++];
       literal.close_delimiter = buffer[i++];
       literal.nesting_depth = buffer[i++];
@@ -365,14 +348,14 @@ struct Scanner {
   bool scan_open_delimiter(TSLexer *lexer, Literal &literal, const bool *valid_symbols) {
     switch (lexer->lookahead) {
       case '"':
-        literal.type = Literal::STRING;
+        literal.type = STRING_START;
         literal.open_delimiter = literal.close_delimiter = lexer->lookahead;
         literal.allows_interpolation = true;
         advance(lexer);
         return true;
 
       case '\'':
-        literal.type = Literal::STRING;
+        literal.type = STRING_START;
         literal.open_delimiter = literal.close_delimiter = lexer->lookahead;
         literal.allows_interpolation = false;
         advance(lexer);
@@ -380,7 +363,7 @@ struct Scanner {
 
       case '`':
         if (!valid_symbols[SUBSHELL_START]) return false;
-        literal.type = Literal::SUBSHELL;
+        literal.type = SUBSHELL_START;
         literal.open_delimiter = literal.close_delimiter = lexer->lookahead;
         literal.allows_interpolation = true;
         advance(lexer);
@@ -388,7 +371,7 @@ struct Scanner {
 
       case '/':
         if (!valid_symbols[REGEX_START]) return false;
-        literal.type = Literal::REGEX;
+        literal.type = REGEX_START;
         literal.open_delimiter = literal.close_delimiter = lexer->lookahead;
         literal.allows_interpolation = true;
         advance(lexer);
@@ -405,35 +388,35 @@ struct Scanner {
         switch (lexer->lookahead) {
           case 's':
             if (!valid_symbols[SIMPLE_SYMBOL]) return false;
-            literal.type = Literal::SYMBOL;
+            literal.type = SYMBOL_START;
             literal.allows_interpolation = false;
             advance(lexer);
             break;
 
           case 'r':
             if (!valid_symbols[REGEX_START]) return false;
-            literal.type = Literal::REGEX;
+            literal.type = REGEX_START;
             literal.allows_interpolation = true;
             advance(lexer);
             break;
 
           case 'x':
             if (!valid_symbols[SUBSHELL_START]) return false;
-            literal.type = Literal::SUBSHELL;
+            literal.type = SUBSHELL_START;
             literal.allows_interpolation = true;
             advance(lexer);
             break;
 
           case 'q':
             if (!valid_symbols[STRING_START]) return false;
-            literal.type = Literal::STRING;
+            literal.type = STRING_START;
             literal.allows_interpolation = false;
             advance(lexer);
             break;
 
           case 'Q':
             if (!valid_symbols[STRING_START]) return false;
-            literal.type = Literal::STRING;
+            literal.type = STRING_START;
             literal.allows_interpolation = true;
             advance(lexer);
             break;
@@ -441,7 +424,7 @@ struct Scanner {
           case 'w':
           case 'i':
             if (!valid_symbols[WORD_LIST_START]) return false;
-            literal.type = Literal::WORD_LIST;
+            literal.type = WORD_LIST_START;
             literal.allows_interpolation = false;
             advance(lexer);
             break;
@@ -449,14 +432,14 @@ struct Scanner {
           case 'W':
           case 'I':
             if (!valid_symbols[WORD_LIST_START]) return false;
-            literal.type = Literal::WORD_LIST;
+            literal.type = WORD_LIST_START;
             literal.allows_interpolation = true;
             advance(lexer);
             break;
 
           default:
             if (!valid_symbols[STRING_START]) return false;
-            literal.type = Literal::STRING;
+            literal.type = STRING_START;
             literal.allows_interpolation = true;
             break;
         }
@@ -655,7 +638,7 @@ struct Scanner {
           } else {
             literal_stack.pop_back();
             advance(lexer);
-            if (literal.type == Literal::REGEX) {
+            if (literal.type == REGEX_START) {
               while (iswlower(lexer->lookahead)) advance(lexer);
             }
             lexer->result_symbol = STRING_END;
@@ -699,7 +682,7 @@ struct Scanner {
   bool scan(TSLexer *lexer, const bool *valid_symbols) {
     has_leading_whitespace = false;
 
-    // Operatos that must not be preceded by whitespace
+    // Operators that must not be preceded by whitespace
     switch (lexer->lookahead) {
       case '[':
         if (valid_symbols[ELEMENT_REFERENCE_LEFT_BRACKET]) {
@@ -740,20 +723,22 @@ struct Scanner {
         break;
     }
 
-    // Literal contents
-    if (valid_symbols[STRING_CONTENT] && !literal_stack.empty()) {
-      return scan_content(lexer);
+    // Contents of literals, which match any character except for some close delimiter
+    if (!valid_symbols[STRING_START]) {
+      if (valid_symbols[STRING_CONTENT] && !literal_stack.empty()) {
+        return scan_content(lexer);
+      }
+      if (valid_symbols[HEREDOC_CONTENT] && !open_heredocs.empty()) {
+        return scan_heredoc_content(lexer);
+      }
     }
 
-    if (valid_symbols[HEREDOC_CONTENT] && !valid_symbols[LINE_BREAK] && !open_heredocs.empty()) {
-      return scan_heredoc_content(lexer);
-    }
-
+    // Whitespace
     lexer->result_symbol = NONE;
     if (!scan_whitespace(lexer, valid_symbols)) return false;
     if (lexer->result_symbol != NONE) return true;
 
-    // Operators that may be preceded by whitespace
+    // Operators which can be preceded by whitespace
     switch (lexer->lookahead) {
       case '&':
         if (valid_symbols[BLOCK_AMPERSAND]) {
@@ -821,9 +806,9 @@ struct Scanner {
         break;
 
       case ':':
-        if (valid_symbols[SIMPLE_SYMBOL]) {
+        if (valid_symbols[SYMBOL_START]) {
           Literal literal;
-          literal.type = Literal::SYMBOL;
+          literal.type = SYMBOL_START;
           literal.nesting_depth = 1;
           advance(lexer);
 
@@ -861,6 +846,7 @@ struct Scanner {
         break;
     }
 
+    // Open delimiters for literals
     if (valid_symbols[IDENTIFIER_HASH_KEY] && iswalpha(lexer->lookahead)) {
       while (iswalpha(lexer->lookahead)) advance(lexer);
       lexer->mark_end(lexer);
@@ -876,6 +862,7 @@ struct Scanner {
       return false;
     }
 
+    // Open delimiters for literals
     if (valid_symbols[STRING_START]) {
       Literal literal;
       literal.nesting_depth = 1;
@@ -900,7 +887,7 @@ struct Scanner {
 
       if (scan_open_delimiter(lexer, literal, valid_symbols)) {
         literal_stack.push_back(literal);
-        lexer->result_symbol = START_TOKEN_TYPES[literal.type];
+        lexer->result_symbol = literal.type;
         return true;
       } else {
         return false;
