@@ -7,12 +7,16 @@ node_js:
 
 os:
 - linux
-- osx
 
-compiler: clang-3.6
-
-env:
-  - CXX=clang-3.6
+matrix:
+  include:
+    - os: osx
+      env: COMPILER=clang++
+      osx_image: xcode9.2
+      compiler: clang
+    - os: linux
+      env: CXX=clang-3.6
+      compiler: clang-3.6
 
 addons:
   apt:
