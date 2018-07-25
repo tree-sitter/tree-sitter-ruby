@@ -633,7 +633,7 @@ basic heredocs
 ========================================
 
 <<TEXT
-heredoc content
+heredoc \x01 content
 TEXT
 
 <<TEXT1
@@ -665,7 +665,7 @@ heredoc content
 ---
 
 (program
-  (heredoc_beginning) (heredoc_body (heredoc_end))
+  (heredoc_beginning) (heredoc_body (escape_sequence) (heredoc_end))
   (heredoc_beginning) (heredoc_body (heredoc_end))
   (heredoc_beginning) (heredoc_body (heredoc_end))
   (heredoc_beginning) (heredoc_body (heredoc_end))

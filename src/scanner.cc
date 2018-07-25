@@ -608,6 +608,16 @@ struct Scanner {
       } else {
         position_in_word = 0;
         look_for_heredoc_end = false;
+
+        if (lexer->lookahead == '\\') {
+          if (has_content) {
+            lexer->result_symbol = HEREDOC_CONTENT;
+            return true;
+          } else {
+            return false;
+          }
+        }
+
         if (lexer->lookahead == '#') {
           advance(lexer);
           if (lexer->lookahead == '{') {

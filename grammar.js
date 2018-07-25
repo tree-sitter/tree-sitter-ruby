@@ -602,7 +602,11 @@ module.exports = grammar({
 
     heredoc_body: $ => seq(
       $._heredoc_body_start,
-      repeat(choice($._heredoc_content, $.interpolation)),
+      repeat(choice(
+        $._heredoc_content,
+        $.interpolation,
+        $.escape_sequence
+      )),
       $.heredoc_end
     ),
 
