@@ -1,0 +1,957 @@
+{
+  "states": [
+    {
+      "id": 0,
+      "property_set_id": 0,
+      "transitions": [
+        {
+          "type": "assignment",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "block_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "block_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "call",
+          "named": true,
+          "state_id": 2
+        },
+        {
+          "type": "class",
+          "named": true,
+          "state_id": 6
+        },
+        {
+          "type": "constant",
+          "named": true,
+          "state_id": 1
+        },
+        {
+          "type": "destructured_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "hash_splat_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "identifier",
+          "named": true,
+          "state_id": 4
+        },
+        {
+          "type": "keyword_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "lambda_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "method",
+          "named": true,
+          "state_id": 5
+        },
+        {
+          "type": "method_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "singleton_method",
+          "named": true,
+          "state_id": 5
+        },
+        {
+          "type": "splat_parameter",
+          "named": true,
+          "state_id": 3
+        }
+      ],
+      "default_next_state_id": 0
+    },
+    {
+      "id": 1,
+      "property_set_id": 1,
+      "transitions": [
+        {
+          "type": "assignment",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "block_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "block_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "call",
+          "named": true,
+          "state_id": 2
+        },
+        {
+          "type": "class",
+          "named": true,
+          "state_id": 6
+        },
+        {
+          "type": "constant",
+          "named": true,
+          "state_id": 1
+        },
+        {
+          "type": "destructured_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "hash_splat_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "identifier",
+          "named": true,
+          "state_id": 4
+        },
+        {
+          "type": "keyword_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "lambda_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "method",
+          "named": true,
+          "state_id": 5
+        },
+        {
+          "type": "method_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "singleton_method",
+          "named": true,
+          "state_id": 5
+        },
+        {
+          "type": "splat_parameter",
+          "named": true,
+          "state_id": 3
+        }
+      ],
+      "default_next_state_id": 0
+    },
+    {
+      "id": 2,
+      "property_set_id": 0,
+      "transitions": [
+        {
+          "type": "assignment",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "block_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "block_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "call",
+          "named": true,
+          "state_id": 2
+        },
+        {
+          "type": "class",
+          "named": true,
+          "state_id": 6
+        },
+        {
+          "type": "constant",
+          "named": true,
+          "state_id": 1
+        },
+        {
+          "type": "destructured_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "hash_splat_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "identifier",
+          "named": true,
+          "index": 2,
+          "state_id": 7
+        },
+        {
+          "type": "identifier",
+          "named": true,
+          "state_id": 4
+        },
+        {
+          "type": "keyword_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "lambda_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "method",
+          "named": true,
+          "state_id": 5
+        },
+        {
+          "type": "method_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "singleton_method",
+          "named": true,
+          "state_id": 5
+        },
+        {
+          "type": "splat_parameter",
+          "named": true,
+          "state_id": 3
+        }
+      ],
+      "default_next_state_id": 0
+    },
+    {
+      "id": 3,
+      "property_set_id": 0,
+      "transitions": [
+        {
+          "type": "assignment",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "block_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "block_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "call",
+          "named": true,
+          "state_id": 2
+        },
+        {
+          "type": "class",
+          "named": true,
+          "state_id": 6
+        },
+        {
+          "type": "constant",
+          "named": true,
+          "state_id": 1
+        },
+        {
+          "type": "destructured_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "hash_splat_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "identifier",
+          "named": true,
+          "state_id": 8
+        },
+        {
+          "type": "keyword_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "lambda_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "method",
+          "named": true,
+          "state_id": 5
+        },
+        {
+          "type": "method_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "singleton_method",
+          "named": true,
+          "state_id": 5
+        },
+        {
+          "type": "splat_parameter",
+          "named": true,
+          "state_id": 3
+        }
+      ],
+      "default_next_state_id": 0
+    },
+    {
+      "id": 4,
+      "property_set_id": 2,
+      "transitions": [
+        {
+          "type": "assignment",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "block_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "block_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "call",
+          "named": true,
+          "state_id": 2
+        },
+        {
+          "type": "class",
+          "named": true,
+          "state_id": 6
+        },
+        {
+          "type": "constant",
+          "named": true,
+          "state_id": 1
+        },
+        {
+          "type": "destructured_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "hash_splat_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "identifier",
+          "named": true,
+          "state_id": 4
+        },
+        {
+          "type": "keyword_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "lambda_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "method",
+          "named": true,
+          "state_id": 5
+        },
+        {
+          "type": "method_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "singleton_method",
+          "named": true,
+          "state_id": 5
+        },
+        {
+          "type": "splat_parameter",
+          "named": true,
+          "state_id": 3
+        }
+      ],
+      "default_next_state_id": 0
+    },
+    {
+      "id": 5,
+      "property_set_id": 3,
+      "transitions": [
+        {
+          "type": "assignment",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "block_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "block_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "call",
+          "named": true,
+          "state_id": 2
+        },
+        {
+          "type": "class",
+          "named": true,
+          "state_id": 6
+        },
+        {
+          "type": "constant",
+          "named": true,
+          "state_id": 1
+        },
+        {
+          "type": "destructured_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "hash_splat_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "identifier",
+          "named": true,
+          "state_id": 9
+        },
+        {
+          "type": "keyword_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "lambda_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "method",
+          "named": true,
+          "state_id": 5
+        },
+        {
+          "type": "method_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "singleton_method",
+          "named": true,
+          "state_id": 5
+        },
+        {
+          "type": "splat_parameter",
+          "named": true,
+          "state_id": 3
+        }
+      ],
+      "default_next_state_id": 0
+    },
+    {
+      "id": 6,
+      "property_set_id": 4,
+      "transitions": [
+        {
+          "type": "assignment",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "block_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "block_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "call",
+          "named": true,
+          "state_id": 2
+        },
+        {
+          "type": "class",
+          "named": true,
+          "state_id": 6
+        },
+        {
+          "type": "constant",
+          "named": true,
+          "state_id": 10
+        },
+        {
+          "type": "destructured_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "hash_splat_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "identifier",
+          "named": true,
+          "state_id": 4
+        },
+        {
+          "type": "keyword_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "lambda_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "method",
+          "named": true,
+          "state_id": 5
+        },
+        {
+          "type": "method_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "singleton_method",
+          "named": true,
+          "state_id": 5
+        },
+        {
+          "type": "splat_parameter",
+          "named": true,
+          "state_id": 3
+        }
+      ],
+      "default_next_state_id": 0
+    },
+    {
+      "id": 7,
+      "property_set_id": 5,
+      "transitions": [
+        {
+          "type": "assignment",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "block_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "block_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "call",
+          "named": true,
+          "state_id": 2
+        },
+        {
+          "type": "class",
+          "named": true,
+          "state_id": 6
+        },
+        {
+          "type": "constant",
+          "named": true,
+          "state_id": 1
+        },
+        {
+          "type": "destructured_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "hash_splat_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "identifier",
+          "named": true,
+          "state_id": 4
+        },
+        {
+          "type": "keyword_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "lambda_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "method",
+          "named": true,
+          "state_id": 5
+        },
+        {
+          "type": "method_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "singleton_method",
+          "named": true,
+          "state_id": 5
+        },
+        {
+          "type": "splat_parameter",
+          "named": true,
+          "state_id": 3
+        }
+      ],
+      "default_next_state_id": 0
+    },
+    {
+      "id": 8,
+      "property_set_id": 6,
+      "transitions": [
+        {
+          "type": "assignment",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "block_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "block_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "call",
+          "named": true,
+          "state_id": 2
+        },
+        {
+          "type": "class",
+          "named": true,
+          "state_id": 6
+        },
+        {
+          "type": "constant",
+          "named": true,
+          "state_id": 1
+        },
+        {
+          "type": "destructured_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "hash_splat_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "identifier",
+          "named": true,
+          "state_id": 4
+        },
+        {
+          "type": "keyword_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "lambda_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "method",
+          "named": true,
+          "state_id": 5
+        },
+        {
+          "type": "method_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "singleton_method",
+          "named": true,
+          "state_id": 5
+        },
+        {
+          "type": "splat_parameter",
+          "named": true,
+          "state_id": 3
+        }
+      ],
+      "default_next_state_id": 0
+    },
+    {
+      "id": 9,
+      "property_set_id": 7,
+      "transitions": [
+        {
+          "type": "assignment",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "block_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "block_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "call",
+          "named": true,
+          "state_id": 2
+        },
+        {
+          "type": "class",
+          "named": true,
+          "state_id": 6
+        },
+        {
+          "type": "constant",
+          "named": true,
+          "state_id": 1
+        },
+        {
+          "type": "destructured_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "hash_splat_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "identifier",
+          "named": true,
+          "state_id": 4
+        },
+        {
+          "type": "keyword_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "lambda_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "method",
+          "named": true,
+          "state_id": 5
+        },
+        {
+          "type": "method_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "singleton_method",
+          "named": true,
+          "state_id": 5
+        },
+        {
+          "type": "splat_parameter",
+          "named": true,
+          "state_id": 3
+        }
+      ],
+      "default_next_state_id": 0
+    },
+    {
+      "id": 10,
+      "property_set_id": 8,
+      "transitions": [
+        {
+          "type": "assignment",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "block_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "block_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "call",
+          "named": true,
+          "state_id": 2
+        },
+        {
+          "type": "class",
+          "named": true,
+          "state_id": 6
+        },
+        {
+          "type": "constant",
+          "named": true,
+          "state_id": 1
+        },
+        {
+          "type": "destructured_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "hash_splat_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "identifier",
+          "named": true,
+          "state_id": 4
+        },
+        {
+          "type": "keyword_parameter",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "lambda_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "method",
+          "named": true,
+          "state_id": 5
+        },
+        {
+          "type": "method_parameters",
+          "named": true,
+          "state_id": 3
+        },
+        {
+          "type": "singleton_method",
+          "named": true,
+          "state_id": 5
+        },
+        {
+          "type": "splat_parameter",
+          "named": true,
+          "state_id": 3
+        }
+      ],
+      "default_next_state_id": 0
+    }
+  ],
+  "property_sets": [
+    {},
+    {
+      "reference": "true",
+      "reference-type": "constant"
+    },
+    {
+      "local-reference": "true",
+      "reference": "true",
+      "reference-type": "method"
+    },
+    {
+      "definition": "true",
+      "definition-type": "method",
+      "local-scope": "true"
+    },
+    {
+      "definition": "true",
+      "definition-type": "constant",
+      "module": "true"
+    },
+    {
+      "local-reference": "false",
+      "reference": "true",
+      "reference-type": "method"
+    },
+    {
+      "local-definition": "true",
+      "local-reference": "true",
+      "reference": "true",
+      "reference-type": "method"
+    },
+    {
+      "definition-part": "name",
+      "local-reference": "true",
+      "reference": "true",
+      "reference-type": "method"
+    },
+    {
+      "definition-part": "name",
+      "module-part": "name",
+      "reference": "true",
+      "reference-type": "constant"
+    }
+  ]
+}

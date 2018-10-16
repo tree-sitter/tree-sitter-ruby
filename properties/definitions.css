@@ -1,0 +1,53 @@
+class {
+  module: true;
+  definition: true;
+  definition-type: constant;
+
+  & > constant {
+    module-part: name;
+    definition-part: name;
+  }
+}
+
+method, singleton_method {
+  definition: true;
+  definition-type: method;
+  local-scope: true;
+
+  & > identifier {
+    definition-part: name;
+  }
+}
+
+/*
+ * Local Definitions
+ */
+
+assignment,
+method_parameters,
+lambda_parameters,
+block_parameters,
+splat_parameter,
+hash_splat_parameter,
+destructured_parameter,
+block_parameter,
+keyword_parameter {
+  & > identifier {
+    local-definition: true;
+  }
+}
+
+call > identifier:nth-child(2) {
+  local-reference: false;
+}
+
+identifier {
+  local-reference: true;
+  reference: true;
+  reference-type: method;
+}
+
+constant {
+  reference: true;
+  reference-type: constant;
+}

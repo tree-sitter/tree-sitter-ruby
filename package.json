@@ -25,5 +25,10 @@
     "test": "tree-sitter test && script/parse-examples",
     "test-windows": "tree-sitter test"
   },
-  "repository": "https://github.com/tree-sitter/tree-sitter-ruby"
+  "repository": "https://github.com/tree-sitter/tree-sitter-ruby",
+  "tree-sitter": {
+    "file-types": [
+      "rb"
+    ]
+  }
 }
