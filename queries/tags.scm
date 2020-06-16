@@ -16,12 +16,20 @@
 
 (
   (comment)* @doc
-  (class
-    name: [
-      (constant) @name
-      (scope_resolution
-        name: (_) @name)
-    ]) @class
+  [
+    (class
+      name: [
+        (constant) @name
+        (scope_resolution
+          name: (_) @name)
+      ]) @class
+    (singleton_class
+      value: [
+        (constant) @name
+        (scope_resolution
+          name: (_) @name)
+      ]) @class
+  ]
   (#strip! @doc "^#\\s*")
   (#select-adjacent! @doc @class)
 )
@@ -33,7 +41,7 @@
     name: [
       (constant) @name
       (scope_resolution
-        name: (*) @name)
+        name: (_) @name)
     ]) @definition.module
 )
 
