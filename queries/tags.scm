@@ -26,6 +26,17 @@
   (#select-adjacent! @doc @class)
 )
 
+; Module definitions
+
+(
+  (module
+    name: [
+      (constant) @name
+      (scope_resolution
+        name: (*) @name)
+    ]) @definition.module
+)
+
 ; Calls
 
 (method_call
