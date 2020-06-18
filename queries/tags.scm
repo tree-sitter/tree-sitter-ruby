@@ -4,12 +4,12 @@
   (comment)* @doc
   [
     (method
-      name: (_) @name) @method
+      name: (_) @name) @definition.method
     (singleton_method
-      name: (_) @name) @method
+      name: (_) @name) @definition.method
   ]
   (#strip! @doc "^#\\s*")
-  (#select-adjacent! @doc @method)
+  (#select-adjacent! @doc @definition.method)
 )
 
 ; Class definitions
@@ -22,16 +22,16 @@
         (constant) @name
         (scope_resolution
           name: (_) @name)
-      ]) @class
+      ]) @definition.class
     (singleton_class
       value: [
         (constant) @name
         (scope_resolution
           name: (_) @name)
-      ]) @class
+      ]) @definition.class
   ]
   (#strip! @doc "^#\\s*")
-  (#select-adjacent! @doc @class)
+  (#select-adjacent! @doc @definition.class)
 )
 
 ; Module definitions
@@ -51,11 +51,11 @@
   method: [
     (identifier) @name
     (call method: (identifier) @name)
-  ]) @call
+  ]) @reference.call
 
-(call method: (identifier) @name) @call
+(call method: (identifier) @name) @reference.call
 
 (
-  (identifier) @name @call
+  (identifier) @name @reference.call
   (#is-not? local)
 )
