@@ -100,7 +100,11 @@
         "named": true
       },
       {
-        "type": "symbol",
+        "type": "simple_symbol",
+        "named": true
+      },
+      {
+        "type": "string_symbol",
         "named": true
       }
     ]
@@ -210,6 +214,10 @@
         "named": true
       },
       {
+        "type": "simple_symbol",
+        "named": true
+      },
+      {
         "type": "singleton_class",
         "named": true
       },
@@ -226,11 +234,11 @@
         "named": true
       },
       {
-        "type": "subshell",
+        "type": "string_symbol",
         "named": true
       },
       {
-        "type": "symbol",
+        "type": "subshell",
         "named": true
       },
       {
@@ -2113,11 +2121,11 @@
             "named": true
           },
           {
-            "type": "string",
+            "type": "identifier_hash_key_symbol",
             "named": true
           },
           {
-            "type": "symbol",
+            "type": "string",
             "named": true
           }
         ]
@@ -2637,6 +2645,29 @@
     }
   },
   {
+    "type": "string_symbol",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "escape_sequence",
+          "named": true
+        },
+        {
+          "type": "interpolation",
+          "named": true
+        },
+        {
+          "type": "string_content",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "subshell",
     "named": true,
     "fields": {},
@@ -2689,29 +2720,6 @@
         },
         {
           "type": "yield",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "symbol",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": false,
-      "types": [
-        {
-          "type": "escape_sequence",
-          "named": true
-        },
-        {
-          "type": "interpolation",
-          "named": true
-        },
-        {
-          "type": "string_content",
           "named": true
         }
       ]
@@ -3472,6 +3480,10 @@
     "named": true
   },
   {
+    "type": "identifier_hash_key_symbol",
+    "named": true
+  },
+  {
     "type": "if",
     "named": false
   },
@@ -3529,6 +3541,10 @@
   },
   {
     "type": "self",
+    "named": true
+  },
+  {
+    "type": "simple_symbol",
     "named": true
   },
   {
