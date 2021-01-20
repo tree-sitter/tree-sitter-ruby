@@ -316,6 +316,9 @@ struct Scanner {
   }
 
   bool scan_symbol_identifier(TSLexer *lexer) {
+    // Specifically to support :!~
+    bool starts_with_bang = false;
+
     if (lexer->lookahead == '@') {
       advance(lexer);
       if (lexer->lookahead == '@') {
@@ -323,6 +326,10 @@ struct Scanner {
       }
     } else if (lexer->lookahead == '$') {
       advance(lexer);
+    }
+
+    if (lexer->lookahead == '!') {
+      starts_with_bang = true;
     }
 
     if (is_iden_char(lexer->lookahead)) {
@@ -336,6 +343,11 @@ struct Scanner {
     }
 
     if (lexer->lookahead == '?' || lexer->lookahead == '!') {
+      advance(lexer);
+    }
+
+    // Handles :!~
+    if (starts_with_bang && lexer->lookahead == '~') {
       advance(lexer);
     }
 
