@@ -2168,7 +2168,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "string_symbol"
+          "name": "delimited_symbol"
         },
         {
           "type": "SYMBOL",
@@ -4902,7 +4902,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "string_symbol"
+          "name": "delimited_symbol"
         },
         {
           "type": "SYMBOL",
@@ -5529,7 +5529,7 @@
         }
       ]
     },
-    "string_symbol": {
+    "delimited_symbol": {
       "type": "SEQ",
       "members": [
         {

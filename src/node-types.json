@@ -80,6 +80,10 @@
         "named": true
       },
       {
+        "type": "delimited_symbol",
+        "named": true
+      },
+      {
         "type": "global_variable",
         "named": true
       },
@@ -101,10 +105,6 @@
       },
       {
         "type": "simple_symbol",
-        "named": true
-      },
-      {
-        "type": "string_symbol",
         "named": true
       }
     ]
@@ -147,6 +147,10 @@
       },
       {
         "type": "complex",
+        "named": true
+      },
+      {
+        "type": "delimited_symbol",
         "named": true
       },
       {
@@ -231,10 +235,6 @@
       },
       {
         "type": "string_array",
-        "named": true
-      },
-      {
-        "type": "string_symbol",
         "named": true
       },
       {
@@ -1147,6 +1147,29 @@
           }
         ]
       }
+    }
+  },
+  {
+    "type": "delimited_symbol",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "escape_sequence",
+          "named": true
+        },
+        {
+          "type": "interpolation",
+          "named": true
+        },
+        {
+          "type": "string_content",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -2639,29 +2662,6 @@
       "types": [
         {
           "type": "bare_string",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "string_symbol",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": false,
-      "types": [
-        {
-          "type": "escape_sequence",
-          "named": true
-        },
-        {
-          "type": "interpolation",
-          "named": true
-        },
-        {
-          "type": "string_content",
           "named": true
         }
       ]

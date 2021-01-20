@@ -432,7 +432,7 @@ module.exports = grammar({
       $.hash,
       $.subshell,
       $.simple_symbol,
-      $.string_symbol,
+      $.delimited_symbol,
       $.integer,
       $.float,
       $.complex,
@@ -735,7 +735,7 @@ module.exports = grammar({
       $.constant,
       $.setter,
       $.simple_symbol,
-      $.string_symbol,
+      $.delimited_symbol,
       $.operator,
       $.instance_variable,
       $.class_variable,
@@ -818,7 +818,7 @@ module.exports = grammar({
       alias($._string_end, ')')
     ),
 
-    string_symbol: $ => seq(
+    delimited_symbol: $ => seq(
       alias($._symbol_start, ':"'),
       optional($._literal_contents),
       alias($._string_end, '"')

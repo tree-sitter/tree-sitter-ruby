@@ -100,8 +100,8 @@ single quoted symbol
 ---
 
 (program
-  (string_symbol (string_content))
-  (string_symbol (string_content)))
+  (delimited_symbol (string_content))
+  (delimited_symbol (string_content)))
 
 ====================
 double quoted symbol
@@ -112,7 +112,7 @@ double quoted symbol
 
 ---
 
-(program (string_symbol (string_content)) (string_symbol (string_content)))
+(program (delimited_symbol (string_content)) (delimited_symbol (string_content)))
 
 =======================================
 double quoted symbol with interpolation
@@ -122,7 +122,7 @@ double quoted symbol with interpolation
 
 ---
 
-(program (string_symbol (string_content) (interpolation (identifier))))
+(program (delimited_symbol (string_content) (interpolation (identifier))))
 
 =======================================
 interpolation with no content
@@ -132,7 +132,7 @@ interpolation with no content
 
 ---
 
-(program (string_symbol (string_content) (interpolation)))
+(program (delimited_symbol (string_content) (interpolation)))
 
 =========================================
 percent symbol with unbalanced delimiters
@@ -144,7 +144,7 @@ percent symbol with unbalanced delimiters
 
 ---
 
-(program (string_symbol (string_content)) (string_symbol (string_content)) (string_symbol (string_content)))
+(program (delimited_symbol (string_content)) (delimited_symbol (string_content)) (delimited_symbol (string_content)))
 
 =======================================
 percent symbol with balanced delimiters
@@ -157,7 +157,7 @@ percent symbol with balanced delimiters
 
 ---
 
-(program (string_symbol (string_content)) (string_symbol (string_content)) (string_symbol (string_content)) (string_symbol (string_content)))
+(program (delimited_symbol (string_content)) (delimited_symbol (string_content)) (delimited_symbol (string_content)) (delimited_symbol (string_content)))
 
 =======================================
 global variables
