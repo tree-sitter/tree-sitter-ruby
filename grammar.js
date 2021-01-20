@@ -25,6 +25,7 @@ const PREC = {
   UNARY_MINUS: 75,
   EXPONENTIAL: 80,
   COMPLEMENT: 85,
+  ELEMENT_REFERENCE: 90,
 };
 
 const IDENTIFIER_CHARS = /[^\x00-\x1F\s:;`"'@$#.,|^&<=>+\-*/\\%?!~()\[\]{}]*/;
@@ -80,6 +81,11 @@ module.exports = grammar({
     $._variable,
     $._primary,
     $._lhs,
+  ],
+
+  conflicts: $ => [
+    [$._lhs, $.call],
+    [$._lhs, $.call, $.command_call, $.command_call_with_block],
   ],
 
   rules: {
@@ -467,12 +473,18 @@ module.exports = grammar({
 
     parenthesized_statements: $ => seq('(', optional($._statements), ')'),
 
-    element_reference: $ => prec.left(1, seq(
-      field('object', $._primary),
-      token.immediate('['),
-      optional($._argument_list_with_trailing_comma),
-      ']'
-    )),
+    element_reference: $ => choice(
+      prec.left(seq(
+        field('object', $._primary),
+        $._array_reference,
+      )),
+      prec.left(PREC.ELEMENT_REFERENCE, seq(
+        field('object', $._primary),
+        token.immediate('['),
+        optional($._argument_list_with_trailing_comma),
+        ']'
+      )),
+    ),
 
     scope_resolution: $ => prec.left(1, seq(
       choice(
@@ -535,8 +547,10 @@ module.exports = grammar({
         seq(receiver, arguments),
         seq(receiver, prec(PREC.CURLY_BLOCK, seq(arguments, block))),
         seq(receiver, prec(PREC.DO_BLOCK, seq(arguments, doBlock))),
+        prec(PREC.CURLY_BLOCK, seq(receiver, $.array, block)),
+        prec(PREC.DO_BLOCK, seq(receiver, $.array, doBlock)),
         prec(PREC.CURLY_BLOCK, seq(receiver, block)),
-        prec(PREC.DO_BLOCK, seq(receiver, doBlock))
+        prec(PREC.DO_BLOCK, seq(receiver, doBlock)),
       )
     },
 
@@ -712,7 +726,7 @@ module.exports = grammar({
       $.scope_resolution,
       $.element_reference,
       alias($._call, $.call),
-      $.call
+      $.call,
     )),
 
     _variable: $ => prec.right(choice(
@@ -858,7 +872,9 @@ module.exports = grammar({
       )
     )),
 
-    array: $ => seq(
+    array: $ => $._array_reference,
+
+    _array_reference: $ => seq(
       '[',
       optional($._argument_list_with_trailing_comma),
       ']'
