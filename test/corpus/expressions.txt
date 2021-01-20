@@ -654,11 +654,11 @@ foo(a2:b,)
 ---
 
 (program
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (identifier))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (identifier))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (identifier))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (identifier))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (identifier)))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (identifier))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (identifier))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (identifier))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (identifier))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (identifier)))))
 
 ===============================
 method call with receiver
@@ -733,7 +733,7 @@ end
     block: (block))
   (call
     receiver: (identifier)
-    method: (argument_list (pair key: (identifier_hash_key_symbol) value: (identifier)))
+    method: (argument_list (pair key: (hash_key_symbol) value: (identifier)))
     block: (do_block (identifier))))
 
 ===============================
@@ -811,9 +811,9 @@ foo B: true
 ---
 
 (program
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true)))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true)))))
 
 ===============================
 method call with reserved keyword args
@@ -860,43 +860,43 @@ foo yield: true
 ---
 
 (program
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (identifier_hash_key_symbol) (true)))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (true)))))
 
 ===============================
 method call with paren args

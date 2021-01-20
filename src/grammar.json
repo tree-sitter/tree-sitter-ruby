@@ -5834,7 +5834,7 @@
                 "members": [
                   {
                     "type": "SYMBOL",
-                    "name": "identifier_hash_key_symbol"
+                    "name": "hash_key_symbol"
                   },
                   {
                     "type": "ALIAS",
@@ -5843,7 +5843,7 @@
                       "name": "identifier"
                     },
                     "named": true,
-                    "value": "identifier_hash_key_symbol"
+                    "value": "hash_key_symbol"
                   },
                   {
                     "type": "ALIAS",
@@ -5852,7 +5852,7 @@
                       "name": "constant"
                     },
                     "named": true,
-                    "value": "identifier_hash_key_symbol"
+                    "value": "hash_key_symbol"
                   },
                   {
                     "type": "SYMBOL",
@@ -6065,7 +6065,7 @@
     },
     {
       "type": "SYMBOL",
-      "name": "identifier_hash_key_symbol"
+      "name": "hash_key_symbol"
     },
     {
       "type": "SYMBOL",

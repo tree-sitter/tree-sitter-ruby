@@ -60,7 +60,7 @@ module.exports = grammar({
     $._binary_minus,
     $._binary_star,
     $._singleton_class_left_angle_left_langle,
-    $.identifier_hash_key_symbol,
+    $.hash_key_symbol,
     $._hash_splat_star_star,
     $._binary_star_star
   ],
@@ -881,9 +881,9 @@ module.exports = grammar({
       ),
       seq(
         field('key', choice(
-          $.identifier_hash_key_symbol,
-          alias($.identifier, $.identifier_hash_key_symbol),
-          alias($.constant, $.identifier_hash_key_symbol),
+          $.hash_key_symbol,
+          alias($.identifier, $.hash_key_symbol),
+          alias($.constant, $.hash_key_symbol),
           $.string
         )),
         token.immediate(':'),

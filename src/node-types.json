@@ -2144,7 +2144,7 @@
             "named": true
           },
           {
-            "type": "identifier_hash_key_symbol",
+            "type": "hash_key_symbol",
             "named": true
           },
           {
@@ -3464,6 +3464,10 @@
     "named": true
   },
   {
+    "type": "hash_key_symbol",
+    "named": true
+  },
+  {
     "type": "heredoc_beginning",
     "named": true
   },
@@ -3477,10 +3481,6 @@
   },
   {
     "type": "identifier",
-    "named": true
-  },
-  {
-    "type": "identifier_hash_key_symbol",
     "named": true
   },
   {
