@@ -746,16 +746,20 @@
           }
         },
         {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "SYMBOL",
-              "name": "superclass"
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
+          "type": "FIELD",
+          "name": "superclass",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "superclass"
+              },
+              {
+                "type": "BLANK"
+              }
+            ]
+          }
         },
         {
           "type": "SYMBOL",
@@ -5372,7 +5376,7 @@
     },
     "character": {
       "type": "PATTERN",
-      "value": "\\?(\\\\\\S({[0-9]*}|[0-9]*|-\\S([MC]-\\S)?)?|\\S)"
+      "value": "\\?(\\\\\\S({[0-9A-Fa-f]*}|[0-9A-Fa-f]*|-\\S([MC]-\\S)?)?|\\S)"
     },
     "interpolation": {
       "type": "SEQ",
