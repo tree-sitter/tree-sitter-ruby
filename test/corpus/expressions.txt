@@ -1314,7 +1314,7 @@ end
 (program
   (call
     (identifier)
-    (array (integer))
+    (argument_list (array (integer)))
     (block (block_parameters (identifier)) (identifier)))
   (call
     (identifier)
