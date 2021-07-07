@@ -182,6 +182,10 @@
         "named": true
       },
       {
+        "type": "loop",
+        "named": true
+      },
+      {
         "type": "method",
         "named": true
       },
@@ -1852,6 +1856,22 @@
           "named": true
         }
       ]
+    }
+  },
+  {
+    "type": "loop",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "do",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
@@ -3533,6 +3553,10 @@
   {
     "type": "integer",
     "named": true
+  },
+  {
+    "type": "loop",
+    "named": false
   },
   {
     "type": "module",

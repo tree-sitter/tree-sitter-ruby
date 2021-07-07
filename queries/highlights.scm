@@ -27,6 +27,7 @@
   "until"
   "when"
   "while"
+  "loop"
   "yield"
 ] @keyword
 

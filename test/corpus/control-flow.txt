@@ -634,3 +634,30 @@ end
   (case (assignment (identifier) (binary (identifier) (identifier)))
     (when (pattern (identifier)))
     (else))))
+
+=====================
+empty loop statement
+=====================
+
+loop do
+end
+
+---
+
+(program (loop
+  body: (do)))
+
+=========================
+loop statement with body
+=========================
+
+loop do
+  bar
+end
+
+---
+
+(program (loop
+  body: (do (identifier))))
+
+

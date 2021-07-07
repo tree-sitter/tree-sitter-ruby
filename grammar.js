@@ -282,6 +282,11 @@ module.exports = grammar({
       field('body', $.do)
     ),
 
+    loop: $ => seq(
+      'loop',
+      field('body', $.do)
+    ),
+
     until: $ => seq(
       'until',
       field('condition', $._statement),
@@ -450,6 +455,7 @@ module.exports = grammar({
       $.module,
       $.begin,
       $.while,
+      $.loop,
       $.until,
       $.if,
       $.unless,
