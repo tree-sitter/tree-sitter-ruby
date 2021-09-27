@@ -197,14 +197,17 @@ struct Scanner {
         return true;
       }
 
-      bool seen_cr = false;
       switch (lexer->lookahead) {
         case ' ':
         case '\t':
           skip(lexer);
           break;
         case '\r':
-          if (!heredoc_body_start_is_valid) {
+          if (heredoc_body_start_is_valid) {
+            lexer->result_symbol = HEREDOC_BODY_START;
+            open_heredocs[0].started = true;
+            return true;
+          } else {
             skip(lexer);
             break;
           }
