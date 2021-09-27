@@ -17,3 +17,26 @@ c
       (heredoc_body (heredoc_content) (heredoc_end))
       (identifier)
       (MISSING ")"))))
+
+====================================
+Heredocs
+====================================
+
+joins(<<-SQL
+b
+
+SQL
+
+)
+
+------------------------------------
+
+(program
+  (call
+    method: (identifier)
+    arguments: (argument_list
+      (heredoc_beginning)
+      (heredoc_body (heredoc_content) (heredoc_end))
+    )
+  )
+)
