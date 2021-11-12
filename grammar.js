@@ -652,9 +652,12 @@ module.exports = grammar({
       alias($.yield_command, $.yield),
       alias($.break_command, $.break),
       alias($.next_command, $.next),
+      $.match_pattern,
       $.test_pattern,
       $._arg
     ),
+
+    match_pattern: $ => seq(field('value', $._arg), '=>', field('pattern', $._pattern_top_expr_body)),
 
     test_pattern: $ => prec(100, seq(field('value', $._arg), 'in', field('pattern', $._pattern_top_expr_body))),
 
