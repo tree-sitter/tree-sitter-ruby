@@ -632,7 +632,7 @@ module.exports = grammar({
       $._arg
     ),
 
-    test_pattern: $ => seq(field('value', $._arg), 'in', field('pattern', $._pattern_expr)),
+    test_pattern: $ => prec(100, seq(field('value', $._arg), 'in', field('pattern', $._pattern_expr))),
 
     _arg: $ => choice(
       $._primary,
