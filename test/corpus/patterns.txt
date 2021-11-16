@@ -341,3 +341,35 @@ DOC
   (heredoc_body
     (heredoc_content)
     (heredoc_end)))
+
+=================
+one-line patterns
+=================
+
+x in Foo(y:)
+
+case foo in 5 in true then 1 end
+case foo in 5; in true then 1 end
+case (foo x) in 5; in true then 1 end
+
+-----------------
+
+(program
+  (test_pattern (identifier) (hash_pattern (constant) (keyword_pattern (hash_key_symbol))))
+
+  (case_match (test_pattern (identifier) (integer)) (in_clause (true) (then (integer))))
+  (case_match (test_pattern (identifier) (integer)) (in_clause (true) (then (integer))))
+  (case_match (test_pattern (parenthesized_statements (call (identifier) (argument_list (identifier)))) (integer))
+    (in_clause (true) (then (integer))))
+)
+
+=====================================
+one-line patterns: incorrectly parsed
+=====================================
+foo x in 5 # FIXME: should be parsed as `(foo x) in 5` instead of `foo (x in 5)`
+
+-----------------
+
+(program
+  (call (identifier) (argument_list (test_pattern (identifier) (integer)))) (comment)
+)
