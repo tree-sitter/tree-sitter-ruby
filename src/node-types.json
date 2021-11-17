@@ -70,6 +70,10 @@
         "named": true
       },
       {
+        "type": "test_pattern",
+        "named": true
+      },
+      {
         "type": "unary",
         "named": true
       },
@@ -3205,6 +3209,32 @@
     }
   },
   {
+    "type": "test_pattern",
+    "named": true,
+    "fields": {
+      "pattern": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "_pattern_expr",
+            "named": true
+          }
+        ]
+      },
+      "value": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "_arg",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
     "type": "then",
     "named": true,
     "fields": {},
@@ -3933,11 +3963,11 @@
   },
   {
     "type": "nil",
-    "named": true
+    "named": false
   },
   {
     "type": "nil",
-    "named": false
+    "named": true
   },
   {
     "type": "not",

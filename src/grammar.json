@@ -3403,9 +3403,42 @@
         },
         {
           "type": "SYMBOL",
+          "name": "test_pattern"
+        },
+        {
+          "type": "SYMBOL",
           "name": "_arg"
         }
       ]
+    },
+    "test_pattern": {
+      "type": "PREC",
+      "value": 100,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "FIELD",
+            "name": "value",
+            "content": {
+              "type": "SYMBOL",
+              "name": "_arg"
+            }
+          },
+          {
+            "type": "STRING",
+            "value": "in"
+          },
+          {
+            "type": "FIELD",
+            "name": "pattern",
+            "content": {
+              "type": "SYMBOL",
+              "name": "_pattern_expr"
+            }
+          }
+        ]
+      }
     },
     "_arg": {
       "type": "CHOICE",
