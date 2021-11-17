@@ -1,0 +1,10 @@
+=========
+strange
+=========
+
+assert_nil(("a".sub! "b" do end&.foo do end))
+
+----
+
+(program (call (identifier) (argument_list (parenthesized_statements (call (call (string (string_content)) (identifier) (argument_list (string (string_content))) (do_block)) (identifier) (argument_list (identifier))) (ERROR)))))
+
