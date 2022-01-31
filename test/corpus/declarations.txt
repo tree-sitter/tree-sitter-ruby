@@ -40,6 +40,8 @@ def foo(x) = bar
 def Object.foo = bar
 def Object.foo (x) = bar
 def foo() = bar rescue (print "error")
+def foo(x) = bar x
+def foo(x) = bar x rescue (print "error")
 
 ---
 
@@ -52,6 +54,15 @@ def foo() = bar rescue (print "error")
   (method (identifier) (method_parameters)
     (rescue_modifier 
       (identifier)
+      (parenthesized_statements (call (identifier) (argument_list (string (string_content)))))
+    )
+  )
+  (method (identifier) (method_parameters (identifier))
+    (call (identifier) (argument_list (identifier)))
+  ) 
+  (method (identifier) (method_parameters (identifier)) 
+    (rescue_modifier
+      (call (identifier) (argument_list (identifier)))
       (parenthesized_statements (call (identifier) (argument_list (string (string_content)))))
     )
   )

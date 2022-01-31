@@ -175,14 +175,14 @@ module.exports = grammar({
       )
     ),
 
-    _body_expr: $ =>
+    _body_expr: $ => prec.left(
       seq(
         '=',
         choice(
-          $._arg,
+          $._expression,
           alias($.rescue_modifier_arg, $.rescue_modifier),
         )
-      ),
+      )),
 
 
     parameters: $ => seq(
@@ -613,7 +613,7 @@ module.exports = grammar({
     // contain command calls. The `_arg` rule can appear in many more places,
     // but cannot contain command calls (unless they are wrapped in parens).
     // This naming convention is based on Ruby's standard grammar.
-    _expression: $ => choice(
+    _expression: $ => prec.left(choice(
       alias($.command_binary, $.binary),
       alias($.command_unary, $.unary),
       alias($.command_assignment, $.assignment),
@@ -626,7 +626,7 @@ module.exports = grammar({
       alias($.break_command, $.break),
       alias($.next_command, $.next),
       $._arg
-    ),
+    )),
 
     _arg: $ => choice(
       $._primary,
