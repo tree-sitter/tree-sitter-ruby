@@ -2265,10 +2265,6 @@
       "required": false,
       "types": [
         {
-          "type": "_arg",
-          "named": true
-        },
-        {
           "type": "_statement",
           "named": true
         },
@@ -2994,10 +2990,6 @@
       "multiple": true,
       "required": false,
       "types": [
-        {
-          "type": "_arg",
-          "named": true
-        },
         {
           "type": "_statement",
           "named": true

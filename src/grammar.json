@@ -414,31 +414,35 @@
       }
     },
     "_body_expr": {
-      "type": "SEQ",
-      "members": [
-        {
-          "type": "STRING",
-          "value": "="
-        },
-        {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "SYMBOL",
-              "name": "_arg"
-            },
-            {
-              "type": "ALIAS",
-              "content": {
+      "type": "PREC_LEFT",
+      "value": 0,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "="
+          },
+          {
+            "type": "CHOICE",
+            "members": [
+              {
                 "type": "SYMBOL",
-                "name": "rescue_modifier_arg"
+                "name": "_expression"
               },
-              "named": true,
-              "value": "rescue_modifier"
-            }
-          ]
-        }
-      ]
+              {
+                "type": "ALIAS",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "rescue_modifier_arg"
+                },
+                "named": true,
+                "value": "rescue_modifier"
+              }
+            ]
+          }
+        ]
+      }
     },
     "parameters": {
       "type": "SEQ",
@@ -3298,116 +3302,120 @@
       ]
     },
     "_expression": {
-      "type": "CHOICE",
-      "members": [
-        {
-          "type": "ALIAS",
-          "content": {
-            "type": "SYMBOL",
-            "name": "command_binary"
-          },
-          "named": true,
-          "value": "binary"
-        },
-        {
-          "type": "ALIAS",
-          "content": {
-            "type": "SYMBOL",
-            "name": "command_unary"
-          },
-          "named": true,
-          "value": "unary"
-        },
-        {
-          "type": "ALIAS",
-          "content": {
-            "type": "SYMBOL",
-            "name": "command_assignment"
-          },
-          "named": true,
-          "value": "assignment"
-        },
-        {
-          "type": "ALIAS",
-          "content": {
-            "type": "SYMBOL",
-            "name": "command_operator_assignment"
-          },
-          "named": true,
-          "value": "operator_assignment"
-        },
-        {
-          "type": "ALIAS",
-          "content": {
-            "type": "SYMBOL",
-            "name": "command_call"
-          },
-          "named": true,
-          "value": "call"
-        },
-        {
-          "type": "ALIAS",
-          "content": {
-            "type": "SYMBOL",
-            "name": "command_call_with_block"
-          },
-          "named": true,
-          "value": "call"
-        },
-        {
-          "type": "PREC_LEFT",
-          "value": 0,
-          "content": {
+      "type": "PREC_LEFT",
+      "value": 0,
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
             "type": "ALIAS",
             "content": {
               "type": "SYMBOL",
-              "name": "_chained_command_call"
+              "name": "command_binary"
+            },
+            "named": true,
+            "value": "binary"
+          },
+          {
+            "type": "ALIAS",
+            "content": {
+              "type": "SYMBOL",
+              "name": "command_unary"
+            },
+            "named": true,
+            "value": "unary"
+          },
+          {
+            "type": "ALIAS",
+            "content": {
+              "type": "SYMBOL",
+              "name": "command_assignment"
+            },
+            "named": true,
+            "value": "assignment"
+          },
+          {
+            "type": "ALIAS",
+            "content": {
+              "type": "SYMBOL",
+              "name": "command_operator_assignment"
+            },
+            "named": true,
+            "value": "operator_assignment"
+          },
+          {
+            "type": "ALIAS",
+            "content": {
+              "type": "SYMBOL",
+              "name": "command_call"
             },
             "named": true,
             "value": "call"
+          },
+          {
+            "type": "ALIAS",
+            "content": {
+              "type": "SYMBOL",
+              "name": "command_call_with_block"
+            },
+            "named": true,
+            "value": "call"
+          },
+          {
+            "type": "PREC_LEFT",
+            "value": 0,
+            "content": {
+              "type": "ALIAS",
+              "content": {
+                "type": "SYMBOL",
+                "name": "_chained_command_call"
+              },
+              "named": true,
+              "value": "call"
+            }
+          },
+          {
+            "type": "ALIAS",
+            "content": {
+              "type": "SYMBOL",
+              "name": "return_command"
+            },
+            "named": true,
+            "value": "return"
+          },
+          {
+            "type": "ALIAS",
+            "content": {
+              "type": "SYMBOL",
+              "name": "yield_command"
+            },
+            "named": true,
+            "value": "yield"
+          },
+          {
+            "type": "ALIAS",
+            "content": {
+              "type": "SYMBOL",
+              "name": "break_command"
+            },
+            "named": true,
+            "value": "break"
+          },
+          {
+            "type": "ALIAS",
+            "content": {
+              "type": "SYMBOL",
+              "name": "next_command"
+            },
+            "named": true,
+            "value": "next"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "_arg"
           }
-        },
-        {
-          "type": "ALIAS",
-          "content": {
-            "type": "SYMBOL",
-            "name": "return_command"
-          },
-          "named": true,
-          "value": "return"
-        },
-        {
-          "type": "ALIAS",
-          "content": {
-            "type": "SYMBOL",
-            "name": "yield_command"
-          },
-          "named": true,
-          "value": "yield"
-        },
-        {
-          "type": "ALIAS",
-          "content": {
-            "type": "SYMBOL",
-            "name": "break_command"
-          },
-          "named": true,
-          "value": "break"
-        },
-        {
-          "type": "ALIAS",
-          "content": {
-            "type": "SYMBOL",
-            "name": "next_command"
-          },
-          "named": true,
-          "value": "next"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "_arg"
-        }
-      ]
+        ]
+      }
     },
     "_arg": {
       "type": "CHOICE",
