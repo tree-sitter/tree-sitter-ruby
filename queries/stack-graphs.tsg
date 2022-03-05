@@ -1,0 +1,55 @@
+
+(program)@prog {
+    node @prog.before_scope
+    node @prog.after_scope
+    print @prog
+    edge @prog.before_scope -> ROOT_NODE
+}
+
+(program
+  .
+  (_)@first_stmt)@prog {
+    edge @first_stmt.before_scope -> @prog.before_scope
+}
+
+(program
+  (_)@left_stmt
+  .
+  (_)@right_stmt) {
+  edge @right_stmt.before_scope -> @left_stmt.after_scope
+}
+
+(program
+  (_)@last_stmt
+  .)@prog {
+  edge @prog.after_scope -> @last_stmt.after_scope
+}
+
+(comment)@comment {
+  node @comment.before_scope
+  node @comment.after_scope
+  edge @comment.after_scope -> @comment.before_scope 
+}
+
+(assignment
+  left:(identifier)@name
+  right:(_)@right)@assignment {
+
+  node @assignment.before_scope
+  node @assignment.after_scope
+  node @name.pop
+  attr (@name.pop) node_definition = @name
+  edge @assignment.after_scope -> @assignment.before_scope
+  edge @assignment.after_scope -> @name.pop
+}
+
+(_variable/identifier)@identifier {
+  node @identifier.before_scope
+  node @identifier.after_scope
+  node @identifier.value
+  attr (@identifier.value) node_reference = @identifier
+  edge @identifier.after_scope -> @identifier.before_scope
+  edge @identifier.value -> @identifier.before_scope
+}
+
+
