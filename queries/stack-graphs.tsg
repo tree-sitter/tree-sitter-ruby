@@ -37,10 +37,14 @@
 
   node @assignment.before_scope
   node @assignment.after_scope
+  node @assignment.value
   node @name.pop
   attr (@name.pop) node_definition = @name
-  edge @assignment.after_scope -> @assignment.before_scope
+  edge @right.before_scope -> @assignment.before_scope
+  edge @assignment.after_scope -> @right.after_scope
   edge @assignment.after_scope -> @name.pop
+  edge @name.pop -> @right.value
+  edge @assignment.value -> @right.value
 }
 
 (_variable/identifier)@identifier {
@@ -50,6 +54,40 @@
   attr (@identifier.value) node_reference = @identifier
   edge @identifier.after_scope -> @identifier.before_scope
   edge @identifier.value -> @identifier.before_scope
+}
+
+(parenthesized_statements)@ps {
+  node @ps.before_scope
+  node @ps.after_scope
+  node @ps.value
+}
+
+(parenthesized_statements
+  .
+  (_)@first_stmt)@ps {
+    edge @first_stmt.before_scope -> @ps.before_scope
+}
+
+(parenthesized_statements
+  (_)@left_stmt
+  .
+  (_)@right_stmt) {
+  edge @right_stmt.before_scope -> @left_stmt.after_scope
+}
+
+(parenthesized_statements
+  (_)@last_stmt
+  .)@ps {
+  edge @ps.after_scope -> @last_stmt.after_scope
+  edge @ps.value -> @last_stmt.value
+}
+
+(integer)@integer {
+  node @integer.before_scope
+  node @integer.after_scope
+  node @integer.value
+  edge @integer.after_scope -> @integer.before_scope
+  ;edge @integer.value -> @integer::INTEGER_CLASS (?ask about builtin variable syntax)
 }
 
 
