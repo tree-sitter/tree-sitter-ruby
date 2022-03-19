@@ -103,4 +103,40 @@ attribute node_symbol = node            => symbol = (source-text node), source_n
   ;edge @integer.value -> @integer::INTEGER_CLASS (?ask about builtin variable syntax)
 }
 
+(if
+  condition:(_)@cond)@if {
+  node @if.before_scope
+  node @if.after_scope
+  node @if.value
+  edge @cond.before_scope -> @if.before_scope
+}
+
+(if
+  condition:(_)@cond
+  !consequence
+  !alternative)@if {
+  edge @if.after_scope -> @cond.after_scope
+  edge @if.value -> @if.NULL_VALUE
+}
+
+(if
+  condition:(_)@cond
+  consequence:(_)@consequence)@if {
+  node @consequence.before_scope
+  node @consequence.after_scope
+  edge @consequence.before_scope -> @cond.after_scope
+  edge @if.after_scope -> @consequence.after_scope
+  edge @if.value -> @consequence.value
+}
+
+(if
+  condition:(_)@cond
+  alternative:(_)@alternative)@if {
+  node @alternative.before_scope
+  node @alternative.after_scope
+  edge @alternative.before_scope -> @cond.after_scope
+  edge @if.after_scope -> @alternative.after_scope
+  edge @if.value -> @alternative.value
+}
+
 
