@@ -59,7 +59,7 @@ attribute node_symbol = node            => symbol = (source-text node), source_n
   edge @assignment.value -> @right.value
 }
 
-(_variable/identifier)@identifier {
+(_expression/identifier)@identifier {
   node @identifier.before_scope
   node @identifier.after_scope
   node @identifier.value
