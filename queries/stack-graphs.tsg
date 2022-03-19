@@ -40,7 +40,8 @@ attribute node_symbol = node            => symbol = (source-text node), source_n
 (comment)@comment {
   node @comment.before_scope
   node @comment.after_scope
-  edge @comment.after_scope -> @comment.before_scope 
+  node @comment.value
+  edge @comment.after_scope -> @comment.before_scope
 }
 
 (assignment
