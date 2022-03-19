@@ -1,3 +1,4 @@
+global ROOT_NODE
 
 (program)@prog {
     node @prog.before_scope
