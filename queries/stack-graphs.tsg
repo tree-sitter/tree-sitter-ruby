@@ -139,4 +139,78 @@ attribute node_symbol = node            => symbol = (source-text node), source_n
   edge @if.value -> @alternative.value
 }
 
+(then)@then {
+  node @then.value
+}
 
+(then
+  .
+  (_)@first_stmt)@then {
+    edge @first_stmt.before_scope -> @then.before_scope
+}
+
+(then
+  (_)@left_stmt
+  .
+  (_)@right_stmt) {
+  edge @right_stmt.before_scope -> @left_stmt.after_scope
+}
+
+(then
+  (_)@left_stmt
+  .
+  (comment)@right_stmt) {
+  edge @right_stmt.value -> @left_stmt.value
+}
+
+(then
+  (_)@last_stmt
+  .)@then {
+  edge @then.after_scope -> @last_stmt.after_scope
+  edge @then.value -> @last_stmt.value
+}
+
+; TODO:  this is to ensure empty then statements do not break the graph.
+; Fix this when tree-sitter is updated to support queries for empty children.
+(then)@then {
+  edge @then.after_scope -> @then.before_scope
+  edge @then.value -> @then.NULL_VALUE
+}
+
+(else)@else {
+  node @else.value
+}
+
+(else
+  .
+  (_)@first_stmt)@else {
+    edge @first_stmt.before_scope -> @else.before_scope
+}
+
+(else
+  (_)@left_stmt
+  .
+  (_)@right_stmt) {
+  edge @right_stmt.before_scope -> @left_stmt.after_scope
+}
+
+(else
+  (_)@left_stmt
+  .
+  (comment)@right_stmt) {
+  edge @right_stmt.value -> @left_stmt.value
+}
+
+(else
+  (_)@last_stmt
+  .)@else {
+  edge @else.after_scope -> @last_stmt.after_scope
+  edge @else.value -> @last_stmt.value
+}
+
+; TODO:  this is to ensure empty then statements do not break the graph.
+; Fix this when tree-sitter is updated to support queries for empty children.
+(else)@else {
+  edge @else.after_scope -> @else.before_scope
+  edge @else.value -> @else.NULL_VALUE
+}
