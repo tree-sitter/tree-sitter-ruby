@@ -5,6 +5,7 @@ attribute node_reference = node         => type = "push_symbol", node_symbol = n
 attribute node_symbol = node            => symbol = (source-text node), source_node = node
 
 (program)@prog {
+    node @prog.NULL_VALUE
     node @prog.before_scope
     node @prog.after_scope
     print @prog
@@ -28,6 +29,12 @@ attribute node_symbol = node            => symbol = (source-text node), source_n
   (_)@last_stmt
   .)@prog {
   edge @prog.after_scope -> @last_stmt.after_scope
+}
+
+; This allows all nodes to propagate a NULL_VALUE variable down through the CST.
+(_
+  (_)@child)@parent {
+  let @child.NULL_VALUE = @parent.NULL_VALUE
 }
 
 (comment)@comment {
