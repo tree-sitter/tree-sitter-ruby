@@ -71,7 +71,7 @@ attribute node_symbol = node            => symbol = (source-text node), source_n
   edge @assignment.value -> @right.value
 }
 
-(_arg/identifier)@identifier {
+(_primary/identifier)@identifier {
   node @identifier.before_scope
   node @identifier.after_scope
   node @identifier.value
@@ -225,3 +225,69 @@ attribute node_symbol = node            => symbol = (source-text node), source_n
   edge @else.after_scope -> @else.before_scope
   edge @else.value -> @else.NULL_VALUE
 }
+
+(array)@array {
+  node @array.before_scope
+  node @array.after_scope
+  node @array.value
+  ; TODO:  this is to ensure empty arrays do not break the graph.
+  ; Fix this when tree-sitter is updated to support queries for empty children.
+  edge @array.after_scope -> @array.before_scope
+}
+
+(array (_)@child)@array {
+  node @child.pop
+  node @child.pop2
+  attr (@child.pop) pop_symbol = (named-child-index @child), is_definition, source_node=@child
+  attr (@child.pop2) pop_symbol = (named-child-index @child), is_definition, source_node=@array
+  edge @array.value -> @child.pop
+  edge @array.value -> @child.pop2
+  edge @child.pop -> @child.value
+}
+
+(array
+  .
+  (_)@first_child)@array {
+    edge @first_child.before_scope -> @array.before_scope
+}
+
+(array
+  (_)@left_child
+  .
+  (_)@right_child) {
+  edge @right_child.before_scope -> @left_child.after_scope
+}
+
+(array
+  (_)@last_child
+  .)@array {
+  edge @array.after_scope -> @last_child.after_scope
+}
+
+(element_reference)@element_ref {
+  node @element_ref.before_scope
+  node @element_ref.after_scope
+  node @element_ref.value
+}
+
+(element_reference
+  object: (_)@object
+  (_)@key
+  .
+  ) @element_ref {
+  edge @element_ref.after_scope -> @key.after_scope
+  edge @key.before_scope -> @object.after_scope
+  edge @object.before_scope -> @element_ref.before_scope
+}
+
+(element_reference
+  object: (_)@object
+  [(integer)]@key
+  .
+  ) @element_ref {
+  node @key.push
+  attr (@key.push) node_reference = @key
+  edge @element_ref.value -> @key.push
+  edge @key.push -> @object.value
+}
+
