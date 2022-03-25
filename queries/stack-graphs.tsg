@@ -1,7 +1,19 @@
+global FILE_PATH
 global ROOT_NODE
 
 attribute node_definition = node        => type = "pop_symbol", node_symbol = node, is_definition
+attribute scoped_node_definition = node => type = "pop_scoped_symbol", node_symbol = node, is_definition
 attribute node_reference = node         => type = "push_symbol", node_symbol = node, is_reference
+attribute scoped_node_reference = node  => type = "push_scoped_symbol", node_symbol = node, is_reference
+attribute pop_node = node               => type = "pop_symbol", node_symbol = node
+attribute pop_scoped_node = node        => type = "pop_scoped_symbol", node_symbol = node
+attribute push_node = node              => type = "push_symbol", node_symbol = node
+attribute push_scoped_node = node       => type = "push_scoped_symbol", node_symbol = node
+attribute pop_symbol = symbol           => type = "pop_symbol", symbol = symbol
+attribute pop_scoped_symbol = symbol    => type = "pop_scoped_symbol", symbol = symbol
+attribute push_symbol = symbol          => type = "push_symbol", symbol = symbol
+attribute push_scoped_symbol = symbol   => type = "push_scoped_symbol", symbol = symbol
+
 attribute node_symbol = node            => symbol = (source-text node), source_node = node
 
 (program)@prog {
