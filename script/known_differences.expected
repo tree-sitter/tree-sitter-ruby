@@ -1,0 +1,26 @@
+### differences caused by bugs in tree-sitter-ruby ###
+
+# single quoted heredocs do not contain interpolation
+diff: examples/ruby_spec/core/exception/interrupt_spec.rb
+diff: examples/ruby_spec/language/fixtures/squiggly_heredoc.rb
+diff: examples/ruby_spec/language/heredoc_spec.rb
+diff: examples/ruby_spec/library/bigdecimal/BigDecimal_spec.rb
+
+# string array with escape sequences like `%w[\\]`
+diff: examples/ruby_spec/language/array_spec.rb
+diff: examples/ruby_spec/language/fixtures/classes.rb
+
+# bad escape handling for `/\c#{str}/`
+diff: examples/ruby_spec/language/regexp/interpolation_spec.rb
+
+### benign differences ###
+
+# ripper does not distinguish between empty `then` and missing `then`
+diff: examples/ruby_spec/language/case_spec.rb
+diff: examples/ruby_spec/language/if_spec.rb
+diff: examples/ruby_spec/language/pattern_matching_spec.rb
+
+# ripper does not emit events for parentheses in define? and not statements
+diff: examples/ruby_spec/language/defined_spec.rb
+diff: examples/ruby_spec/language/precedence_spec.rb
+
