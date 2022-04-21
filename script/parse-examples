@@ -39,3 +39,22 @@ success_percent=$(bc -l <<< "100*${success_count}/${example_count}")
 printf \
   "Successfully parsed %d of %d example files (%.1f%%)\n" \
   $success_count $example_count $success_percent
+
+if [ "$1" == "--compare" ]; then
+
+ find examples -name '*.rb' | grep -v -f script/known_failures.txt \
+   | xargs -d '\n' -P8 -n1 script/compare-ast.sh | sort > script/known_differences.actual
+
+  difference_count=$(wc -l < "script/known_differences.actual")
+
+  (cat script/known_differences.expected | sed -e 's/\s*#.*//' -e '/^$/d' | sort -u\
+    | diff --label script/known_differences.expected - script/known_differences.actual \
+  ) || (echo "Files script/known_differences.expected and script/known_differences.actual differ"; exit 1)
+  
+  rm -f script/known_differences.actual
+
+  printf \
+    "%d of %d example files were parsed differently compared to Ruby::Ripper\n" \
+    $difference_count $success_count
+
+fi

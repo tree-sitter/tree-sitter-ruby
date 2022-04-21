@@ -20,6 +20,12 @@ jobs:
           node-version: 16
       - run: npm install
       - run: npm test
+      - if: runner.os == 'Linux'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1'
+      - if: runner.os == 'Linux'
+        run: npm run-script test-compare
   test_windows:
     runs-on: windows-2019
     steps:
