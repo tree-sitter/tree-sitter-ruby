@@ -11,3 +11,4 @@ examples/ruby_spec
 *.so
 *.o
 bindings/c/*.h
+.build/
