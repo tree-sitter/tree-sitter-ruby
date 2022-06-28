@@ -1,0 +1,763 @@
+=====
+Heredoc vs << operator
+=====
+
+r<<i
+r << i
+r<< i
+r <<i
+
+---
+
+(program                                        
+  (binary                                       
+    left: (identifier)                          
+    right: (identifier))                        
+  (binary
+    left: (identifier)
+    right: (identifier))
+  (binary
+    left: (identifier)
+    right: (identifier))
+  (call
+    method: (identifier)
+    arguments: (argument_list
+      (heredoc_beginning)))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end)))
+
+=====
+Heredoc vs << operator, still not a heredoc
+=====
+
+r=""
+r <<i
+
+---
+
+(program
+  (assignment
+    left: (identifier)
+    right: (string))
+  (binary
+    left: (identifier)
+    right: (identifier)))
+
+=====
+%=..= string literal
+=====
+
+%=hello world=
+---
+
+(program
+  (string
+    (string_content)))
+
+=====
+lambda body vs empty hash
+=====
+
+f = -> b: { }
+
+---
+
+(program
+  (assignment
+    left: (identifier)
+    right: (lambda
+      parameters: (lambda_parameters
+        (keyword_parameter
+          name: (identifier)))
+      body: (block))))
+
+=====
+lambda with optional parameter
+=====
+
+-> a=a() { a }
+
+---
+
+(program
+  (assignment
+    left: (identifier)
+    right: (lambda
+      parameters: (lambda_parameters
+        (keyword_parameter
+          name: (identifier)))
+      body: (block))))
+
+=====
+one-line class/module def without ;
+=====
+
+module NoActiveModel class Resource; end; end
+class String def foo; end end
+
+---
+
+(program
+  (module
+    name: (constant)
+    (class
+      name: (constant)))
+  (class
+    name: (constant)
+    (method
+      name: (identifier))))
+
+=====
+__END__ at end of file, without new line
+=====
+
+foo
+__END__
+---
+
+(program
+  (identifier)
+  (uninterpreted))
+
+========================================
+__END__ as identifier
+========================================
+
+__END__ = 4
+__END__  # not and end marker
+
+---
+
+(program
+  (assignment (identifier) (integer))
+  (identifier)
+  (comment))
+
+=====
+~@ is an operator
+=====
+
+def ~@; end
+
+---
+
+(program
+  (method
+    name: (operator)))
+
+=====
+space after & in block argument
+=====
+
+f(& block)
+
+---
+
+(program
+  (call
+    method: (identifier)
+    arguments: (argument_list
+      (block_argument
+        (identifier)))))
+
+=====
+space before element reference is allowed in LHS
+=====
+
+self.foo[1] = 2
+
+h = {}
+h [k] = h[k] + 1
+
+---
+
+(program
+  (assignment
+    left: (element_reference
+      object: (call
+        receiver: (self)
+        method: (identifier))
+      (integer))
+    right: (integer))
+  (assignment
+    left: (identifier)
+    right: (hash))
+  (assignment
+    left: (element_reference
+      object: (identifier)
+      (identifier))
+    right: (binary
+      left: (element_reference
+        object: (identifier)
+        (identifier))
+      right: (integer))))
+
+=====
+ funky heredoc
+=====
+    _compile_method("#{<<-"begin;"}\n#{<<-"end;"}", __FILE__, __LINE__+1)
+    begin;
+      proc do
+        def #{ali}(*args, &block)
+          #{pre}
+          begin
+            #{accessor}
+          end#{method_call}
+        end
+      end
+    end;
+---
+
+(program
+  (call
+    method: (identifier)
+    arguments: (argument_list
+      (string
+        (interpolation
+          (heredoc_beginning))
+        (escape_sequence)
+        (interpolation
+          (heredoc_beginning)))
+      (identifier)
+      (binary
+        left: (identifier)
+        right: (integer))))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end))
+  (heredoc_body
+    (heredoc_content)
+    (interpolation
+      (identifier))
+    (heredoc_content)
+    (interpolation
+      (identifier))
+    (heredoc_content)
+    (interpolation
+      (identifier))
+    (heredoc_content)
+    (interpolation
+      (identifier))
+    (heredoc_content)
+    (heredoc_end)))
+
+=====
+command call in `in` expression
+=====
+
+for x in f y
+end
+
+---
+
+(program
+  (for
+    pattern: (identifier)
+    value: (in
+      (call
+        method: (identifier)
+        arguments: (argument_list
+          (identifier))))
+    body: (do)))
+
+=====
+global variables are not method names
+=====
+
+$a?0 : 1
+a?0
+
+---
+
+(program
+  (conditional
+    condition: (global_variable)
+    consequence: (integer)
+    alternative: (integer))
+  (call
+    method: (identifier)
+    arguments: (argument_list
+      (integer))))
+
+=====
+fancy symbols
+=====
+
+$🚀=0;def 🤔 🏷,🤔=0,&b;puts ' '*$🚀+(🤔 ?"":"🚫 ")+🏷;$🚀+=4;b&.[];$🚀-=4;end
+
+---
+
+(program
+  (assignment
+    left: (global_variable)
+    right: (integer))
+  (method
+    name: (identifier)
+    parameters: (method_parameters
+      (identifier)
+      (optional_parameter
+        name: (identifier)
+        value: (integer))
+      (block_parameter
+        name: (identifier)))
+    (call
+      method: (identifier)
+      arguments: (argument_list
+        (binary
+          left: (binary
+            left: (binary
+              left: (string
+                (string_content))
+              right: (global_variable))
+            right: (parenthesized_statements
+              (conditional
+                condition: (identifier)
+                consequence: (string)
+                alternative: (string
+                  (string_content)))))
+          right: (identifier))))
+    (operator_assignment
+      left: (global_variable)
+      right: (integer))
+    (call
+      receiver: (identifier)
+      method: (operator))
+    (operator_assignment
+      left: (global_variable)
+      right: (integer))))
+
+=====
+nested heredocs
+=====
+
+  def test_stressful_roundtrip
+    assert_separately(%w[-r-test-/iseq_load], "#{<<~"begin;"}\n#{<<~'end;;'}", timeout: 120)
+    begin;
+      ISeq = RubyVM::InstructionSequence
+      def assert_iseq_roundtrip(src, line=caller_locations(1,1)[0].lineno+1)
+        a = ISeq.compile(src, __FILE__, __FILE__, line).to_a
+        b = ISeq.iseq_load(a).to_a
+        assert_equal a, b, proc {diff(a, b)}
+        b = ISeq.iseq_load(b).to_a
+        assert_equal a, b, proc {diff(a, b)}
+      end
+      def test_bug8543
+        assert_iseq_roundtrip "#{<<~"begin;"}\n#{<<~'end;'}"
+        begin;
+          puts "tralivali"
+          def funct(a, b)
+            a**b
+          end
+          3.times { |i| puts "Hello, world#{funct(2,i)}!" }
+        end;
+      end
+      GC.stress = true
+      test_bug8543
+    end;;
+  end
+
+---
+
+(program
+  (method
+    name: (identifier)
+    (call
+      method: (identifier)
+      arguments: (argument_list
+        (string_array
+          (bare_string
+            (string_content)))
+        (string
+          (interpolation
+            (heredoc_beginning))
+          (escape_sequence)
+          (interpolation
+            (heredoc_beginning)))
+        (pair
+          key: (hash_key_symbol)
+          value: (integer))))
+    (heredoc_body
+      (heredoc_content)
+      (heredoc_end))
+    (heredoc_body
+      (heredoc_content)
+      (heredoc_end))))
+
+=====
+command calls with blocks
+=====
+
+  def test_safe_call_block_call_brace
+    assert_nil(("a".sub! "b" do end&.foo {}))
+    assert_nil(("a".sub! "b" do end&.foo do end))
+  end
+
+  def test_safe_call_block_call_command
+    assert_nil(("a".sub! "b" do end&.foo 1 do end))
+  end
+    e = assert_raise(NoMethodError) do
+      1.upto 0 do
+      end
+        .
+        foo(
+          1,
+          2,
+        )
+    end
+
+---
+
+(program
+  (method
+    name: (identifier)
+    (call
+      method: (identifier)
+      arguments: (argument_list
+        (parenthesized_statements
+          (call
+            receiver: (call
+              receiver: (string
+                (string_content))
+              method: (identifier)
+              arguments: (argument_list
+                (string
+                  (string_content)))
+              block: (do_block))
+            method: (identifier)
+            arguments: (argument_list)
+            block: (block)))))
+    (call
+      method: (identifier)
+      arguments: (argument_list
+        (parenthesized_statements
+          (call
+            receiver: (call
+              receiver: (string
+                (string_content))
+              method: (identifier)
+              arguments: (argument_list
+                (string
+                  (string_content)))
+              block: (do_block))
+            method: (identifier)
+            arguments: (argument_list)
+            block: (do_block))))))
+  (method
+    name: (identifier)
+    (call
+      method: (identifier)
+      arguments: (argument_list
+        (parenthesized_statements
+          (call
+            receiver: (call
+              receiver: (string
+                (string_content))
+              method: (identifier)
+              arguments: (argument_list
+                (string
+                  (string_content)))
+              block: (do_block))
+            method: (identifier)
+            arguments: (argument_list
+              (integer))
+            block: (do_block))))))
+  (assignment
+    left: (identifier)
+    right: (call
+      method: (identifier)
+      arguments: (argument_list
+        (constant))
+      block: (do_block
+        (call
+          receiver: (call
+            receiver: (integer)
+            method: (identifier)
+            arguments: (argument_list
+              (integer))
+            block: (do_block))
+          method: (identifier)
+          arguments: (argument_list
+            (integer)
+            (integer)))))))
+
+=====
+emtpy heredoc name
+=====
+
+<<""
+
+---
+
+(program
+  (heredoc_beginning)
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end)))
+
+=====
+funky heredoc parsing
+=====
+
+"#{<<'silly'}"
+  "\x00s\x00"
+silly;
+
+---
+
+(program
+  (string
+    (interpolation
+      (heredoc_beginning)))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end)))
+
+=====
+unicode symbols
+=====
+assert_equal(:ま, :ま)
+
+---
+
+(program
+  (call
+    method: (identifier)
+    arguments: (argument_list
+      (simple_symbol)
+      (simple_symbol))))
+
+=====
+self as method name
+=====
+
+def self; end
+
+---
+
+(program
+  (method
+    name: (identifier)))
+
+
+=====
+Oneline patterns
+=====
+
+[0, 1, 2] => [*, 1 => a, *]
+[0, 1, 2] => [*a, 1 => b, *c]
+1 => a
+{a: 1} => {a: 0}
+[1, 2] => a, b
+{a: 1} => a:
+1 in 1
+0 => 1
+[] => Hash[]
+0 => []
+[0] => []
+[] => [_, *]
+[0, 0] => [0, 1]
+[0, 0] => [*, 0, 1]
+[] => Hash[*, _, *]
+0 => [*, _, *]
+[] => [*, _, *]
+[0] => [*, 1, *]
+[0] => [*, {a:}, *]
+{} => Array[a:]
+0 => {a:}
+{a: 0} => {aa:}
+{a: {b: 0}} => {a: {bb:}}
+{a: 0} => {a: 1}
+{a: 0} => {}
+[{a: 0}] => [{**nil}]
+0 => 1 | 2
+
+---
+
+(program
+  (match_pattern
+    value: (array
+      (integer)
+      (integer)
+      (integer))
+    pattern: (find_pattern
+      (splat_parameter)
+      (as_pattern
+        value: (integer)
+        name: (identifier))
+      (splat_parameter)))
+  (match_pattern
+    value: (array
+      (integer)
+      (integer)
+      (integer))
+    pattern: (find_pattern
+      (splat_parameter
+        name: (identifier))
+      (as_pattern
+        value: (integer)
+        name: (identifier))
+      (splat_parameter
+        name: (identifier))))
+  (match_pattern
+    value: (integer)
+    pattern: (identifier))
+  (match_pattern
+    value: (hash
+      (pair
+        key: (hash_key_symbol)
+        value: (integer)))
+    pattern: (hash_pattern
+      (keyword_pattern
+        key: (hash_key_symbol)
+        value: (integer))))
+  (match_pattern
+    value: (array
+      (integer)
+      (integer))
+    pattern: (array_pattern
+      (identifier)
+      (identifier)))
+  (match_pattern
+    value: (hash
+      (pair
+        key: (hash_key_symbol)
+        value: (integer)))
+    pattern: (hash_pattern
+      (keyword_pattern
+        key: (hash_key_symbol))))
+  (test_pattern
+    value: (integer)
+    pattern: (integer))
+  (match_pattern
+    value: (integer)
+    pattern: (integer))
+  (match_pattern
+    value: (array)
+    pattern: (array_pattern
+      class: (constant)))
+  (match_pattern
+    value: (integer)
+    pattern: (array_pattern))
+  (match_pattern
+    value: (array
+      (integer))
+    pattern: (array_pattern))
+  (match_pattern
+    value: (array)
+    pattern: (array_pattern
+      (identifier)
+      (splat_parameter)))
+  (match_pattern
+    value: (array
+      (integer)
+      (integer))
+    pattern: (array_pattern
+      (integer)
+      (integer)))
+  (match_pattern
+    value: (array
+      (integer)
+      (integer))
+    pattern: (array_pattern
+      (splat_parameter)
+      (integer)
+      (integer)))
+  (match_pattern
+    value: (array)
+    pattern: (find_pattern
+      class: (constant)
+      (splat_parameter)
+      (identifier)
+      (splat_parameter)))
+  (match_pattern
+    value: (integer)
+    pattern: (find_pattern
+      (splat_parameter)
+      (identifier)
+      (splat_parameter)))
+  (match_pattern
+    value: (array)
+    pattern: (find_pattern
+      (splat_parameter)
+      (identifier)
+      (splat_parameter)))
+  (match_pattern
+    value: (array
+      (integer))
+    pattern: (find_pattern
+      (splat_parameter)
+      (integer)
+      (splat_parameter)))
+  (match_pattern
+    value: (array
+      (integer))
+    pattern: (find_pattern
+      (splat_parameter)
+      (hash_pattern
+        (keyword_pattern
+          key: (hash_key_symbol)))
+      (splat_parameter)))
+  (match_pattern
+    value: (hash)
+    pattern: (hash_pattern
+      class: (constant)
+      (keyword_pattern
+        key: (hash_key_symbol))))
+  (match_pattern
+    value: (integer)
+    pattern: (hash_pattern
+      (keyword_pattern
+        key: (hash_key_symbol))))
+  (match_pattern
+    value: (hash
+      (pair
+        key: (hash_key_symbol)
+        value: (integer)))
+    pattern: (hash_pattern
+      (keyword_pattern
+        key: (hash_key_symbol))))
+  (match_pattern
+    value: (hash
+      (pair
+        key: (hash_key_symbol)
+        value: (hash
+          (pair
+            key: (hash_key_symbol)
+            value: (integer)))))
+    pattern: (hash_pattern
+      (keyword_pattern
+        key: (hash_key_symbol)
+        value: (hash_pattern
+          (keyword_pattern
+            key: (hash_key_symbol))))))
+  (match_pattern
+    value: (hash
+      (pair
+        key: (hash_key_symbol)
+        value: (integer)))
+    pattern: (hash_pattern
+      (keyword_pattern
+        key: (hash_key_symbol)
+        value: (integer))))
+  (match_pattern
+    value: (hash
+      (pair
+        key: (hash_key_symbol)
+        value: (integer)))
+    pattern: (hash_pattern))
+  (match_pattern
+    value: (array
+      (hash
+        (pair
+          key: (hash_key_symbol)
+          value: (integer))))
+    pattern: (array_pattern
+      (hash_pattern
+        (hash_splat_nil))))
+  (match_pattern
+    value: (integer)
+    pattern: (alternative_pattern
+      alternatives: (integer)
+      alternatives: (integer))))
+
