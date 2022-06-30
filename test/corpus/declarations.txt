@@ -424,6 +424,25 @@ end
     (superclass (call (scope_resolution (constant) (constant)) (identifier) (argument_list (identifier))))))
 
 =======================================
+one-line class/module def without ;
+=======================================
+
+module NoActiveModel class Resource; end; end
+class String def foo; end end
+
+---
+
+(program
+  (module
+    name: (constant)
+    (class
+      name: (constant)))
+  (class
+    name: (constant)
+    (method
+      name: (identifier))))
+
+=======================================
 unparenthesized call as superclass
 =======================================
 

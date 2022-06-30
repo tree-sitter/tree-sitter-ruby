@@ -262,8 +262,10 @@ module.exports = grammar({
     class: $ => seq(
       'class',
       field('name', choice($.constant, $.scope_resolution)),
-      field('superclass', optional($.superclass)),
-      $._terminator,
+      choice(
+        seq(field('superclass', $.superclass), $._terminator),
+        optional($._terminator)
+      ),
       $._body_statement
     ),
 
@@ -280,10 +282,8 @@ module.exports = grammar({
     module: $ => seq(
       'module',
       field('name', choice($.constant, $.scope_resolution)),
-      choice(
-        seq($._terminator, $._body_statement),
-        'end'
-      )
+      optional($._terminator),
+      $._body_statement,
     ),
 
     return_command: $ => prec.left(seq('return', alias($.command_argument_list, $.argument_list))),
