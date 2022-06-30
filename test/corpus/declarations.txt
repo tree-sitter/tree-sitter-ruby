@@ -76,7 +76,13 @@ def `(a)
   "`"
 end
 
+def +@(a)
+end
+
 def -@(a)
+end
+
+def ~@(a)
 end
 
 def %(a)
@@ -92,6 +98,8 @@ end
 
 (program
   (method (operator) (method_parameters (identifier)) (string (string_content)))
+  (method (operator) (method_parameters (identifier)))
+  (method (operator) (method_parameters (identifier)))
   (method (operator) (method_parameters (identifier)))
   (method (operator) (method_parameters (identifier)))
   (method (operator) (method_parameters (identifier)))
