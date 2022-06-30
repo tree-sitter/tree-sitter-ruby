@@ -100,10 +100,11 @@ module.exports = grammar({
   rules: {
     program: $ => seq(
       optional($._statements),
-      optional(seq(
-        '__END__',
-        $._line_break,
-        $.uninterpreted)
+      optional(
+        choice(
+          seq(/__END__[\r\n]/, $.uninterpreted),
+          seq('__END__', alias('', $.uninterpreted))
+        )
       )
     ),
 

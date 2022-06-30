@@ -21,19 +21,38 @@
           "type": "CHOICE",
           "members": [
             {
-              "type": "SEQ",
+              "type": "CHOICE",
               "members": [
                 {
-                  "type": "STRING",
-                  "value": "__END__"
+                  "type": "SEQ",
+                  "members": [
+                    {
+                      "type": "PATTERN",
+                      "value": "__END__[\\r\\n]"
+                    },
+                    {
+                      "type": "SYMBOL",
+                      "name": "uninterpreted"
+                    }
+                  ]
                 },
                 {
-                  "type": "SYMBOL",
-                  "name": "_line_break"
-                },
-                {
-                  "type": "SYMBOL",
-                  "name": "uninterpreted"
+                  "type": "SEQ",
+                  "members": [
+                    {
+                      "type": "STRING",
+                      "value": "__END__"
+                    },
+                    {
+                      "type": "ALIAS",
+                      "content": {
+                        "type": "STRING",
+                        "value": ""
+                      },
+                      "named": true,
+                      "value": "uninterpreted"
+                    }
+                  ]
                 }
               ]
             },

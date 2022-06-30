@@ -538,6 +538,28 @@ d
 
 (program (identifier) (uninterpreted))
 
+========================================
+__END__ followed by a comment
+========================================
+
+word
+__END__
+# comment
+
+---
+
+(program (identifier) (uninterpreted))
+
+========================================
+__END__ at end of file, without new line
+========================================
+
+word
+__END__
+---
+
+(program (identifier) (uninterpreted))
+
 ==============================
 module with class with methods
 ==============================
