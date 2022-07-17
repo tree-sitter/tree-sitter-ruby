@@ -446,7 +446,7 @@ end
 
 ---
 
-(program (class (constant) (body (method (identifier)))))
+(program (class (constant) (namespace_body (method (identifier)))))
 
 =========================================
 class within dynamically-computed module
@@ -511,7 +511,7 @@ end
 
 ---
 
-(program (module (constant) (body (method (identifier)))))
+(program (module (constant) (namespace_body (method (identifier)))))
 
 ========================
 module without semicolon
@@ -561,9 +561,9 @@ end
 ---
 
 (program (module (constant)
-  (body
+  (namespace_body
     (class (constant) (superclass (constant))
-      (body
+      (namespace_body
         (call (identifier) (argument_list
           (call
             (call

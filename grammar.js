@@ -266,8 +266,13 @@ module.exports = grammar({
       field('name', choice($.constant, $.scope_resolution)),
       field('superclass', optional($.superclass)),
       $._terminator,
-      optional($.body),
+      optional(field("body", $.namespace_body)),
       'end'
+    ),
+
+    namespace_body: $ => choice(
+      seq($._statements, repeat(choice($.rescue, $.else, $.ensure))),
+      seq(optional($._statements), repeat1(choice($.rescue, $.else, $.ensure))),
     ),
 
     body: $ => choice(
@@ -282,7 +287,7 @@ module.exports = grammar({
       alias($._singleton_class_left_angle_left_langle, '<<'),
       field('value', $._arg),
       $._terminator,
-      optional($.body),
+      optional(field("body", $.namespace_body)),
       'end'
     ),
 
@@ -290,7 +295,7 @@ module.exports = grammar({
       'module',
       field('name', choice($.constant, $.scope_resolution)),
       choice(
-        seq($._terminator, optional($.body), 'end'),
+        seq($._terminator, optional(field("body", $.namespace_body)), 'end'),
         'end'
       )
     ),
