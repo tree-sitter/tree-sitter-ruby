@@ -945,12 +945,8 @@
           "type": "CHOICE",
           "members": [
             {
-              "type": "FIELD",
-              "name": "body",
-              "content": {
-                "type": "SYMBOL",
-                "name": "namespace_body"
-              }
+              "type": "SYMBOL",
+              "name": "namespace_body"
             },
             {
               "type": "BLANK"
@@ -1150,12 +1146,8 @@
           "type": "CHOICE",
           "members": [
             {
-              "type": "FIELD",
-              "name": "body",
-              "content": {
-                "type": "SYMBOL",
-                "name": "namespace_body"
-              }
+              "type": "SYMBOL",
+              "name": "namespace_body"
             },
             {
               "type": "BLANK"
@@ -1206,12 +1198,8 @@
                   "type": "CHOICE",
                   "members": [
                     {
-                      "type": "FIELD",
-                      "name": "body",
-                      "content": {
-                        "type": "SYMBOL",
-                        "name": "namespace_body"
-                      }
+                      "type": "SYMBOL",
+                      "name": "namespace_body"
                     },
                     {
                       "type": "BLANK"

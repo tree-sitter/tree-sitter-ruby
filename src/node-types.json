@@ -1380,16 +1380,6 @@
     "type": "class",
     "named": true,
     "fields": {
-      "body": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "namespace_body",
-            "named": true
-          }
-        ]
-      },
       "name": {
         "multiple": false,
         "required": true,
@@ -1414,6 +1404,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "namespace_body",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -2429,16 +2429,6 @@
     "type": "module",
     "named": true,
     "fields": {
-      "body": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "namespace_body",
-            "named": true
-          }
-        ]
-      },
       "name": {
         "multiple": false,
         "required": true,
@@ -2453,6 +2443,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "namespace_body",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -3020,16 +3020,6 @@
     "type": "singleton_class",
     "named": true,
     "fields": {
-      "body": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "namespace_body",
-            "named": true
-          }
-        ]
-      },
       "value": {
         "multiple": false,
         "required": true,
@@ -3040,6 +3030,16 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "namespace_body",
+          "named": true
+        }
+      ]
     }
   },
   {
