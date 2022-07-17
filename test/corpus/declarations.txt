@@ -28,7 +28,7 @@ end
 
 ---
 
-(program (method (identifier) (body (identifier))))
+(program (method (identifier) (method_body (identifier))))
 
 =====================
 "end"-less method
@@ -91,7 +91,7 @@ end
 ---
 
 (program
-  (method (operator) (method_parameters (identifier)) (body (string (string_content))))
+  (method (operator) (method_parameters (identifier)) (method_body (string (string_content))))
   (method (operator) (method_parameters (identifier)))
   (method (operator) (method_parameters (identifier)))
   (method (operator) (method_parameters (identifier)))
@@ -136,13 +136,13 @@ end
 ---
 
 (program
-  (method (identifier) (body (super)))
+  (method (identifier) (method_body (super)))
   (method
     (identifier)
-    (body (call (identifier) (identifier) (block (block_body (super))))))
+    (method_body (call (identifier) (identifier) (block (block_body (super))))))
   (method
     (identifier)
-    (body (call (super) (identifier) (argument_list (identifier) (identifier))))))
+    (method_body (call (super) (identifier) (argument_list (identifier) (identifier))))))
 
 ===========================
 method with args
@@ -275,10 +275,10 @@ end
   (method (identifier) (method_parameters (block_parameter (identifier))))
   (method (identifier) (method_parameters (block_parameter)))
   (method (identifier) (method_parameters (forward_parameter))
-    (body (call (super) (argument_list (forward_argument))))
+    (method_body (call (super) (argument_list (forward_argument))))
   )
   (method (identifier) (method_parameters (identifier) (identifier) (forward_parameter))
-    (body (call (identifier) (argument_list (identifier) (forward_argument))))
+    (method_body (call (identifier) (argument_list (identifier) (forward_argument))))
   )
 )
 
@@ -303,7 +303,7 @@ end
 
 ---
 
-(program (singleton_method (self) (identifier) (body (identifier))))
+(program (singleton_method (self) (identifier) (method_body (identifier))))
 
 
 =========================================
@@ -574,7 +574,7 @@ end
       (call (identifier) (argument_list (simple_symbol)))
 
       (comment)
-      (method (identifier) (body (identifier)))
+      (method (identifier) (method_body (identifier)))
       (singleton_method (self) (identifier)))))))
 
 
