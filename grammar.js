@@ -109,6 +109,8 @@ module.exports = grammar({
 
     uninterpreted: $ => /(.|\s)*/,
 
+    block_body: $ => $._statements,
+
     _statements: $ => choice(
       seq(
         repeat1(choice(
@@ -157,7 +159,7 @@ module.exports = grammar({
         seq(
           field('parameters', alias($.parameters, $.method_parameters)),
           choice(
-            seq(optional($._terminator), $._body_statement),
+            seq(optional($._terminator), optional($.body), 'end'),
             $._body_expr
           )
 
@@ -167,7 +169,8 @@ module.exports = grammar({
             field('parameters', alias($.bare_parameters, $.method_parameters))
           ),
           $._terminator,
-          $._body_statement
+          optional($.body),
+          'end'
         ),
       ),
     ),
@@ -263,7 +266,13 @@ module.exports = grammar({
       field('name', choice($.constant, $.scope_resolution)),
       field('superclass', optional($.superclass)),
       $._terminator,
-      $._body_statement
+      optional($.body),
+      'end'
+    ),
+
+    body: $ => choice(
+      seq($._statements, repeat(choice($.rescue, $.else, $.ensure))),
+      seq(optional($._statements), repeat1(choice($.rescue, $.else, $.ensure))),
     ),
 
     superclass: $ => seq('<', $._expression),
@@ -273,14 +282,15 @@ module.exports = grammar({
       alias($._singleton_class_left_angle_left_langle, '<<'),
       field('value', $._arg),
       $._terminator,
-      $._body_statement
+      optional($.body),
+      'end'
     ),
 
     module: $ => seq(
       'module',
       field('name', choice($.constant, $.scope_resolution)),
       choice(
-        seq($._terminator, $._body_statement),
+        seq($._terminator, optional($.body), 'end'),
         'end'
       )
     ),
@@ -820,13 +830,14 @@ module.exports = grammar({
         field('parameters', $.block_parameters),
         optional($._terminator)
       )),
-      $._body_statement
+      optional($.body),
+      'end'
     ),
 
     block: $ => prec(PREC.CURLY_BLOCK, seq(
       '{',
       field('parameters', optional($.block_parameters)),
-      optional($._statements),
+      optional($.block_body),
       '}'
     )),
 
