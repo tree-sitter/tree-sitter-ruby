@@ -1186,6 +1186,37 @@
     }
   },
   {
+    "type": "body",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_statement",
+          "named": true
+        },
+        {
+          "type": "else",
+          "named": true
+        },
+        {
+          "type": "empty_statement",
+          "named": true
+        },
+        {
+          "type": "ensure",
+          "named": true
+        },
+        {
+          "type": "rescue",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "break",
     "named": true,
     "fields": {},
@@ -1363,6 +1394,16 @@
           }
         ]
       },
+      "namespace_body": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "body",
+            "named": true
+          }
+        ]
+      },
       "superclass": {
         "multiple": false,
         "required": false,
@@ -1373,16 +1414,6 @@
           }
         ]
       }
-    },
-    "children": {
-      "multiple": false,
-      "required": false,
-      "types": [
-        {
-          "type": "namespace_body",
-          "named": true
-        }
-      ]
     }
   },
   {
@@ -1565,6 +1596,16 @@
     "type": "do_block",
     "named": true,
     "fields": {
+      "do_block_body": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "body",
+            "named": true
+          }
+        ]
+      },
       "parameters": {
         "multiple": false,
         "required": false,
@@ -1575,47 +1616,6 @@
           }
         ]
       }
-    },
-    "children": {
-      "multiple": false,
-      "required": false,
-      "types": [
-        {
-          "type": "do_block_body",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "do_block_body",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "_statement",
-          "named": true
-        },
-        {
-          "type": "else",
-          "named": true
-        },
-        {
-          "type": "empty_statement",
-          "named": true
-        },
-        {
-          "type": "ensure",
-          "named": true
-        },
-        {
-          "type": "rescue",
-          "named": true
-        }
-      ]
     }
   },
   {
@@ -2338,6 +2338,16 @@
     "type": "method",
     "named": true,
     "fields": {
+      "method_body": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "body",
+            "named": true
+          }
+        ]
+      },
       "name": {
         "multiple": false,
         "required": true,
@@ -2368,42 +2378,7 @@
           "named": true
         },
         {
-          "type": "method_body",
-          "named": true
-        },
-        {
           "type": "rescue_modifier",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "method_body",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "_statement",
-          "named": true
-        },
-        {
-          "type": "else",
-          "named": true
-        },
-        {
-          "type": "empty_statement",
-          "named": true
-        },
-        {
-          "type": "ensure",
-          "named": true
-        },
-        {
-          "type": "rescue",
           "named": true
         }
       ]
@@ -2473,48 +2448,17 @@
             "named": true
           }
         ]
+      },
+      "namespace_body": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "body",
+            "named": true
+          }
+        ]
       }
-    },
-    "children": {
-      "multiple": false,
-      "required": false,
-      "types": [
-        {
-          "type": "namespace_body",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "namespace_body",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "_statement",
-          "named": true
-        },
-        {
-          "type": "else",
-          "named": true
-        },
-        {
-          "type": "empty_statement",
-          "named": true
-        },
-        {
-          "type": "ensure",
-          "named": true
-        },
-        {
-          "type": "rescue",
-          "named": true
-        }
-      ]
     }
   },
   {
@@ -3051,6 +2995,16 @@
     "type": "singleton_class",
     "named": true,
     "fields": {
+      "namespace_body": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "body",
+            "named": true
+          }
+        ]
+      },
       "value": {
         "multiple": false,
         "required": true,
@@ -3061,22 +3015,22 @@
           }
         ]
       }
-    },
-    "children": {
-      "multiple": false,
-      "required": false,
-      "types": [
-        {
-          "type": "namespace_body",
-          "named": true
-        }
-      ]
     }
   },
   {
     "type": "singleton_method",
     "named": true,
     "fields": {
+      "method_body": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "body",
+            "named": true
+          }
+        ]
+      },
       "name": {
         "multiple": false,
         "required": true,
@@ -3118,10 +3072,6 @@
       "types": [
         {
           "type": "_arg",
-          "named": true
-        },
-        {
-          "type": "method_body",
           "named": true
         },
         {

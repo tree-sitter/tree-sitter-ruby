@@ -860,7 +860,7 @@ end
 ---
 
 (program (method (identifier)
-  (method_body
+  (body
     (call (identifier) (argument_list (heredoc_beginning)))
     (heredoc_body (heredoc_content) (heredoc_end)))))
 
@@ -1606,7 +1606,7 @@ end
 
 ---
 
-(program (lambda (lambda_parameters (identifier)) (do_block (do_block_body (integer)))))
+(program (lambda (lambda_parameters (identifier)) (do_block (body (integer)))))
 
 ====================
 non-ascii identifiers

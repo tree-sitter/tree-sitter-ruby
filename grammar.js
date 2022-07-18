@@ -159,7 +159,7 @@ module.exports = grammar({
         seq(
           field('parameters', alias($.parameters, $.method_parameters)),
           choice(
-            seq(optional($._terminator), optional($.method_body), 'end'),
+            seq(optional($._terminator), optional(field("method_body", $.body)), 'end'),
             $._body_expr
           )
 
@@ -169,13 +169,11 @@ module.exports = grammar({
             field('parameters', alias($.bare_parameters, $.method_parameters))
           ),
           $._terminator,
-          optional($.method_body),
+          optional(field("method_body", $.body)),
           'end'
         ),
       ),
     ),
-
-    method_body: $ => $._body,
 
     rescue_modifier_arg: $ => prec(PREC.RESCUE,
       seq(
@@ -268,13 +266,11 @@ module.exports = grammar({
       field('name', choice($.constant, $.scope_resolution)),
       field('superclass', optional($.superclass)),
       $._terminator,
-      optional($.namespace_body),
+      optional(field("namespace_body", $.body)),
       'end'
     ),
 
-    namespace_body: $ => $._body,
-
-    _body: $ => choice(
+    body: $ => choice(
       seq($._statements, repeat(choice($.rescue, $.else, $.ensure))),
       seq(optional($._statements), repeat1(choice($.rescue, $.else, $.ensure))),
     ),
@@ -286,7 +282,7 @@ module.exports = grammar({
       alias($._singleton_class_left_angle_left_langle, '<<'),
       field('value', $._arg),
       $._terminator,
-      optional($.namespace_body),
+      optional(field("namespace_body", $.body)),
       'end'
     ),
 
@@ -294,7 +290,7 @@ module.exports = grammar({
       'module',
       field('name', choice($.constant, $.scope_resolution)),
       choice(
-        seq($._terminator, optional($.namespace_body), 'end'),
+        seq($._terminator, optional(field("namespace_body", $.body)), 'end'),
         'end'
       )
     ),
@@ -826,7 +822,6 @@ module.exports = grammar({
     splat_argument: $ => seq(alias($._splat_star, '*'), $._arg),
     hash_splat_argument: $ => seq(alias($._hash_splat_star_star, '**'), $._arg),
     block_argument: $ => prec.right(seq(alias($._block_ampersand, '&'), optional($._arg))),
-    do_block_body: $=> $._body,
 
     do_block: $ => seq(
       'do',
@@ -835,7 +830,7 @@ module.exports = grammar({
         field('parameters', $.block_parameters),
         optional($._terminator)
       )),
-      optional($.do_block_body),
+      optional(field("do_block_body", $.body)),
       'end'
     ),
 

@@ -28,7 +28,7 @@ end
 
 ---
 
-(program (method (identifier) (method_body (identifier))))
+(program (method (identifier) (body (identifier))))
 
 =====================
 "end"-less method
@@ -91,7 +91,7 @@ end
 ---
 
 (program
-  (method (operator) (method_parameters (identifier)) (method_body (string (string_content))))
+  (method (operator) (method_parameters (identifier)) (body (string (string_content))))
   (method (operator) (method_parameters (identifier)))
   (method (operator) (method_parameters (identifier)))
   (method (operator) (method_parameters (identifier)))
@@ -136,13 +136,13 @@ end
 ---
 
 (program
-  (method (identifier) (method_body (super)))
+  (method (identifier) (body (super)))
   (method
     (identifier)
-    (method_body (call (identifier) (identifier) (block (block_body (super))))))
+    (body (call (identifier) (identifier) (block (block_body (super))))))
   (method
     (identifier)
-    (method_body (call (super) (identifier) (argument_list (identifier) (identifier))))))
+    (body (call (super) (identifier) (argument_list (identifier) (identifier))))))
 
 ===========================
 method with args
@@ -275,10 +275,10 @@ end
   (method (identifier) (method_parameters (block_parameter (identifier))))
   (method (identifier) (method_parameters (block_parameter)))
   (method (identifier) (method_parameters (forward_parameter))
-    (method_body (call (super) (argument_list (forward_argument))))
+    (body (call (super) (argument_list (forward_argument))))
   )
   (method (identifier) (method_parameters (identifier) (identifier) (forward_parameter))
-    (method_body (call (identifier) (argument_list (identifier) (forward_argument))))
+    (body (call (identifier) (argument_list (identifier) (forward_argument))))
   )
 )
 
@@ -303,7 +303,7 @@ end
 
 ---
 
-(program (singleton_method (self) (identifier) (method_body (identifier))))
+(program (singleton_method (self) (identifier) (body (identifier))))
 
 
 =========================================
@@ -446,7 +446,7 @@ end
 
 ---
 
-(program (class (constant) (namespace_body (method (identifier)))))
+(program (class (constant) (body (method (identifier)))))
 
 =========================================
 class within dynamically-computed module
@@ -511,7 +511,7 @@ end
 
 ---
 
-(program (module (constant) (namespace_body (method (identifier)))))
+(program (module (constant) (body (method (identifier)))))
 
 ========================
 module without semicolon
@@ -561,9 +561,9 @@ end
 ---
 
 (program (module (constant)
-  (namespace_body
+  (body
     (class (constant) (superclass (constant))
-      (namespace_body
+      (body
         (call (identifier) (argument_list
           (call
             (call
@@ -574,7 +574,7 @@ end
       (call (identifier) (argument_list (simple_symbol)))
 
       (comment)
-      (method (identifier) (method_body (identifier)))
+      (method (identifier) (body (identifier)))
       (singleton_method (self) (identifier)))))))
 
 
