@@ -341,7 +341,7 @@
                           "members": [
                             {
                               "type": "FIELD",
-                              "name": "method_body",
+                              "name": "body",
                               "content": {
                                 "type": "SYMBOL",
                                 "name": "body_statement"
@@ -399,7 +399,7 @@
                   "members": [
                     {
                       "type": "FIELD",
-                      "name": "method_body",
+                      "name": "body",
                       "content": {
                         "type": "SYMBOL",
                         "name": "body_statement"
@@ -954,7 +954,7 @@
           "members": [
             {
               "type": "FIELD",
-              "name": "namespace_body",
+              "name": "body",
               "content": {
                 "type": "SYMBOL",
                 "name": "body_statement"
@@ -1088,7 +1088,7 @@
           "members": [
             {
               "type": "FIELD",
-              "name": "namespace_body",
+              "name": "body",
               "content": {
                 "type": "SYMBOL",
                 "name": "body_statement"
@@ -1144,7 +1144,7 @@
                   "members": [
                     {
                       "type": "FIELD",
-                      "name": "namespace_body",
+                      "name": "body",
                       "content": {
                         "type": "SYMBOL",
                         "name": "body_statement"
@@ -4905,7 +4905,7 @@
           "members": [
             {
               "type": "FIELD",
-              "name": "do_block_body",
+              "name": "body",
               "content": {
                 "type": "SYMBOL",
                 "name": "body_statement"

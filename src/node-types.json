@@ -1380,6 +1380,16 @@
     "type": "class",
     "named": true,
     "fields": {
+      "body": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "body_statement",
+            "named": true
+          }
+        ]
+      },
       "name": {
         "multiple": false,
         "required": true,
@@ -1390,16 +1400,6 @@
           },
           {
             "type": "scope_resolution",
-            "named": true
-          }
-        ]
-      },
-      "namespace_body": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "body_statement",
             "named": true
           }
         ]
@@ -1596,7 +1596,7 @@
     "type": "do_block",
     "named": true,
     "fields": {
-      "do_block_body": {
+      "body": {
         "multiple": false,
         "required": false,
         "types": [
@@ -2338,7 +2338,7 @@
     "type": "method",
     "named": true,
     "fields": {
-      "method_body": {
+      "body": {
         "multiple": false,
         "required": false,
         "types": [
@@ -2435,6 +2435,16 @@
     "type": "module",
     "named": true,
     "fields": {
+      "body": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "body_statement",
+            "named": true
+          }
+        ]
+      },
       "name": {
         "multiple": false,
         "required": true,
@@ -2445,16 +2455,6 @@
           },
           {
             "type": "scope_resolution",
-            "named": true
-          }
-        ]
-      },
-      "namespace_body": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "body_statement",
             "named": true
           }
         ]
@@ -2995,7 +2995,7 @@
     "type": "singleton_class",
     "named": true,
     "fields": {
-      "namespace_body": {
+      "body": {
         "multiple": false,
         "required": false,
         "types": [
@@ -3021,7 +3021,7 @@
     "type": "singleton_method",
     "named": true,
     "fields": {
-      "method_body": {
+      "body": {
         "multiple": false,
         "required": false,
         "types": [

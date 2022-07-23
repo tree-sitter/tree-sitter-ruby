@@ -159,7 +159,7 @@ module.exports = grammar({
         seq(
           field('parameters', alias($.parameters, $.method_parameters)),
           choice(
-            seq(optional($._terminator), optional(field('method_body', $.body_statement)), 'end'),
+            seq(optional($._terminator), optional(field('body', $.body_statement)), 'end'),
             $._body_expr
           )
 
@@ -169,7 +169,7 @@ module.exports = grammar({
             field('parameters', alias($.bare_parameters, $.method_parameters))
           ),
           $._terminator,
-          optional(field('method_body', $.body_statement)),
+          optional(field('body', $.body_statement)),
           'end'
         ),
       ),
@@ -266,7 +266,7 @@ module.exports = grammar({
       field('name', choice($.constant, $.scope_resolution)),
       field('superclass', optional($.superclass)),
       $._terminator,
-      optional(field('namespace_body', $.body_statement)),
+      optional(field('body', $.body_statement)),
       'end'
     ),
 
@@ -282,7 +282,7 @@ module.exports = grammar({
       alias($._singleton_class_left_angle_left_langle, '<<'),
       field('value', $._arg),
       $._terminator,
-      optional(field('namespace_body', $.body_statement)),
+      optional(field('body', $.body_statement)),
       'end'
     ),
 
@@ -290,7 +290,7 @@ module.exports = grammar({
       'module',
       field('name', choice($.constant, $.scope_resolution)),
       choice(
-        seq($._terminator, optional(field('namespace_body', $.body_statement)), 'end'),
+        seq($._terminator, optional(field('body', $.body_statement)), 'end'),
         'end'
       )
     ),
@@ -830,7 +830,7 @@ module.exports = grammar({
         field('parameters', $.block_parameters),
         optional($._terminator)
       )),
-      optional(field('do_block_body', $.body_statement)),
+      optional(field('body', $.body_statement)),
       'end'
     ),
 
