@@ -270,11 +270,6 @@ module.exports = grammar({
       'end'
     ),
 
-    body_statement: $ => choice(
-      seq($._statements, repeat(choice($.rescue, $.else, $.ensure))),
-      seq(optional($._statements), repeat1(choice($.rescue, $.else, $.ensure))),
-    ),
-
     superclass: $ => seq('<', $._expression),
 
     singleton_class: $ => seq(
@@ -601,7 +596,7 @@ module.exports = grammar({
       )
     ),
 
-    begin: $ => seq('begin', optional($._terminator), $._body_statement),
+    begin: $ => seq('begin', optional($._terminator), optional($._body_statement), 'end'),
 
     ensure: $ => seq('ensure', optional($._statements)),
 
@@ -619,10 +614,11 @@ module.exports = grammar({
 
     exception_variable: $ => seq('=>', $._lhs),
 
-    _body_statement: $ => seq(
-      optional($._statements),
-      repeat(choice($.rescue, $.else, $.ensure)),
-      'end'
+    body_statement: $ => $._body_statement,
+
+    _body_statement: $ => choice(
+      seq($._statements, repeat(choice($.rescue, $.else, $.ensure))),
+      seq(optional($._statements), repeat1(choice($.rescue, $.else, $.ensure))),
     ),
 
     // Method calls without parentheses (aka "command calls") are only allowed
