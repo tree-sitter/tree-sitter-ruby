@@ -837,7 +837,7 @@ module.exports = grammar({
     block: $ => prec(PREC.CURLY_BLOCK, seq(
       '{',
       field('parameters', optional($.block_parameters)),
-      optional($.block_body),
+      optional(field('body', $.block_body)),
       '}'
     )),
 

@@ -1166,7 +1166,7 @@ array as object
     method: (identifier)
     block: (block
       parameters: (block_parameters (identifier))
-      (block_body (binary left: (identifier) right: (integer))))))
+      body: (block_body (binary left: (identifier) right: (integer))))))
 
 =========================
 array with trailing comma

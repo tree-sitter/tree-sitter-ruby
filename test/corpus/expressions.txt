@@ -1219,7 +1219,7 @@ end
           method: (identifier)
           block: (block
             parameters: (block_parameters (identifier))
-            (block_body (identifier))))
+            body: (block_body (identifier))))
         method: (identifier)
         block: (do_block
           do_block_body: (body_statement (identifier)))))))
@@ -1408,7 +1408,7 @@ foo(bar, baz) { quux }
     method: (identifier)
     block: (block
       parameters: (block_parameters (identifier))
-      (block_body (identifier))))
+      body: (block_body (identifier))))
   (call
     method: (identifier)
     arguments: (argument_list (call
@@ -1416,11 +1416,11 @@ foo(bar, baz) { quux }
       method: (identifier)
       block: (block
         parameters: (block_parameters (identifier))
-        (block_body (binary left: (identifier) right: (integer)))))))
+        body: (block_body (binary left: (identifier) right: (integer)))))))
   (call
     method: (identifier)
     arguments: (argument_list (identifier) (identifier))
-    block: (block (block_body (identifier)))))
+    block: (block body: (block_body (identifier)))))
 
 ===============================
 method call with block shadow arguments
