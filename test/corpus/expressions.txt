@@ -908,7 +908,7 @@ end
     receiver: (identifier)
     arguments: (argument_list (pair key: (hash_key_symbol) value: (identifier)))
     block: (do_block
-      do_block_body: (body (identifier)))))
+      do_block_body: (body_statement (identifier)))))
 
 ===============================
 call with operator method name
@@ -1211,7 +1211,7 @@ end
         (splat_argument (identifier)))
       block: (do_block
         parameters: (block_parameters (identifier))
-        do_block_body: (body (identifier))))
+        do_block_body: (body_statement (identifier))))
     method: (identifier)
     arguments: (argument_list
       (call
@@ -1222,7 +1222,7 @@ end
             (block_body (identifier))))
         method: (identifier)
         block: (do_block
-          do_block_body: (body (identifier)))))))
+          do_block_body: (body_statement (identifier)))))))
 
 ===============================
 method calls in binary expression
@@ -1357,7 +1357,7 @@ end
     method: (identifier)
     block: (do_block
       parameters: (block_parameters (identifier))
-    do_block_body: (body
+    do_block_body: (body_statement
       (identifier)
         (rescue
           exceptions: (exceptions (constant))
@@ -1368,21 +1368,21 @@ end
     method: (identifier)
     block: (do_block
       parameters: (block_parameters (identifier))
-      do_block_body: (body (identifier))))
+      do_block_body: (body_statement (identifier))))
   (call method: (identifier) block: (do_block))
   (call
     method: (identifier)
     arguments: (argument_list (identifier))
     block: (do_block
       parameters: (block_parameters (identifier))
-      do_block_body: (body (identifier))))
+      do_block_body: (body_statement (identifier))))
   (call
     receiver: (identifier)
     method: (identifier)
     arguments: (argument_list (identifier))
     block: (do_block
       parameters: (block_parameters (identifier))
-      do_block_body: (body (identifier))))
+      do_block_body: (body_statement (identifier))))
   (call
     method: (identifier)
     arguments: (argument_list (identifier))
@@ -1552,7 +1552,7 @@ end
     (identifier)
     (argument_list (array (integer)))
     (do_block
-      (body (call (identifier) (argument_list (integer)))))))
+      (body_statement (call (identifier) (argument_list (integer)))))))
 
 
 ========================================================================
@@ -1744,7 +1744,7 @@ end
 
 ---
 
-(program (call (identifier) (do_block (block_parameters (identifier)) (body (integer)))))
+(program (call (identifier) (do_block (block_parameters (identifier)) (body_statement (integer)))))
 
 ============================
 lambda and proc as variables

@@ -344,7 +344,7 @@
                               "name": "method_body",
                               "content": {
                                 "type": "SYMBOL",
-                                "name": "body"
+                                "name": "body_statement"
                               }
                             },
                             {
@@ -402,7 +402,7 @@
                       "name": "method_body",
                       "content": {
                         "type": "SYMBOL",
-                        "name": "body"
+                        "name": "body_statement"
                       }
                     },
                     {
@@ -957,7 +957,7 @@
               "name": "namespace_body",
               "content": {
                 "type": "SYMBOL",
-                "name": "body"
+                "name": "body_statement"
               }
             },
             {
@@ -971,7 +971,7 @@
         }
       ]
     },
-    "body": {
+    "body_statement": {
       "type": "CHOICE",
       "members": [
         {
@@ -1091,7 +1091,7 @@
               "name": "namespace_body",
               "content": {
                 "type": "SYMBOL",
-                "name": "body"
+                "name": "body_statement"
               }
             },
             {
@@ -1147,7 +1147,7 @@
                       "name": "namespace_body",
                       "content": {
                         "type": "SYMBOL",
-                        "name": "body"
+                        "name": "body_statement"
                       }
                     },
                     {
@@ -4908,7 +4908,7 @@
               "name": "do_block_body",
               "content": {
                 "type": "SYMBOL",
-                "name": "body"
+                "name": "body_statement"
               }
             },
             {
