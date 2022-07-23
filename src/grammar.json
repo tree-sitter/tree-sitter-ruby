@@ -21,19 +21,38 @@
           "type": "CHOICE",
           "members": [
             {
-              "type": "SEQ",
+              "type": "CHOICE",
               "members": [
                 {
-                  "type": "STRING",
-                  "value": "__END__"
+                  "type": "SEQ",
+                  "members": [
+                    {
+                      "type": "PATTERN",
+                      "value": "__END__[\\r\\n]"
+                    },
+                    {
+                      "type": "SYMBOL",
+                      "name": "uninterpreted"
+                    }
+                  ]
                 },
                 {
-                  "type": "SYMBOL",
-                  "name": "_line_break"
-                },
-                {
-                  "type": "SYMBOL",
-                  "name": "uninterpreted"
+                  "type": "SEQ",
+                  "members": [
+                    {
+                      "type": "STRING",
+                      "value": "__END__"
+                    },
+                    {
+                      "type": "ALIAS",
+                      "content": {
+                        "type": "STRING",
+                        "value": ""
+                      },
+                      "named": true,
+                      "value": "uninterpreted"
+                    }
+                  ]
                 }
               ]
             },
@@ -930,24 +949,38 @@
           }
         },
         {
-          "type": "FIELD",
-          "name": "superclass",
-          "content": {
-            "type": "CHOICE",
-            "members": [
-              {
-                "type": "SYMBOL",
-                "name": "superclass"
-              },
-              {
-                "type": "BLANK"
-              }
-            ]
-          }
-        },
-        {
-          "type": "SYMBOL",
-          "name": "_terminator"
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "FIELD",
+                  "name": "superclass",
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "superclass"
+                  }
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "_terminator"
+                }
+              ]
+            },
+            {
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "_terminator"
+                },
+                {
+                  "type": "BLANK"
+                }
+              ]
+            }
+          ]
         },
         {
           "type": "CHOICE",
@@ -1062,39 +1095,33 @@
           "type": "CHOICE",
           "members": [
             {
-              "type": "SEQ",
-              "members": [
-                {
-                  "type": "SYMBOL",
-                  "name": "_terminator"
-                },
-                {
-                  "type": "CHOICE",
-                  "members": [
-                    {
-                      "type": "FIELD",
-                      "name": "namespace_body",
-                      "content": {
-                        "type": "SYMBOL",
-                        "name": "body_statement"
-                      }
-                    },
-                    {
-                      "type": "BLANK"
-                    }
-                  ]
-                },
-                {
-                  "type": "STRING",
-                  "value": "end"
-                }
-              ]
+              "type": "SYMBOL",
+              "name": "_terminator"
             },
             {
-              "type": "STRING",
-              "value": "end"
+              "type": "BLANK"
             }
           ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "namespace_body",
+              "content": {
+                "type": "SYMBOL",
+                "name": "body_statement"
+              }
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": "end"
         }
       ]
     },
@@ -6717,6 +6744,10 @@
         {
           "type": "STRING",
           "value": "-@"
+        },
+        {
+          "type": "STRING",
+          "value": "~@"
         },
         {
           "type": "STRING",

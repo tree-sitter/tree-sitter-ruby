@@ -76,7 +76,13 @@ def `(a)
   "`"
 end
 
+def +@(a)
+end
+
 def -@(a)
+end
+
+def ~@(a)
 end
 
 def %(a)
@@ -92,6 +98,8 @@ end
 
 (program
   (method (operator) (method_parameters (identifier)) (body_statement (string (string_content))))
+  (method (operator) (method_parameters (identifier)))
+  (method (operator) (method_parameters (identifier)))
   (method (operator) (method_parameters (identifier)))
   (method (operator) (method_parameters (identifier)))
   (method (operator) (method_parameters (identifier)))
@@ -416,6 +424,27 @@ end
     (superclass (call (scope_resolution (constant) (constant)) (identifier) (argument_list (identifier))))))
 
 =======================================
+one-line class/module def without ;
+=======================================
+
+module NoActiveModel class Resource; end; end
+class String def foo; end end
+
+---
+
+(program
+  (module
+    name: (constant)
+    namespace_body: (body_statement
+      (class
+        name: (constant))))
+  (class
+    name: (constant)
+    namespace_body: (body_statement
+      (method
+        name: (identifier)))))
+
+=======================================
 unparenthesized call as superclass
 =======================================
 
@@ -534,6 +563,28 @@ x
 ab
 d
 
+---
+
+(program (identifier) (uninterpreted))
+
+========================================
+__END__ followed by a comment
+========================================
+
+word
+__END__
+# comment
+
+---
+
+(program (identifier) (uninterpreted))
+
+========================================
+__END__ at end of file, without new line
+========================================
+
+word
+__END__
 ---
 
 (program (identifier) (uninterpreted))
