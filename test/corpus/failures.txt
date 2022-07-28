@@ -89,37 +89,6 @@ lambda with optional parameter
           name: (identifier)))
       body: (block))))
 
-=====
-one-line class/module def without ;
-=====
-
-module NoActiveModel class Resource; end; end
-class String def foo; end end
-
----
-
-(program
-  (module
-    name: (constant)
-    (class
-      name: (constant)))
-  (class
-    name: (constant)
-    (method
-      name: (identifier))))
-
-=====
-__END__ at end of file, without new line
-=====
-
-foo
-__END__
----
-
-(program
-  (identifier)
-  (uninterpreted))
-
 ========================================
 __END__ as identifier
 ========================================
@@ -133,18 +102,6 @@ __END__  # not and end marker
   (assignment (identifier) (integer))
   (identifier)
   (comment))
-
-=====
-~@ is an operator
-=====
-
-def ~@; end
-
----
-
-(program
-  (method
-    name: (operator)))
 
 =====
 space after & in block argument
