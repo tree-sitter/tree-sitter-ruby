@@ -57,9 +57,10 @@ struct Literal {
 };
 
 struct Heredoc {
-  Heredoc() : end_word_indentation_allowed(false), started(false) {}
+  Heredoc() : end_word_indentation_allowed(false), allows_interpolation(false), started(false) {}
   string word;
   bool end_word_indentation_allowed;
+  bool allows_interpolation;
   bool started;
 };
 
@@ -137,6 +138,7 @@ struct Scanner {
       if (i + 2 + iter->word.size() >= TREE_SITTER_SERIALIZATION_BUFFER_SIZE)
         return 0;
       buffer[i++] = iter->end_word_indentation_allowed;
+      buffer[i++] = iter->allows_interpolation;
       buffer[i++] = iter->started;
       buffer[i++] = iter->word.size();
       iter->word.copy(&buffer[i], iter->word.size());
@@ -170,6 +172,7 @@ struct Scanner {
     for (unsigned j = 0; j < open_heredoc_count; j++) {
       Heredoc heredoc;
       heredoc.end_word_indentation_allowed = buffer[i++];
+      heredoc.allows_interpolation = buffer[i++];
       heredoc.started = buffer[i++];
       uint8_t word_length = buffer[i++];
       heredoc.word.assign(buffer + i, buffer + i + word_length);
@@ -588,9 +591,9 @@ struct Scanner {
     }
   }
 
-  string scan_heredoc_word(TSLexer *lexer) {
-    string result;
-    int32_t quote;
+  void scan_heredoc_word(TSLexer *lexer, Heredoc *heredoc) {
+    string word;
+    int32_t quote = 0;
 
     switch (lexer->lookahead) {
       case '\'':
@@ -599,7 +602,7 @@ struct Scanner {
         quote = lexer->lookahead;
         advance(lexer);
         while (lexer->lookahead != quote && !lexer->eof(lexer)) {
-          result += lexer->lookahead;
+          word += lexer->lookahead;
           advance(lexer);
         }
         advance(lexer);
@@ -607,17 +610,18 @@ struct Scanner {
 
       default:
         if (iswalnum(lexer->lookahead) || lexer->lookahead == '_') {
-          result += lexer->lookahead;
+          word += lexer->lookahead;
           advance(lexer);
           while (iswalnum(lexer->lookahead) || lexer->lookahead == '_') {
-            result += lexer->lookahead;
+            word += lexer->lookahead;
             advance(lexer);
           }
         }
         break;
     }
 
-    return result;
+    heredoc->word = word;
+    heredoc->allows_interpolation = quote != '\'';
   }
 
   bool scan_heredoc_content(TSLexer *lexer) {
@@ -665,7 +669,7 @@ struct Scanner {
         position_in_word = 0;
         look_for_heredoc_end = false;
 
-        if (lexer->lookahead == '\\') {
+        if (heredoc.allows_interpolation && lexer->lookahead == '\\') {
           if (has_content) {
             lexer->result_symbol = HEREDOC_CONTENT;
             return true;
@@ -674,10 +678,10 @@ struct Scanner {
           }
         }
 
-        if (lexer->lookahead == '#') {
+        if (heredoc.allows_interpolation && lexer->lookahead == '#') {
+          lexer->mark_end(lexer);
           advance(lexer);
           if (lexer->lookahead == '{') {
-            advance(lexer);
             if (has_content) {
               lexer->result_symbol = HEREDOC_CONTENT;
               return true;
@@ -685,7 +689,6 @@ struct Scanner {
               return false;
             }
           }
-          lexer->mark_end(lexer);
         } else if (lexer->lookahead == '\r' || lexer->lookahead == '\n') {
           if (lexer->lookahead == '\r') {
             advance(lexer);
@@ -754,7 +757,6 @@ struct Scanner {
         advance(lexer);
         if (lexer->lookahead == '{') {
           if (has_content) {
-            advance(lexer);
             lexer->result_symbol = STRING_CONTENT;
             return true;
           } else {
@@ -1009,7 +1011,7 @@ struct Scanner {
           heredoc.end_word_indentation_allowed = true;
         }
 
-        heredoc.word = scan_heredoc_word(lexer);
+        scan_heredoc_word(lexer, &heredoc);
         if (heredoc.word.empty())
           return false;
         open_heredocs.push_back(heredoc);

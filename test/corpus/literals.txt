@@ -1102,6 +1102,39 @@ un-terminated heredocs
   (heredoc_beginning)
   (heredoc_body (heredoc_content) (heredoc_end)))
 
+=================================
+no interpolation or escape sequences in single quoted heredoc
+=================================
+
+<<'EOF'
+This is \not\ an interpolation: #{foo}
+EOF
+
+<<~'EOF'
+This is \not\ an interpolation: #{foo}
+EOF
+
+<<-'EOF'
+This is \not\ an interpolation: #{foo}
+EOF
+
+---
+
+(program
+  (heredoc_beginning)
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end))
+  (heredoc_beginning)
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end))
+  (heredoc_beginning)
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end))
+)
+
 ==================
 backticks subshell
 ==================
