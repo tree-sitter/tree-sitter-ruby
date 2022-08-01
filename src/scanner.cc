@@ -1,18 +1,19 @@
 #include <tree_sitter/parser.h>
-#include <vector>
-#include <string>
-#include <cwctype>
+
 #include <cstring>
+#include <cwctype>
+#include <string>
+#include <vector>
 
 namespace {
 
-using std::vector;
 using std::string;
+using std::vector;
 
 enum TokenType {
   LINE_BREAK,
   NO_LINE_BREAK,
-  
+
   // Delimited literals
   SIMPLE_SYMBOL,
   STRING_START,
@@ -63,42 +64,42 @@ struct Heredoc {
 };
 
 const char NON_IDENTIFIER_CHARS[] = {
-  '\0',
-  '\n',
-  '\r',
-  '\t',
-  ' ',
-  ':',
-  ';',
-  '`',
-  '"',
-  '\'',
-  '@',
-  '$',
-  '#',
-  '.',
-  ',',
-  '|',
-  '^',
-  '&',
-  '<',
-  '=',
-  '>',
-  '+',
-  '-',
-  '*',
-  '/',
-  '\\',
-  '%',
-  '?',
-  '!',
-  '~',
-  '(',
-  ')',
-  '[',
-  ']',
-  '{',
-  '}',
+    '\0',
+    '\n',
+    '\r',
+    '\t',
+    ' ',
+    ':',
+    ';',
+    '`',
+    '"',
+    '\'',
+    '@',
+    '$',
+    '#',
+    '.',
+    ',',
+    '|',
+    '^',
+    '&',
+    '<',
+    '=',
+    '>',
+    '+',
+    '-',
+    '*',
+    '/',
+    '\\',
+    '%',
+    '?',
+    '!',
+    '~',
+    '(',
+    ')',
+    '[',
+    ']',
+    '{',
+    '}',
 };
 
 struct Scanner {
@@ -112,14 +113,14 @@ struct Scanner {
   unsigned serialize(char *buffer) {
     unsigned i = 0;
 
-    if (literal_stack.size() * 5 + 2 >= TREE_SITTER_SERIALIZATION_BUFFER_SIZE) return 0;
+    if (literal_stack.size() * 5 + 2 >= TREE_SITTER_SERIALIZATION_BUFFER_SIZE)
+      return 0;
     buffer[i++] = literal_stack.size();
     for (
-      vector<Literal>::iterator iter = literal_stack.begin(),
-      end = literal_stack.end();
-      iter != end;
-      ++iter
-    ) {
+        vector<Literal>::iterator iter = literal_stack.begin(),
+                                  end = literal_stack.end();
+        iter != end;
+        ++iter) {
       buffer[i++] = iter->type;
       buffer[i++] = iter->open_delimiter;
       buffer[i++] = iter->close_delimiter;
@@ -129,12 +130,12 @@ struct Scanner {
 
     buffer[i++] = open_heredocs.size();
     for (
-      vector<Heredoc>::iterator iter = open_heredocs.begin(),
-      end = open_heredocs.end();
-      iter != end;
-      ++iter
-    ) {
-      if (i + 2 + iter->word.size() >= TREE_SITTER_SERIALIZATION_BUFFER_SIZE) return 0;
+        vector<Heredoc>::iterator iter = open_heredocs.begin(),
+                                  end = open_heredocs.end();
+        iter != end;
+        ++iter) {
+      if (i + 2 + iter->word.size() >= TREE_SITTER_SERIALIZATION_BUFFER_SIZE)
+        return 0;
       buffer[i++] = iter->end_word_indentation_allowed;
       buffer[i++] = iter->started;
       buffer[i++] = iter->word.size();
@@ -151,7 +152,8 @@ struct Scanner {
     literal_stack.clear();
     open_heredocs.clear();
 
-    if (length == 0) return;
+    if (length == 0)
+      return;
 
     uint8_t literal_depth = buffer[i++];
     for (unsigned j = 0; j < literal_depth; j++) {
@@ -189,9 +191,9 @@ struct Scanner {
 
   bool scan_whitespace(TSLexer *lexer, const bool *valid_symbols) {
     bool heredoc_body_start_is_valid =
-      !open_heredocs.empty() &&
-      !open_heredocs[0].started &&
-      valid_symbols[HEREDOC_BODY_START];
+        !open_heredocs.empty() &&
+        !open_heredocs[0].started &&
+        valid_symbols[HEREDOC_BODY_START];
     bool crossed_newline = false;
 
     for (;;) {
@@ -249,22 +251,26 @@ struct Scanner {
   }
 
   bool scan_operator(TSLexer *lexer) {
-    switch(lexer->lookahead) {
+    switch (lexer->lookahead) {
       // <, <=, <<, <=>
       case '<':
         advance(lexer);
-        if (lexer->lookahead == '<') advance(lexer);
+        if (lexer->lookahead == '<')
+          advance(lexer);
         else if (lexer->lookahead == '=') {
           advance(lexer);
-          if (lexer->lookahead == '>') advance(lexer);
+          if (lexer->lookahead == '>')
+            advance(lexer);
         }
         return true;
 
       // >, >=, >>
       case '>':
         advance(lexer);
-        if (lexer->lookahead == '>') advance(lexer);
-        else if (lexer->lookahead == '=') advance(lexer);
+        if (lexer->lookahead == '>')
+          advance(lexer);
+        else if (lexer->lookahead == '=')
+          advance(lexer);
         return true;
 
       // ==, ===, =~
@@ -275,7 +281,8 @@ struct Scanner {
           return true;
         } else if (lexer->lookahead == '=') {
           advance(lexer);
-          if (lexer->lookahead == '=') advance(lexer);
+          if (lexer->lookahead == '=')
+            advance(lexer);
           return true;
         }
         return false;
@@ -285,7 +292,8 @@ struct Scanner {
       case '-':
       case '~':
         advance(lexer);
-        if (lexer->lookahead == '@') advance(lexer);
+        if (lexer->lookahead == '@')
+          advance(lexer);
         return true;
 
       // ..
@@ -310,21 +318,26 @@ struct Scanner {
       // !, !=, !~
       case '!':
         advance(lexer);
-        if (lexer->lookahead == '=' || lexer->lookahead == '~') advance(lexer);
+        if (lexer->lookahead == '=' || lexer->lookahead == '~')
+          advance(lexer);
         return true;
 
       // *, **
       case '*':
         advance(lexer);
-        if (lexer->lookahead == '*') advance(lexer);
+        if (lexer->lookahead == '*')
+          advance(lexer);
         return true;
 
       // [], []=
       case '[':
         advance(lexer);
-        if (lexer->lookahead == ']') advance(lexer);
-        else return false;
-        if (lexer->lookahead == '=') advance(lexer);
+        if (lexer->lookahead == ']')
+          advance(lexer);
+        else
+          return false;
+        if (lexer->lookahead == '=')
+          advance(lexer);
         return true;
 
       default:
@@ -388,7 +401,8 @@ struct Scanner {
         return true;
 
       case '`':
-        if (!valid_symbols[SUBSHELL_START]) return false;
+        if (!valid_symbols[SUBSHELL_START])
+          return false;
         literal.type = SUBSHELL_START;
         literal.open_delimiter = literal.close_delimiter = lexer->lookahead;
         literal.allows_interpolation = true;
@@ -396,15 +410,19 @@ struct Scanner {
         return true;
 
       case '/':
-        if (!valid_symbols[REGEX_START]) return false;
+        if (!valid_symbols[REGEX_START])
+          return false;
         literal.type = REGEX_START;
         literal.open_delimiter = literal.close_delimiter = lexer->lookahead;
         literal.allows_interpolation = true;
         advance(lexer);
         if (valid_symbols[FORWARD_SLASH]) {
-          if (!has_leading_whitespace) return false;
-          if (lexer->lookahead == ' ' || lexer->lookahead == '\t') return false;
-          if (lexer->lookahead == '=') return false;
+          if (!has_leading_whitespace)
+            return false;
+          if (lexer->lookahead == ' ' || lexer->lookahead == '\t')
+            return false;
+          if (lexer->lookahead == '=')
+            return false;
         }
         return true;
 
@@ -413,70 +431,80 @@ struct Scanner {
 
         switch (lexer->lookahead) {
           case 's':
-            if (!valid_symbols[SIMPLE_SYMBOL]) return false;
+            if (!valid_symbols[SIMPLE_SYMBOL])
+              return false;
             literal.type = SYMBOL_START;
             literal.allows_interpolation = false;
             advance(lexer);
             break;
 
           case 'r':
-            if (!valid_symbols[REGEX_START]) return false;
+            if (!valid_symbols[REGEX_START])
+              return false;
             literal.type = REGEX_START;
             literal.allows_interpolation = true;
             advance(lexer);
             break;
 
           case 'x':
-            if (!valid_symbols[SUBSHELL_START]) return false;
+            if (!valid_symbols[SUBSHELL_START])
+              return false;
             literal.type = SUBSHELL_START;
             literal.allows_interpolation = true;
             advance(lexer);
             break;
 
           case 'q':
-            if (!valid_symbols[STRING_START]) return false;
+            if (!valid_symbols[STRING_START])
+              return false;
             literal.type = STRING_START;
             literal.allows_interpolation = false;
             advance(lexer);
             break;
 
           case 'Q':
-            if (!valid_symbols[STRING_START]) return false;
+            if (!valid_symbols[STRING_START])
+              return false;
             literal.type = STRING_START;
             literal.allows_interpolation = true;
             advance(lexer);
             break;
 
           case 'w':
-            if (!valid_symbols[STRING_ARRAY_START]) return false;
+            if (!valid_symbols[STRING_ARRAY_START])
+              return false;
             literal.type = STRING_ARRAY_START;
             literal.allows_interpolation = false;
             advance(lexer);
             break;
 
           case 'i':
-            if (!valid_symbols[SYMBOL_ARRAY_START]) return false;
+            if (!valid_symbols[SYMBOL_ARRAY_START])
+              return false;
             literal.type = SYMBOL_ARRAY_START;
             literal.allows_interpolation = false;
             advance(lexer);
             break;
 
           case 'W':
-            if (!valid_symbols[STRING_ARRAY_START]) return false;
+            if (!valid_symbols[STRING_ARRAY_START])
+              return false;
             literal.type = STRING_ARRAY_START;
             literal.allows_interpolation = true;
             advance(lexer);
             break;
 
           case 'I':
-            if (!valid_symbols[SYMBOL_ARRAY_START]) return false;
+            if (!valid_symbols[SYMBOL_ARRAY_START])
+              return false;
             literal.type = SYMBOL_ARRAY_START;
             literal.allows_interpolation = true;
             advance(lexer);
             break;
 
           default:
-            if (!valid_symbols[STRING_START]) return false;
+            if (!valid_symbols[STRING_START])
+              return false;
             literal.type = STRING_START;
             literal.allows_interpolation = true;
             break;
@@ -510,7 +538,8 @@ struct Scanner {
             // If the `/` operator is valid, then so is the `%` operator, which means
             // that a `%` followed by whitespace should be considered an operator,
             // not a percent string.
-            if (valid_symbols[FORWARD_SLASH]) return false;
+            if (valid_symbols[FORWARD_SLASH])
+              return false;
 
           case '|':
           case '!':
@@ -531,7 +560,7 @@ struct Scanner {
           // unbalanced delimiter. That will be necessary due to ambiguity
           // between &= assignment operator and %=...= as string
           // content delimiter.
-          //case '=':
+          // case '=':
           case '+':
           case '-':
           case '~':
@@ -599,9 +628,11 @@ struct Scanner {
 
     for (;;) {
       if (position_in_word == heredoc.word.size()) {
-        if (!has_content) lexer->mark_end(lexer);
+        if (!has_content)
+          lexer->mark_end(lexer);
         while (lexer->lookahead == ' ' ||
-               lexer->lookahead == '\t') advance(lexer);
+               lexer->lookahead == '\t')
+          advance(lexer);
         if (lexer->lookahead == '\n' || lexer->lookahead == '\r') {
           if (has_content) {
             lexer->result_symbol = HEREDOC_CONTENT;
@@ -668,7 +699,8 @@ struct Scanner {
           look_for_heredoc_end = true;
           while (lexer->lookahead == ' ' || lexer->lookahead == '\t') {
             advance(lexer);
-            if (!heredoc.end_word_indentation_allowed) look_for_heredoc_end = false;
+            if (!heredoc.end_word_indentation_allowed)
+              look_for_heredoc_end = false;
           }
           lexer->mark_end(lexer);
         } else {
@@ -702,7 +734,8 @@ struct Scanner {
           } else {
             advance(lexer);
             if (literal.type == REGEX_START) {
-              while (iswlower(lexer->lookahead)) advance(lexer);
+              while (iswlower(lexer->lookahead))
+                advance(lexer);
             }
             literal_stack.pop_back();
             lexer->result_symbol = STRING_END;
@@ -759,19 +792,21 @@ struct Scanner {
     // Contents of literals, which match any character except for some close delimiter
     if (!valid_symbols[STRING_START]) {
       if (
-        (valid_symbols[STRING_CONTENT] || valid_symbols[STRING_END]) &&
-        !literal_stack.empty()
-      ) return scan_literal_content(lexer);
+          (valid_symbols[STRING_CONTENT] || valid_symbols[STRING_END]) &&
+          !literal_stack.empty())
+        return scan_literal_content(lexer);
       if (
-        (valid_symbols[HEREDOC_CONTENT] || valid_symbols[HEREDOC_BODY_END]) &&
-        !open_heredocs.empty()
-      ) return scan_heredoc_content(lexer);
+          (valid_symbols[HEREDOC_CONTENT] || valid_symbols[HEREDOC_BODY_END]) &&
+          !open_heredocs.empty())
+        return scan_heredoc_content(lexer);
     }
 
     // Whitespace
     lexer->result_symbol = NONE;
-    if (!scan_whitespace(lexer, valid_symbols)) return false;
-    if (lexer->result_symbol != NONE) return true;
+    if (!scan_whitespace(lexer, valid_symbols))
+      return false;
+    if (lexer->result_symbol != NONE)
+      return true;
 
     switch (lexer->lookahead) {
       case '&':
@@ -806,11 +841,13 @@ struct Scanner {
         if (valid_symbols[SPLAT_STAR] || valid_symbols[BINARY_STAR] ||
             valid_symbols[HASH_SPLAT_STAR_STAR] || valid_symbols[BINARY_STAR_STAR]) {
           advance(lexer);
-          if (lexer->lookahead == '=') return false;
+          if (lexer->lookahead == '=')
+            return false;
           if (lexer->lookahead == '*') {
             if (valid_symbols[HASH_SPLAT_STAR_STAR] || valid_symbols[BINARY_STAR_STAR]) {
               advance(lexer);
-              if (lexer->lookahead == '=') return false;
+              if (lexer->lookahead == '=')
+                return false;
               if (valid_symbols[BINARY_STAR_STAR] && !has_leading_whitespace) {
                 lexer->result_symbol = BINARY_STAR_STAR;
                 return true;
@@ -823,7 +860,7 @@ struct Scanner {
               } else if (valid_symbols[HASH_SPLAT_STAR_STAR]) {
                 lexer->result_symbol = HASH_SPLAT_STAR_STAR;
                 return true;
-              } else  {
+              } else {
                 return false;
               }
             } else {
@@ -911,10 +948,8 @@ struct Scanner {
         // Treat a square bracket as an element reference if either:
         // * the bracket is not preceded by any whitespace
         // * an arbitrary expression is not valid at the current position.
-        if (valid_symbols[ELEMENT_REFERENCE_BRACKET] && (
-          !has_leading_whitespace ||
-          !valid_symbols[STRING_START]
-        )) {
+        if (valid_symbols[ELEMENT_REFERENCE_BRACKET] && (!has_leading_whitespace ||
+                                                         !valid_symbols[STRING_START])) {
           advance(lexer);
           lexer->result_symbol = ELEMENT_REFERENCE_BRACKET;
           return true;
@@ -926,18 +961,16 @@ struct Scanner {
     }
 
     // Open delimiters for literals
-    if ((valid_symbols[HASH_KEY_SYMBOL] || valid_symbols[IDENTIFIER_SUFFIX])
-          && (iswalpha(lexer->lookahead) || lexer->lookahead == '_') ||
-        valid_symbols[CONSTANT_SUFFIX] && iswupper(lexer->lookahead) 
-        ) {
-      TokenType validIdentifierSymbol = iswupper(lexer->lookahead)? CONSTANT_SUFFIX : IDENTIFIER_SUFFIX;
+    if ((valid_symbols[HASH_KEY_SYMBOL] || valid_symbols[IDENTIFIER_SUFFIX]) && (iswalpha(lexer->lookahead) || lexer->lookahead == '_') ||
+        valid_symbols[CONSTANT_SUFFIX] && iswupper(lexer->lookahead)) {
+      TokenType validIdentifierSymbol = iswupper(lexer->lookahead) ? CONSTANT_SUFFIX : IDENTIFIER_SUFFIX;
       char word[8];
       int index = 0;
       while (iswalnum(lexer->lookahead) || lexer->lookahead == '_') {
-        if (index < 8 ) {
+        if (index < 8) {
           word[index] = lexer->lookahead;
         }
-        index++;        
+        index++;
         advance(lexer);
       }
 
@@ -966,7 +999,8 @@ struct Scanner {
 
       if (lexer->lookahead == '<') {
         advance(lexer);
-        if (lexer->lookahead != '<') return false;
+        if (lexer->lookahead != '<')
+          return false;
         advance(lexer);
 
         Heredoc heredoc;
@@ -976,7 +1010,8 @@ struct Scanner {
         }
 
         heredoc.word = scan_heredoc_word(lexer);
-        if (heredoc.word.empty()) return false;
+        if (heredoc.word.empty())
+          return false;
         open_heredocs.push_back(heredoc);
         lexer->result_symbol = HEREDOC_START;
         return true;
@@ -999,7 +1034,7 @@ struct Scanner {
   vector<Heredoc> open_heredocs;
 };
 
-}
+}  // namespace
 
 extern "C" {
 
@@ -1027,5 +1062,4 @@ void tree_sitter_ruby_external_scanner_destroy(void *payload) {
   Scanner *scanner = static_cast<Scanner *>(payload);
   delete scanner;
 }
-
 }
