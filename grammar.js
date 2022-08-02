@@ -68,6 +68,7 @@ module.exports = grammar({
     $._hash_splat_star_star,
     $._binary_star_star,
     $._element_reference_bracket,
+    $._short_interpolation,
   ],
 
   extras: $ => [
@@ -1078,8 +1079,9 @@ module.exports = grammar({
 
     character: $ => /\?(\\\S({[0-9A-Fa-f]*}|[0-9A-Fa-f]*|-\S([MC]-\S)?)?|\S)/,
 
-    interpolation: $ => seq(
-      '#{', optional($._statements), '}'
+    interpolation: $ => choice(
+      seq('#{', optional($._statements), '}'),
+      seq($._short_interpolation, $._nonlocal_variable),
     ),
 
     string: $ => seq(

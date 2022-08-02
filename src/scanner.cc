@@ -44,6 +44,7 @@ enum TokenType {
   HASH_SPLAT_STAR_STAR,
   BINARY_STAR_STAR,
   ELEMENT_REFERENCE_BRACKET,
+  SHORT_INTERPOLATION,
 
   NONE
 };
@@ -689,6 +690,9 @@ struct Scanner {
               return false;
             }
           }
+          if (scan_short_interpolation(lexer, has_content, HEREDOC_CONTENT)) {
+            return true;
+          }
         } else if (lexer->lookahead == '\r' || lexer->lookahead == '\n') {
           if (lexer->lookahead == '\r') {
             advance(lexer);
@@ -763,6 +767,9 @@ struct Scanner {
             return false;
           }
         }
+        if (scan_short_interpolation(lexer, has_content, STRING_CONTENT)) {
+          return true;
+        }
       } else if (lexer->lookahead == '\\') {
         if (literal.allows_interpolation) {
           if (has_content) {
@@ -788,6 +795,43 @@ struct Scanner {
     }
   }
 
+  bool scan_short_interpolation(TSLexer *lexer, const bool has_content, const TSSymbol content_symbol) {
+    char start = lexer->lookahead;
+    if (start == '@' || start == '$') {
+      if (has_content) {
+        lexer->result_symbol = content_symbol;
+        return true;
+      } else {
+        lexer->mark_end(lexer);
+        advance(lexer);
+        bool is_short_interpolation = false;
+        if (start == '$') {
+          if (strchr("!@&`'+~=/\\,;.<>*$?:\"", lexer->lookahead) != NULL) {
+            is_short_interpolation = true;
+          } else {
+            if (lexer->lookahead == '-') {
+              advance(lexer);
+              is_short_interpolation = iswalpha(lexer->lookahead) || lexer->lookahead == '_';
+            } else {
+              is_short_interpolation = iswalnum(lexer->lookahead) || lexer->lookahead == '_';
+            }
+          }
+        }
+        if (start == '@') {
+          if (lexer->lookahead == '@') {
+            advance(lexer);
+          }
+          is_short_interpolation = is_iden_char(lexer->lookahead) && !iswdigit(lexer->lookahead);
+        }
+
+        if (is_short_interpolation) {
+          lexer->result_symbol = SHORT_INTERPOLATION;
+          return true;
+        }
+      }
+    }
+    return false;
+  }
   bool scan(TSLexer *lexer, const bool *valid_symbols) {
     has_leading_whitespace = false;
 
