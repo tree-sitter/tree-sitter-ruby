@@ -110,6 +110,8 @@ module.exports = grammar({
 
     uninterpreted: $ => /(.|\s)*/,
 
+    block_body: $ => $._statements,
+
     _statements: $ => choice(
       seq(
         repeat1(choice(
@@ -158,7 +160,7 @@ module.exports = grammar({
         seq(
           field('parameters', alias($.parameters, $.method_parameters)),
           choice(
-            seq(optional($._terminator), $._body_statement),
+            seq(optional($._terminator), optional(field('body', $.body_statement)), 'end'),
             $._body_expr
           )
 
@@ -168,7 +170,8 @@ module.exports = grammar({
             field('parameters', alias($.bare_parameters, $.method_parameters))
           ),
           $._terminator,
-          $._body_statement
+          optional(field('body', $.body_statement)),
+          'end'
         ),
       ),
     ),
@@ -266,7 +269,8 @@ module.exports = grammar({
         seq(field('superclass', $.superclass), $._terminator),
         optional($._terminator)
       ),
-      $._body_statement
+      optional(field('body', $.body_statement)),
+      'end'
     ),
 
     superclass: $ => seq('<', $._expression),
@@ -276,14 +280,16 @@ module.exports = grammar({
       alias($._singleton_class_left_angle_left_langle, '<<'),
       field('value', $._arg),
       $._terminator,
-      $._body_statement
+      optional(field('body', $.body_statement)),
+      'end'
     ),
 
     module: $ => seq(
       'module',
       field('name', choice($.constant, $.scope_resolution)),
       optional($._terminator),
-      $._body_statement,
+      optional(field('body', $.body_statement)),
+      'end'
     ),
 
     return_command: $ => prec.left(seq('return', alias($.command_argument_list, $.argument_list))),
@@ -592,7 +598,7 @@ module.exports = grammar({
       )
     ),
 
-    begin: $ => seq('begin', optional($._terminator), $._body_statement),
+    begin: $ => seq('begin', optional($._terminator), optional($._body_statement), 'end'),
 
     ensure: $ => seq('ensure', optional($._statements)),
 
@@ -610,10 +616,11 @@ module.exports = grammar({
 
     exception_variable: $ => seq('=>', $._lhs),
 
-    _body_statement: $ => seq(
-      optional($._statements),
-      repeat(choice($.rescue, $.else, $.ensure)),
-      'end'
+    body_statement: $ => $._body_statement,
+
+    _body_statement: $ => choice(
+      seq($._statements, repeat(choice($.rescue, $.else, $.ensure))),
+      seq(optional($._statements), repeat1(choice($.rescue, $.else, $.ensure))),
     ),
 
     // Method calls without parentheses (aka "command calls") are only allowed
@@ -821,13 +828,14 @@ module.exports = grammar({
         field('parameters', $.block_parameters),
         optional($._terminator)
       )),
-      $._body_statement
+      optional(field('body', $.body_statement)),
+      'end'
     ),
 
     block: $ => prec(PREC.CURLY_BLOCK, seq(
       '{',
       field('parameters', optional($.block_parameters)),
-      optional($._statements),
+      optional(field('body', $.block_body)),
       '}'
     )),
 

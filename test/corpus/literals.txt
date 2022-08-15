@@ -860,8 +860,9 @@ end
 ---
 
 (program (method (identifier)
-  (call (identifier) (argument_list (heredoc_beginning)))
-  (heredoc_body (heredoc_content) (heredoc_end))))
+  (body_statement
+    (call (identifier) (argument_list (heredoc_beginning)))
+    (heredoc_body (heredoc_content) (heredoc_end)))))
 
 ========================================
 heredocs with method continuation
@@ -1083,10 +1084,11 @@ heredoc content that starts with a dot
 
 (program
   (lambda (block
-    (call
-      (identifier)
-      (argument_list (heredoc_beginning)))
-    (heredoc_body (heredoc_content) (heredoc_end)))))
+    (block_body
+      (call
+        (identifier)
+        (argument_list (heredoc_beginning)))
+      (heredoc_body (heredoc_content) (heredoc_end))))))
 
 ========================================
 un-terminated heredocs
@@ -1164,7 +1166,7 @@ array as object
     method: (identifier)
     block: (block
       parameters: (block_parameters (identifier))
-      (binary left: (identifier) right: (integer)))))
+      body: (block_body (binary left: (identifier) right: (integer))))))
 
 =========================
 array with trailing comma
@@ -1557,7 +1559,7 @@ lambda literal with body
 
 ---
 
-(program (lambda (block (identifier))))
+(program (lambda (block (block_body (identifier)))))
 
 ====================
 lambda literal with an arg
@@ -1572,11 +1574,11 @@ lambda literal with an arg
 ---
 
 (program
-  (lambda (lambda_parameters (identifier)) (block (integer)))
-  (lambda (lambda_parameters (identifier)) (block (integer)))
-  (lambda (lambda_parameters (splat_parameter (identifier))) (block (integer)))
-  (lambda (lambda_parameters (keyword_parameter (identifier) (integer))) (block (integer)))
-  (lambda (lambda_parameters (identifier) (identifier)) (block (integer))))
+  (lambda (lambda_parameters (identifier)) (block (block_body (integer))))
+  (lambda (lambda_parameters (identifier)) (block (block_body (integer))))
+  (lambda (lambda_parameters (splat_parameter (identifier))) (block (block_body (integer))))
+  (lambda (lambda_parameters (keyword_parameter (identifier) (integer))) (block (block_body (integer))))
+  (lambda (lambda_parameters (identifier) (identifier)) (block (block_body (integer)))))
 
 ===========================
 lambda literal with multiple args
@@ -1590,8 +1592,9 @@ lambda literal with multiple args
 ---
 
 (program (lambda (lambda_parameters (identifier) (identifier) (identifier)) (block
-  (integer)
-  (integer))))
+  (block_body
+    (integer)
+    (integer)))))
 
 ====================
 lambda literal with do end
@@ -1603,7 +1606,7 @@ end
 
 ---
 
-(program (lambda (lambda_parameters (identifier)) (do_block (integer))))
+(program (lambda (lambda_parameters (identifier)) (do_block (body_statement (integer)))))
 
 ====================
 non-ascii identifiers

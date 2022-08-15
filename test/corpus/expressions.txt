@@ -907,7 +907,8 @@ end
   (call
     receiver: (identifier)
     arguments: (argument_list (pair key: (hash_key_symbol) value: (identifier)))
-    block: (do_block (identifier))))
+    block: (do_block
+      body: (body_statement (identifier)))))
 
 ===============================
 call with operator method name
@@ -1164,13 +1165,13 @@ foo :bar, -> (a) { where(:c => b) }
   (call (identifier)
     (argument_list
       (simple_symbol)
-      (lambda (lambda_parameters (identifier)) (block (integer)))))
+      (lambda (lambda_parameters (identifier)) (block (block_body (integer))))))
   (call (identifier)
     (argument_list
       (simple_symbol)
       (lambda
         (lambda_parameters (identifier))
-        (block (call (identifier) (argument_list (pair (simple_symbol) (identifier)))))))))
+        (block (block_body (call (identifier) (argument_list (pair (simple_symbol) (identifier))))))))))
 
 ===============================
 method call lambda argument and do block
@@ -1183,7 +1184,7 @@ end
 
 (program
   (call (identifier)
-    (argument_list (simple_symbol) (lambda (lambda_parameters (identifier)) (block (integer))))
+    (argument_list (simple_symbol) (lambda (lambda_parameters (identifier)) (block (block_body (integer)))))
     (do_block)))
 
 ===============================================
@@ -1210,7 +1211,7 @@ end
         (splat_argument (identifier)))
       block: (do_block
         parameters: (block_parameters (identifier))
-        (identifier)))
+        body: (body_statement (identifier))))
     method: (identifier)
     arguments: (argument_list
       (call
@@ -1218,9 +1219,10 @@ end
           method: (identifier)
           block: (block
             parameters: (block_parameters (identifier))
-            (identifier)))
+            body: (block_body (identifier))))
         method: (identifier)
-        block: (do_block (identifier))))))
+        block: (do_block
+          body: (body_statement (identifier)))))))
 
 ===============================
 method calls in binary expression
@@ -1355,31 +1357,32 @@ end
     method: (identifier)
     block: (do_block
       parameters: (block_parameters (identifier))
-    (identifier)
-      (rescue
-        exceptions: (exceptions (constant))
-        body: (then (identifier)))
-      (ensure
-        (identifier))))
+    body: (body_statement
+      (identifier)
+        (rescue
+          exceptions: (exceptions (constant))
+          body: (then (identifier)))
+        (ensure
+          (identifier)))))
   (call
     method: (identifier)
     block: (do_block
       parameters: (block_parameters (identifier))
-      (identifier)))
+      body: (body_statement (identifier))))
   (call method: (identifier) block: (do_block))
   (call
     method: (identifier)
     arguments: (argument_list (identifier))
     block: (do_block
       parameters: (block_parameters (identifier))
-      (identifier)))
+      body: (body_statement (identifier))))
   (call
     receiver: (identifier)
     method: (identifier)
     arguments: (argument_list (identifier))
     block: (do_block
       parameters: (block_parameters (identifier))
-      (identifier)))
+      body: (body_statement (identifier))))
   (call
     method: (identifier)
     arguments: (argument_list (identifier))
@@ -1405,7 +1408,7 @@ foo(bar, baz) { quux }
     method: (identifier)
     block: (block
       parameters: (block_parameters (identifier))
-      (identifier)))
+      body: (block_body (identifier))))
   (call
     method: (identifier)
     arguments: (argument_list (call
@@ -1413,11 +1416,11 @@ foo(bar, baz) { quux }
       method: (identifier)
       block: (block
         parameters: (block_parameters (identifier))
-        (binary left: (identifier) right: (integer))))))
+        body: (block_body (binary left: (identifier) right: (integer)))))))
   (call
     method: (identifier)
     arguments: (argument_list (identifier) (identifier))
-    block: (block (identifier))))
+    block: (block body: (block_body (identifier)))))
 
 ===============================
 method call with block shadow arguments
@@ -1517,14 +1520,14 @@ d.find { |x| x > 1 } [0] == 0
     (call
       (identifier)
       (identifier)
-      (block (block_parameters (identifier)) (binary (identifier) (integer))))
+      (block (block_parameters (identifier)) (block_body (binary (identifier) (integer)))))
     (integer))
   (binary
     (element_reference
       (call
         (identifier)
         (identifier)
-        (block (block_parameters (identifier)) (binary (identifier) (integer))))
+        (block (block_parameters (identifier)) (block_body (binary (identifier) (integer)))))
       (integer))
     (integer)))
 
@@ -1544,12 +1547,12 @@ end
   (call
     (identifier)
     (argument_list (array (integer)))
-    (block (block_parameters (identifier)) (identifier)))
+    (block (block_parameters (identifier)) (block_body (identifier))))
   (call
     (identifier)
     (argument_list (array (integer)))
     (do_block
-      (call (identifier) (argument_list (integer))))))
+      (body_statement (call (identifier) (argument_list (integer)))))))
 
 
 ========================================================================
@@ -1560,7 +1563,7 @@ render "foo/bars/show", locals: { display_text: dt, safe_text: "hello" }
 
 ---
 
-(program 
+(program
   (call (identifier) (argument_list (string (string_content)) (pair (hash_key_symbol) (hash))))
   (call (identifier) (argument_list (string (string_content)) (pair (hash_key_symbol) (hash (pair (hash_key_symbol) (identifier)) (pair (hash_key_symbol) (string (string_content)))))))
 )
@@ -1666,8 +1669,8 @@ lambda(&lambda{})
 ---
 
 (program
-  (call (identifier) (block (identifier)))
-  (call (identifier) (argument_list (block_argument (identifier))) (block (identifier)))
+  (call (identifier) (block (block_body (identifier))))
+  (call (identifier) (argument_list (block_argument (identifier))) (block (block_body (identifier))))
   (call (identifier) (argument_list (block_argument (call (identifier) (block))))))
 
 ====================
@@ -1678,7 +1681,7 @@ lambda { |foo| 1 }
 
 ---
 
-(program (call (identifier) (block (block_parameters (identifier)) (integer))))
+(program (call (identifier) (block (block_parameters (identifier)) (block_body (integer)))))
 
 ===========================
 lambda expression with multiple args
@@ -1691,7 +1694,7 @@ lambda { |a, b, c|
 
 ---
 
-(program (call (identifier) (block (block_parameters (identifier) (identifier) (identifier)) (integer) (integer))))
+(program (call (identifier) (block (block_parameters (identifier) (identifier) (identifier)) (block_body (integer) (integer)))))
 
 ===========================
 lambda expression with trailing comma
@@ -1703,7 +1706,7 @@ lambda { |a, b,|
 
 ---
 
-(program (call (identifier) (block (block_parameters (identifier) (identifier)) (integer))))
+(program (call (identifier) (block (block_parameters (identifier) (identifier)) (block_body (integer)))))
 
 ===========================
 lambda expression with optional arg
@@ -1715,7 +1718,7 @@ lambda { |a, b=nil|
 
 ---
 
-(program (call (identifier) (block (block_parameters (identifier) (optional_parameter (identifier) (nil))) (integer))))
+(program (call (identifier) (block (block_parameters (identifier) (optional_parameter (identifier) (nil))) (block_body (integer)))))
 
 ===========================
 lambda expression with keyword arg
@@ -1729,7 +1732,7 @@ lambda { |a, b: nil|
 
 (program (call
   (identifier)
-  (block (block_parameters (identifier) (keyword_parameter (identifier) (nil))) (integer))))
+  (block (block_parameters (identifier) (keyword_parameter (identifier) (nil))) (block_body (integer)))))
 
 ====================
 lambda expression with do end
@@ -1741,7 +1744,7 @@ end
 
 ---
 
-(program (call (identifier) (do_block (block_parameters (identifier)) (integer))))
+(program (call (identifier) (do_block (block_parameters (identifier)) (body_statement (integer)))))
 
 ============================
 lambda and proc as variables

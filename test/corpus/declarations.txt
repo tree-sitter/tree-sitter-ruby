@@ -28,7 +28,7 @@ end
 
 ---
 
-(program (method (identifier) (identifier)))
+(program (method (identifier) (body_statement (identifier))))
 
 =====================
 "end"-less method
@@ -43,14 +43,14 @@ def foo() = bar rescue (print "error")
 
 ---
 
-(program 
+(program
   (method (identifier) (identifier))
   (method (identifier) (method_parameters) (identifier))
   (method (identifier) (method_parameters (identifier)) (identifier))
   (singleton_method (constant) (identifier) (identifier))
   (singleton_method (constant) (identifier) (method_parameters (identifier)) (identifier))
   (method (identifier) (method_parameters)
-    (rescue_modifier 
+    (rescue_modifier
       (identifier)
       (parenthesized_statements (call (identifier) (argument_list (string (string_content)))))
     )
@@ -97,7 +97,7 @@ end
 ---
 
 (program
-  (method (operator) (method_parameters (identifier)) (string (string_content)))
+  (method (operator) (method_parameters (identifier)) (body_statement (string (string_content))))
   (method (operator) (method_parameters (identifier)))
   (method (operator) (method_parameters (identifier)))
   (method (operator) (method_parameters (identifier)))
@@ -144,13 +144,13 @@ end
 ---
 
 (program
-  (method (identifier) (super))
+  (method (identifier) (body_statement (super)))
   (method
     (identifier)
-    (call (identifier) (identifier) (block (super))))
+    (body_statement (call (identifier) (identifier) (block (block_body (super))))))
   (method
     (identifier)
-    (call (super) (identifier) (argument_list (identifier) (identifier)))))
+    (body_statement (call (super) (identifier) (argument_list (identifier) (identifier))))))
 
 ===========================
 method with args
@@ -283,10 +283,10 @@ end
   (method (identifier) (method_parameters (block_parameter (identifier))))
   (method (identifier) (method_parameters (block_parameter)))
   (method (identifier) (method_parameters (forward_parameter))
-    (call (super) (argument_list (forward_argument)))
-  )  
+    (body_statement (call (super) (argument_list (forward_argument))))
+  )
   (method (identifier) (method_parameters (identifier) (identifier) (forward_parameter))
-    (call (identifier) (argument_list (identifier) (forward_argument)))
+    (body_statement (call (identifier) (argument_list (identifier) (forward_argument))))
   )
 )
 
@@ -311,7 +311,7 @@ end
 
 ---
 
-(program (singleton_method (self) (identifier) (identifier)))
+(program (singleton_method (self) (identifier) (body_statement (identifier))))
 
 
 =========================================
@@ -435,12 +435,14 @@ class String def foo; end end
 (program
   (module
     name: (constant)
-    (class
-      name: (constant)))
+    body: (body_statement
+      (class
+        name: (constant))))
   (class
     name: (constant)
-    (method
-      name: (identifier))))
+    body: (body_statement
+      (method
+        name: (identifier)))))
 
 =======================================
 unparenthesized call as superclass
@@ -473,7 +475,7 @@ end
 
 ---
 
-(program (class (constant) (method (identifier))))
+(program (class (constant) (body_statement (method (identifier)))))
 
 =========================================
 class within dynamically-computed module
@@ -538,7 +540,7 @@ end
 
 ---
 
-(program (module (constant) (method (identifier))))
+(program (module (constant) (body_statement (method (identifier)))))
 
 ========================
 module without semicolon
@@ -610,19 +612,21 @@ end
 ---
 
 (program (module (constant)
-  (class (constant) (superclass (constant))
-    (call (identifier) (argument_list
-      (call
-        (call
-          (scope_resolution (constant) (constant))
-          (identifier))
-        (identifier))))
+  (body_statement
+    (class (constant) (superclass (constant))
+      (body_statement
+        (call (identifier) (argument_list
+          (call
+            (call
+              (scope_resolution (constant) (constant))
+              (identifier))
+            (identifier))))
 
-    (call (identifier) (argument_list (simple_symbol)))
+      (call (identifier) (argument_list (simple_symbol)))
 
-    (comment)
-    (method (identifier) (identifier))
-    (singleton_method (self) (identifier)))))
+      (comment)
+      (method (identifier) (body_statement (identifier)))
+      (singleton_method (self) (identifier)))))))
 
 
 ===========

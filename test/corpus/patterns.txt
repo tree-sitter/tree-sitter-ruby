@@ -17,63 +17,63 @@ end
 
 case expr
   in 5
-  in 5, 
-  in 1, 2 
-  in 1, 2, 
-  in 1, 2, 3 
-  in 1, 2, 3, 
-  in 1, 2, 3, * 
-  in 1, *x, 3 
-  in * 
-  in *, 3, 4 
-  in *, 3, * 
-  in *a, 3, *b 
-  in a: 
-  in a: 5 
-  in a: 5, 
-  in a: 5, b:, ** 
-  in a: 5, b:, **map 
-  in a: 5, b:, **nil 
-  in **nil 
-  in [5] 
-  in [5,] 
-  in [1, 2] 
-  in [1, 2,] 
-  in [1, 2, 3] 
-  in [1, 2, 3,] 
-  in [1, 2, 3, *] 
-  in [1, *x, 3] 
-  in [*] 
-  in [*, 3, 4] 
-  in [*, 3, *] 
-  in [*a, 3, *b] 
-  in {a:} 
-  in {a: 5} 
-  in {a: 5,} 
-  in {a: 5, b:, **} 
-  in {a: 5, b:, **map} 
-  in {a: 5, b:, **nil} 
-  in {**nil} 
-  in {} 
-  in [] 
+  in 5,
+  in 1, 2
+  in 1, 2,
+  in 1, 2, 3
+  in 1, 2, 3,
+  in 1, 2, 3, *
+  in 1, *x, 3
+  in *
+  in *, 3, 4
+  in *, 3, *
+  in *a, 3, *b
+  in a:
+  in a: 5
+  in a: 5,
+  in a: 5, b:, **
+  in a: 5, b:, **map
+  in a: 5, b:, **nil
+  in **nil
+  in [5]
+  in [5,]
+  in [1, 2]
+  in [1, 2,]
+  in [1, 2, 3]
+  in [1, 2, 3,]
+  in [1, 2, 3, *]
+  in [1, *x, 3]
+  in [*]
+  in [*, 3, 4]
+  in [*, 3, *]
+  in [*a, 3, *b]
+  in {a:}
+  in {a: 5}
+  in {a: 5,}
+  in {a: 5, b:, **}
+  in {a: 5, b:, **map}
+  in {a: 5, b:, **nil}
+  in {**nil}
+  in {}
+  in []
 end
 
 -----
 
-(program 
-  (case_match (identifier) 
-    (in_clause 
+(program
+  (case_match (identifier)
+    (in_clause
       (integer)
       (then (true))
     )
-    (else (false))) 
-  (case_match (identifier) 
-    (in_clause 
+    (else (false)))
+  (case_match (identifier)
+    (in_clause
       (identifier)
       (unless_guard (binary (identifier) (integer)))
       (then (true))
     )
-    (in_clause 
+    (in_clause
       (identifier)
       (if_guard (binary (identifier) (integer)))
       (then (true))
@@ -82,54 +82,54 @@ end
   )
 
   (case_match (identifier)
-    (in_clause (integer)) 
-    (in_clause (array_pattern (integer) (splat_parameter))) 
-    (in_clause (array_pattern (integer) (integer))) 
-    (in_clause (array_pattern (integer) (integer) (splat_parameter))) 
-    (in_clause (array_pattern (integer) (integer) (integer))) 
-    (in_clause (array_pattern (integer) (integer) (integer) (splat_parameter))) 
-    (in_clause (array_pattern (integer) (integer) (integer) (splat_parameter))) 
-    (in_clause (array_pattern (integer) (splat_parameter (identifier)) (integer))) 
-    (in_clause (array_pattern (splat_parameter))) 
-    (in_clause (array_pattern (splat_parameter) (integer) (integer))) 
-    (in_clause (find_pattern (splat_parameter) (integer) (splat_parameter))) 
-    (in_clause (find_pattern (splat_parameter (identifier)) (integer) (splat_parameter (identifier)))) 
-    (in_clause (hash_pattern (keyword_pattern (hash_key_symbol)))) 
-    (in_clause (hash_pattern (keyword_pattern (hash_key_symbol) (integer)))) 
-    (in_clause (hash_pattern (keyword_pattern (hash_key_symbol) (integer)))) 
-    (in_clause (hash_pattern (keyword_pattern (hash_key_symbol) (integer)) (keyword_pattern (hash_key_symbol)) (hash_splat_parameter))) 
-    (in_clause (hash_pattern (keyword_pattern (hash_key_symbol) (integer)) (keyword_pattern (hash_key_symbol)) (hash_splat_parameter (identifier)))) 
-    (in_clause (hash_pattern (keyword_pattern (hash_key_symbol) (integer)) (keyword_pattern (hash_key_symbol)) (hash_splat_nil))) 
-    (in_clause (hash_pattern (hash_splat_nil))) 
-    (in_clause (array_pattern (integer))) 
-    (in_clause (array_pattern (integer) (splat_parameter))) 
-    (in_clause (array_pattern (integer) (integer))) 
-    (in_clause (array_pattern (integer) (integer) (splat_parameter))) 
-    (in_clause (array_pattern (integer) (integer) (integer))) 
-    (in_clause (array_pattern (integer) (integer) (integer) (splat_parameter))) 
-    (in_clause (array_pattern (integer) (integer) (integer) (splat_parameter))) 
-    (in_clause (array_pattern (integer) (splat_parameter (identifier)) (integer))) 
-    (in_clause (array_pattern (splat_parameter))) 
-    (in_clause (array_pattern (splat_parameter) (integer) (integer))) 
-    (in_clause (find_pattern (splat_parameter) (integer) (splat_parameter))) 
-    (in_clause (find_pattern (splat_parameter (identifier)) (integer) (splat_parameter (identifier)))) 
-    (in_clause (hash_pattern (keyword_pattern (hash_key_symbol)))) 
-    (in_clause (hash_pattern (keyword_pattern (hash_key_symbol) (integer)))) 
-    (in_clause (hash_pattern (keyword_pattern (hash_key_symbol) (integer)))) 
-    (in_clause (hash_pattern (keyword_pattern (hash_key_symbol) (integer)) (keyword_pattern (hash_key_symbol)) (hash_splat_parameter))) 
-    (in_clause (hash_pattern (keyword_pattern (hash_key_symbol) (integer)) (keyword_pattern (hash_key_symbol)) (hash_splat_parameter (identifier)))) 
-    (in_clause (hash_pattern (keyword_pattern (hash_key_symbol) (integer)) (keyword_pattern (hash_key_symbol)) (hash_splat_nil))) 
-    (in_clause (hash_pattern (hash_splat_nil))) 
-    (in_clause (hash_pattern)) 
+    (in_clause (integer))
+    (in_clause (array_pattern (integer) (splat_parameter)))
+    (in_clause (array_pattern (integer) (integer)))
+    (in_clause (array_pattern (integer) (integer) (splat_parameter)))
+    (in_clause (array_pattern (integer) (integer) (integer)))
+    (in_clause (array_pattern (integer) (integer) (integer) (splat_parameter)))
+    (in_clause (array_pattern (integer) (integer) (integer) (splat_parameter)))
+    (in_clause (array_pattern (integer) (splat_parameter (identifier)) (integer)))
+    (in_clause (array_pattern (splat_parameter)))
+    (in_clause (array_pattern (splat_parameter) (integer) (integer)))
+    (in_clause (find_pattern (splat_parameter) (integer) (splat_parameter)))
+    (in_clause (find_pattern (splat_parameter (identifier)) (integer) (splat_parameter (identifier))))
+    (in_clause (hash_pattern (keyword_pattern (hash_key_symbol))))
+    (in_clause (hash_pattern (keyword_pattern (hash_key_symbol) (integer))))
+    (in_clause (hash_pattern (keyword_pattern (hash_key_symbol) (integer))))
+    (in_clause (hash_pattern (keyword_pattern (hash_key_symbol) (integer)) (keyword_pattern (hash_key_symbol)) (hash_splat_parameter)))
+    (in_clause (hash_pattern (keyword_pattern (hash_key_symbol) (integer)) (keyword_pattern (hash_key_symbol)) (hash_splat_parameter (identifier))))
+    (in_clause (hash_pattern (keyword_pattern (hash_key_symbol) (integer)) (keyword_pattern (hash_key_symbol)) (hash_splat_nil)))
+    (in_clause (hash_pattern (hash_splat_nil)))
+    (in_clause (array_pattern (integer)))
+    (in_clause (array_pattern (integer) (splat_parameter)))
+    (in_clause (array_pattern (integer) (integer)))
+    (in_clause (array_pattern (integer) (integer) (splat_parameter)))
+    (in_clause (array_pattern (integer) (integer) (integer)))
+    (in_clause (array_pattern (integer) (integer) (integer) (splat_parameter)))
+    (in_clause (array_pattern (integer) (integer) (integer) (splat_parameter)))
+    (in_clause (array_pattern (integer) (splat_parameter (identifier)) (integer)))
+    (in_clause (array_pattern (splat_parameter)))
+    (in_clause (array_pattern (splat_parameter) (integer) (integer)))
+    (in_clause (find_pattern (splat_parameter) (integer) (splat_parameter)))
+    (in_clause (find_pattern (splat_parameter (identifier)) (integer) (splat_parameter (identifier))))
+    (in_clause (hash_pattern (keyword_pattern (hash_key_symbol))))
+    (in_clause (hash_pattern (keyword_pattern (hash_key_symbol) (integer))))
+    (in_clause (hash_pattern (keyword_pattern (hash_key_symbol) (integer))))
+    (in_clause (hash_pattern (keyword_pattern (hash_key_symbol) (integer)) (keyword_pattern (hash_key_symbol)) (hash_splat_parameter)))
+    (in_clause (hash_pattern (keyword_pattern (hash_key_symbol) (integer)) (keyword_pattern (hash_key_symbol)) (hash_splat_parameter (identifier))))
+    (in_clause (hash_pattern (keyword_pattern (hash_key_symbol) (integer)) (keyword_pattern (hash_key_symbol)) (hash_splat_nil)))
+    (in_clause (hash_pattern (hash_splat_nil)))
+    (in_clause (hash_pattern))
     (in_clause (array_pattern))
   )
 )
 
 =====================
-more pattern matching 
+more pattern matching
 =====================
 
-case expr 
+case expr
   in 5
   in ^foo
   in ^$foo
@@ -160,7 +160,7 @@ end
 
 --------
 
- (program 
+ (program
    (case_match (identifier)
      (in_clause (integer))
      (in_clause (variable_reference_pattern (identifier)))
@@ -179,8 +179,8 @@ end
      (in_clause (range (integer)))
      (in_clause (range (integer)))
      (in_clause (as_pattern (integer) (identifier)))
-     (in_clause 
-       (alternative_pattern 
+     (in_clause
+       (alternative_pattern
          (integer)
          (variable_reference_pattern (identifier))
          (identifier)
@@ -190,9 +190,9 @@ end
      (in_clause (constant))
      (in_clause (scope_resolution (constant) (constant)))
      (in_clause (scope_resolution (scope_resolution (constant)) (constant)))
-     (in_clause 
-       (parenthesized_pattern 
-         (alternative_pattern 
+     (in_clause
+       (parenthesized_pattern
+         (alternative_pattern
            (nil)
            (self)
            (true)
@@ -203,7 +203,7 @@ end
          )
        )
      )
-     (in_clause (lambda (lambda_parameters (identifier)) (block (binary (identifier) (integer)))))
+     (in_clause (lambda (lambda_parameters (identifier)) (block (block_body (binary (identifier) (integer))))))
      (in_clause (simple_symbol))
      (in_clause (delimited_symbol (string_content)))
      (in_clause
@@ -218,7 +218,7 @@ end
 ==============
 array patterns
 ==============
-case expr 
+case expr
   in [];
   in [x];
   in [x, ];
@@ -230,7 +230,7 @@ end
 
 --------------
 
-(program 
+(program
   (case_match (identifier)
     (in_clause (array_pattern))
     (in_clause (array_pattern (identifier)))
@@ -238,8 +238,8 @@ end
     (in_clause (array_pattern (scope_resolution (constant) (constant))))
     (in_clause (array_pattern (constant)))
     (in_clause (array_pattern (constant) (splat_parameter)))
-    (in_clause 
-      (array_pattern 
+    (in_clause
+      (array_pattern
         (constant)
         (identifier)
         (identifier)
@@ -249,13 +249,13 @@ end
       )
     )
   )
-) 
+)
 
 =============
 find patterns
 =============
 
-case expr 
+case expr
   in [*, x, *];
   in [*x, 1, 2, *y];
   in Foo::Bar[*, 1, *];
@@ -264,11 +264,11 @@ end
 
 -------------
 
-(program 
+(program
   (case_match (identifier)
     (in_clause (find_pattern (splat_parameter) (identifier) (splat_parameter)))
     (in_clause (find_pattern (splat_parameter (identifier)) (integer) (integer) (splat_parameter (identifier))))
-    (in_clause (find_pattern 
+    (in_clause (find_pattern
        (scope_resolution (constant) (constant))
        (splat_parameter)
        (integer)
@@ -276,13 +276,13 @@ end
     )
     (in_clause (find_pattern (constant) (splat_parameter) (constant) (splat_parameter)))
   )
-) 
+)
 
 =============
 hash patterns
 =============
 
-case expr 
+case expr
   in {};
   in {x:};
   in Foo::Bar[ x:1 ];
@@ -297,11 +297,11 @@ end
 (program (case_match (identifier)
   (in_clause (hash_pattern))
   (in_clause (hash_pattern (keyword_pattern (hash_key_symbol))))
-  (in_clause (hash_pattern 
+  (in_clause (hash_pattern
         (scope_resolution (constant) (constant))
         (keyword_pattern (hash_key_symbol) (integer))
   ))
-  (in_clause (hash_pattern 
+  (in_clause (hash_pattern
     (scope_resolution (constant) (constant))
     (keyword_pattern (hash_key_symbol) (integer))
     (keyword_pattern (hash_key_symbol))
@@ -317,7 +317,7 @@ end
 pattern matching with fancy string literals
 =====================
 
-case expr 
+case expr
   in "string";
   in `ls`;
   in <<"DOC" then end
