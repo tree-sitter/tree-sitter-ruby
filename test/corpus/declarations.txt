@@ -435,12 +435,12 @@ class String def foo; end end
 (program
   (module
     name: (constant)
-    namespace_body: (body_statement
+    body: (body_statement
       (class
         name: (constant))))
   (class
     name: (constant)
-    namespace_body: (body_statement
+    body: (body_statement
       (method
         name: (identifier)))))
 
