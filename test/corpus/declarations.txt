@@ -44,15 +44,15 @@ def foo() = bar rescue (print "error")
 ---
 
 (program
-  (method (identifier) (identifier))
-  (method (identifier) (method_parameters) (identifier))
-  (method (identifier) (method_parameters (identifier)) (identifier))
-  (singleton_method (constant) (identifier) (identifier))
-  (singleton_method (constant) (identifier) (method_parameters (identifier)) (identifier))
-  (method (identifier) (method_parameters)
+  (method name: (identifier) (identifier))
+  (method name: (identifier) parameters: (method_parameters) (identifier))
+  (method name: (identifier) parameters: (method_parameters (identifier)) (identifier))
+  (singleton_method object: (constant) name: (identifier) (identifier))
+  (singleton_method object: (constant) name: (identifier) parameters: (method_parameters (identifier)) (identifier))
+  (method name: (identifier) parameters: (method_parameters)
     (rescue_modifier
-      (identifier)
-      (parenthesized_statements (call (identifier) (argument_list (string (string_content)))))
+      body: (identifier)
+      handler: (parenthesized_statements (call method: (identifier) arguments: (argument_list (string (string_content)))))
     )
   )
 )
