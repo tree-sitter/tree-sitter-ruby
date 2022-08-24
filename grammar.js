@@ -196,10 +196,11 @@ module.exports = grammar({
     _body_expr: $ =>
       seq(
         '=',
-        choice(
-          $._arg,
-          alias($.rescue_modifier_arg, $.rescue_modifier),
-        )
+        field('body',
+          choice(
+            $._arg,
+            alias($.rescue_modifier_arg, $.rescue_modifier),
+          ))
       ),
 
 

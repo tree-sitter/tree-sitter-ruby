@@ -2347,7 +2347,15 @@
         "required": false,
         "types": [
           {
+            "type": "_arg",
+            "named": true
+          },
+          {
             "type": "body_statement",
+            "named": true
+          },
+          {
+            "type": "rescue_modifier",
             "named": true
           }
         ]
@@ -2372,20 +2380,6 @@
           }
         ]
       }
-    },
-    "children": {
-      "multiple": false,
-      "required": false,
-      "types": [
-        {
-          "type": "_arg",
-          "named": true
-        },
-        {
-          "type": "rescue_modifier",
-          "named": true
-        }
-      ]
     }
   },
   {
@@ -3030,7 +3024,15 @@
         "required": false,
         "types": [
           {
+            "type": "_arg",
+            "named": true
+          },
+          {
             "type": "body_statement",
+            "named": true
+          },
+          {
+            "type": "rescue_modifier",
             "named": true
           }
         ]
@@ -3069,20 +3071,6 @@
           }
         ]
       }
-    },
-    "children": {
-      "multiple": false,
-      "required": false,
-      "types": [
-        {
-          "type": "_arg",
-          "named": true
-        },
-        {
-          "type": "rescue_modifier",
-          "named": true
-        }
-      ]
     }
   },
   {
