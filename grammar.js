@@ -68,6 +68,7 @@ module.exports = grammar({
     $._hash_splat_star_star,
     $._binary_star_star,
     $._element_reference_bracket,
+    $._short_interpolation,
   ],
 
   extras: $ => [
@@ -1072,14 +1073,15 @@ module.exports = grammar({
     instance_variable: $ => token(seq('@', ALPHA_CHAR, IDENTIFIER_CHARS)),
     class_variable: $ => token(seq('@@', ALPHA_CHAR, IDENTIFIER_CHARS)),
 
-    global_variable: $ => /\$-?(([!@&`'+~=/\\,;.<>*$?:"])|([0-9]*)|([a-zA-Z_][a-zA-Z0-9_]*))/,
+    global_variable: $ => /\$(-[a-zA-Z0-9_]|[!@&`'+~=/\\,;.<>*$?:"]|[0-9]+|[a-zA-Z_][a-zA-Z0-9_]*)/,
 
     chained_string: $ => seq($.string, repeat1($.string)),
 
     character: $ => /\?(\\\S({[0-9A-Fa-f]*}|[0-9A-Fa-f]*|-\S([MC]-\S)?)?|\S)/,
 
-    interpolation: $ => seq(
-      '#{', optional($._statements), '}'
+    interpolation: $ => choice(
+      seq('#{', optional($._statements), '}'),
+      seq($._short_interpolation, $._nonlocal_variable),
     ),
 
     string: $ => seq(

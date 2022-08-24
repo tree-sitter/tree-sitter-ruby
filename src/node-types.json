@@ -2168,6 +2168,10 @@
       "required": false,
       "types": [
         {
+          "type": "_nonlocal_variable",
+          "named": true
+        },
+        {
           "type": "_statement",
           "named": true
         },

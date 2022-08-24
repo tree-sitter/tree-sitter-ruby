@@ -585,12 +585,32 @@ interpolation
 =============
 
 "#{foo}"
+"foo#@foo"
+"#@@foo"
+"#$foo"
+"#$%"
+"#$1"
+"#$_1"
+"#$-AB"
+"#$-10"
+"#@1"
+"#@@1"
 "#{':foo' unless bar}"
 
 ---
 
 (program
   (string (interpolation (identifier)))
+  (string (string_content) (interpolation (instance_variable)))
+  (string (interpolation (class_variable)))
+  (string (interpolation (global_variable)))
+  (string (string_content))
+  (string (interpolation (global_variable)))
+  (string (interpolation (global_variable)))
+  (string (interpolation (global_variable)) (string_content))
+  (string (string_content))
+  (string (string_content))
+  (string (string_content))
   (string (interpolation (unless_modifier (string (string_content)) (identifier)))))
 
 ===========================================
@@ -944,6 +964,7 @@ b #{[1, "c #{2} d", 3]} e
     bar
   ).baz
 }
+#@foo#@@bar#$0
 g
 TEXT
 
@@ -961,6 +982,14 @@ return
     (interpolation
       (comment)
       (call (call (identifier) (argument_list (integer) (identifier))) (identifier)))
+
+    (heredoc_content)
+    (interpolation
+      (instance_variable))
+    (interpolation
+      (class_variable))
+    (interpolation
+      (global_variable))
     (heredoc_content) (heredoc_end))
   (return))
 
@@ -1101,6 +1130,39 @@ un-terminated heredocs
 (program
   (heredoc_beginning)
   (heredoc_body (heredoc_content) (heredoc_end)))
+
+=================================
+no interpolation or escape sequences in single quoted heredoc
+=================================
+
+<<'EOF'
+This is \not\ an interpolation: #{foo}
+EOF
+
+<<~'EOF'
+This is \not\ an interpolation: #{foo}
+EOF
+
+<<-'EOF'
+This is \not\ an interpolation: #{foo}
+EOF
+
+---
+
+(program
+  (heredoc_beginning)
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end))
+  (heredoc_beginning)
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end))
+  (heredoc_beginning)
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end))
+)
 
 ==================
 backticks subshell

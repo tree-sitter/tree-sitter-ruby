@@ -7189,7 +7189,7 @@
     },
     "global_variable": {
       "type": "PATTERN",
-      "value": "\\$-?(([!@&`'+~=/\\\\,;.<>*$?:\"])|([0-9]*)|([a-zA-Z_][a-zA-Z0-9_]*))"
+      "value": "\\$(-[a-zA-Z0-9_]|[!@&`'+~=/\\\\,;.<>*$?:\"]|[0-9]+|[a-zA-Z_][a-zA-Z0-9_]*)"
     },
     "chained_string": {
       "type": "SEQ",
@@ -7212,27 +7212,45 @@
       "value": "\\?(\\\\\\S({[0-9A-Fa-f]*}|[0-9A-Fa-f]*|-\\S([MC]-\\S)?)?|\\S)"
     },
     "interpolation": {
-      "type": "SEQ",
+      "type": "CHOICE",
       "members": [
         {
-          "type": "STRING",
-          "value": "#{"
-        },
-        {
-          "type": "CHOICE",
+          "type": "SEQ",
           "members": [
             {
-              "type": "SYMBOL",
-              "name": "_statements"
+              "type": "STRING",
+              "value": "#{"
             },
             {
-              "type": "BLANK"
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "_statements"
+                },
+                {
+                  "type": "BLANK"
+                }
+              ]
+            },
+            {
+              "type": "STRING",
+              "value": "}"
             }
           ]
         },
         {
-          "type": "STRING",
-          "value": "}"
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_short_interpolation"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_nonlocal_variable"
+            }
+          ]
         }
       ]
     },
@@ -8124,6 +8142,10 @@
     {
       "type": "SYMBOL",
       "name": "_element_reference_bracket"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_short_interpolation"
     }
   ],
   "inline": [
