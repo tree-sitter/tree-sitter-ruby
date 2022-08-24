@@ -505,22 +505,26 @@
           "value": "="
         },
         {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "SYMBOL",
-              "name": "_arg"
-            },
-            {
-              "type": "ALIAS",
-              "content": {
+          "type": "FIELD",
+          "name": "body",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
                 "type": "SYMBOL",
-                "name": "rescue_modifier_arg"
+                "name": "_arg"
               },
-              "named": true,
-              "value": "rescue_modifier"
-            }
-          ]
+              {
+                "type": "ALIAS",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "rescue_modifier_arg"
+                },
+                "named": true,
+                "value": "rescue_modifier"
+              }
+            ]
+          }
         }
       ]
     },
