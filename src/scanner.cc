@@ -1,3 +1,4 @@
+// auto-formatted based on Google-style with 2 space indentation
 #include <tree_sitter/parser.h>
 
 #include <cstring>
