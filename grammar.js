@@ -749,12 +749,12 @@ module.exports = grammar({
         $._call,
         field('method', choice($._variable, $._function_identifier))
       )
-      const arguments = field('arguments', alias($.command_argument_list, $.argument_list))
+      const args = field('arguments', alias($.command_argument_list, $.argument_list))
       const block = field('block', $.block)
       const doBlock = field('block', $.do_block)
       return choice(
-        seq(receiver, prec(PREC.CURLY_BLOCK, seq(arguments, block))),
-        seq(receiver, prec(PREC.DO_BLOCK, seq(arguments, doBlock))),
+        seq(receiver, prec(PREC.CURLY_BLOCK, seq(args, block))),
+        seq(receiver, prec(PREC.DO_BLOCK, seq(args, doBlock))),
       )
     },
 
@@ -772,7 +772,7 @@ module.exports = grammar({
         ))
       )
 
-      const arguments = field('arguments', $.argument_list)
+      const args = field('arguments', $.argument_list)
       const receiver_arguments =
         seq(
           choice(
@@ -782,7 +782,7 @@ module.exports = grammar({
               field('operator', $._call_operator)
             ))
           ),
-          arguments
+          args
         )
 
       const block = field('block', $.block)
