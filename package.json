@@ -11,6 +11,7 @@
   "license": "MIT",
   "dependencies": {
     "nan": "^2.14.1",
+    "node-gyp": "^9.0.0",
     "prebuild-install": "^5.0.0"
   },
   "devDependencies": {
