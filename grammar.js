@@ -819,8 +819,8 @@ module.exports = grammar({
     )),
 
     forward_argument: $ => '...',
-    splat_argument: $ => seq(alias($._splat_star, '*'), $._arg),
-    hash_splat_argument: $ => seq(alias($._hash_splat_star_star, '**'), $._arg),
+    splat_argument: $ => prec.right(seq(alias($._splat_star, '*'), optional($._arg))),
+    hash_splat_argument: $ => prec.right(seq(alias($._hash_splat_star_star, '**'), optional($._arg))),
     block_argument: $ => prec.right(seq(alias($._block_ampersand, '&'), optional($._arg))),
 
     do_block: $ => seq(
