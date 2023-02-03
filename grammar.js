@@ -240,10 +240,10 @@ module.exports = grammar({
 
     forward_parameter: $ => '...',
 
-    splat_parameter: $ => seq(
+    splat_parameter: $ => prec.right(-2, seq(
       '*',
       field('name', optional($.identifier))
-    ),
+    )),
     hash_splat_parameter: $ => seq(
       '**',
       field('name', optional($.identifier))
@@ -409,18 +409,18 @@ module.exports = grammar({
       field('condition', $._expression)
     ),
 
-    _pattern_top_expr_body: $ => choice(
+    _pattern_top_expr_body: $ => prec(-1, choice(
       $._pattern_expr,
       alias($._array_pattern_n, $.array_pattern),
       alias($._find_pattern_body, $.find_pattern),
       alias($._hash_pattern_body, $.hash_pattern),
-    ),
+    )),
 
-    _array_pattern_n: $ => choice(
+    _array_pattern_n: $ => prec.right(choice(
       seq($._pattern_expr, alias(',', $.splat_parameter)),
       seq($._pattern_expr, ',', choice($._pattern_expr, $._array_pattern_n)),
       seq($.splat_parameter, repeat(seq(',', $._pattern_expr))),
-    ),
+    )),
 
     _pattern_expr: $ => choice(
       $.as_pattern,
@@ -441,11 +441,11 @@ module.exports = grammar({
       $._array_pattern_n,
     ),
 
-    array_pattern: $ => choice(
+    array_pattern: $ => prec.right(-1, choice(
       seq('[', optional($._array_pattern_body), ']'),
       seq(field('class', $._pattern_constant), token.immediate('['), optional($._array_pattern_body), ']'),
       seq(field('class', $._pattern_constant), token.immediate('('), optional($._array_pattern_body), ')')
-    ),
+    )),
 
     _find_pattern_body: $ => seq($.splat_parameter, repeat1(seq(',', $._pattern_expr)), ',', $.splat_parameter),
     find_pattern: $ => choice(
@@ -454,13 +454,13 @@ module.exports = grammar({
       seq(field('class', $._pattern_constant), token.immediate('('), $._find_pattern_body, ')')
     ),
 
-    _hash_pattern_body: $ => choice(
+    _hash_pattern_body: $ => prec.right(choice(
       seq(commaSep1($.keyword_pattern), optional(',')),
       seq(commaSep1($.keyword_pattern), ',', $._hash_pattern_any_rest),
       $._hash_pattern_any_rest
-    ),
+    )),
 
-    keyword_pattern: $ => seq(
+    keyword_pattern: $ => prec.right(-1, seq(
       field('key',
         choice(
           alias($.identifier, $.hash_key_symbol),
@@ -472,34 +472,34 @@ module.exports = grammar({
       ),
       token.immediate(':'),
       optional(field('value', $._pattern_expr))
-    ),
+    )),
 
     _hash_pattern_any_rest: $ => choice($.hash_splat_parameter, $.hash_splat_nil),
 
-    hash_pattern: $ => choice(
+    hash_pattern: $ => prec.right(-1, choice(
       seq('{', optional($._hash_pattern_body), '}'),
       seq(field('class', $._pattern_constant), token.immediate('['), $._hash_pattern_body, ']'),
       seq(field('class', $._pattern_constant), token.immediate('('), $._hash_pattern_body, ')')
-    ),
+    )),
 
-    _pattern_expr_basic: $ => choice(
+    _pattern_expr_basic: $ => prec.right(-1, choice(
       $._pattern_value,
       $.identifier,
       $.array_pattern,
       $.find_pattern,
       $.hash_pattern,
       $.parenthesized_pattern,
-    ),
+    )),
 
     parenthesized_pattern: $ => seq('(', $._pattern_expr, ')'),
 
-    _pattern_value: $ => choice(
+    _pattern_value: $ => prec.right(-1, choice(
       $._pattern_primitive,
       alias($._pattern_range, $.range),
       $.variable_reference_pattern,
       $.expression_reference_pattern,
       $._pattern_constant
-    ),
+    )),
 
     _pattern_range: $ => {
       const begin = field('begin', $._pattern_primitive);
@@ -517,9 +517,9 @@ module.exports = grammar({
       $._pattern_lambda
     ),
 
-    _pattern_lambda: $ => $.lambda,
+    _pattern_lambda: $ => prec.right(-1, $.lambda),
 
-    _pattern_literal: $ => choice(
+    _pattern_literal: $ => prec.right(-1, choice(
       $._literal,
       $.string,
       $.subshell,
@@ -528,9 +528,9 @@ module.exports = grammar({
       $.string_array,
       $.symbol_array,
       $._keyword_variable
-    ),
+    )),
 
-    _keyword_variable: $ => choice(
+    _keyword_variable: $ => prec.right(-1, choice(
       $.nil,
       $.self,
       $.true,
@@ -538,7 +538,7 @@ module.exports = grammar({
       $.line,
       $.file,
       $.encoding,
-    ),
+    )),
 
     line: $ => '__LINE__',
     file: $ => '__FILE__',
@@ -548,10 +548,10 @@ module.exports = grammar({
 
     expression_reference_pattern: $ => seq('^', '(', field('value', $._expression), ')'),
 
-    _pattern_constant: $ => choice(
+    _pattern_constant: $ => prec.right(-1, choice(
       $.constant,
       alias($._pattern_constant_resolution, $.scope_resolution)
-    ),
+    )),
 
     _pattern_constant_resolution: $ => seq(
       optional(field('scope', $._pattern_constant)),
@@ -652,8 +652,14 @@ module.exports = grammar({
       alias($.yield_command, $.yield),
       alias($.break_command, $.break),
       alias($.next_command, $.next),
+      $.match_pattern,
+      $.test_pattern,
       $._arg
     ),
+
+    match_pattern: $ => prec(100, seq(field('value', $._arg), '=>', field('pattern', $._pattern_top_expr_body))),
+
+    test_pattern: $ => prec(100, seq(field('value', $._arg), 'in', field('pattern', $._pattern_top_expr_body))),
 
     _arg: $ => choice(
       alias($._unary_minus_pow, $.unary),
