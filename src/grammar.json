@@ -44,13 +44,8 @@
                       "value": "__END__"
                     },
                     {
-                      "type": "ALIAS",
-                      "content": {
-                        "type": "STRING",
-                        "value": ""
-                      },
-                      "named": true,
-                      "value": "uninterpreted"
+                      "type": "SYMBOL",
+                      "name": "uninterpreted"
                     }
                   ]
                 }
