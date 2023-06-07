@@ -271,6 +271,18 @@ def foo(a, b, ...)
   bar(b, ...)
 end
 
+def foo ...
+  3
+end
+
+def foo
+  ... 3
+end
+
+def foo
+  .. 3
+end
+
 ---
 
 (program
@@ -288,6 +300,11 @@ end
   (method (identifier) (method_parameters (identifier) (identifier) (forward_parameter))
     (body_statement (call (identifier) (argument_list (identifier) (forward_argument))))
   )
+  (method (identifier) (method_parameters (forward_parameter))
+    (body_statement (integer))
+  )
+  (method (identifier) (body_statement (range (integer))))
+  (method (identifier) (body_statement (range (integer))))
 )
 
 =========================================
