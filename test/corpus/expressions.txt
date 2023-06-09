@@ -1305,7 +1305,7 @@ method call with line break
 ============================
 
 Foo
-  .bar
+  .bar!
   .baz
 
 Foo \
