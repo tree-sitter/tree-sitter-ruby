@@ -434,7 +434,7 @@ struct Scanner {
         if (valid_symbols[FORWARD_SLASH]) {
           if (!has_leading_whitespace)
             return false;
-          if (lexer->lookahead == ' ' || lexer->lookahead == '\t')
+          if (lexer->lookahead == ' ' || lexer->lookahead == '\t' || lexer->lookahead == '\n' || lexer->lookahead == '\r')
             return false;
           if (lexer->lookahead == '=')
             return false;
