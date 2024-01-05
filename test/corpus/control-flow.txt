@@ -569,9 +569,16 @@ case foo
 when bar
 end
 
+case 
+  foo
+when bar
+end
+
 ---
 
 (program
+  (case (identifier)
+  (when (pattern (identifier))))
   (case (identifier)
   (when (pattern (identifier)))))
 
@@ -689,3 +696,30 @@ end
   (case (assignment (identifier) (binary (identifier) (identifier)))
     (when (pattern (identifier)))
     (else))))
+
+==============================
+case without expression
+==============================
+
+case when b
+ c end
+
+case 
+when b then c
+end
+
+---
+
+(program
+  (case
+    (when
+      (pattern
+        (identifier))
+      (then
+        (identifier))))
+  (case
+    (when
+      (pattern
+        (identifier))
+      (then
+        (identifier)))))
