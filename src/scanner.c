@@ -114,13 +114,6 @@ static String string_new() {
     };
 }
 
-static inline bool string_eq(String *self, String *other) {
-    if (self->len != other->len) {
-        return false;
-    }
-    return memcmp(self->data, other->data, self->len * sizeof(self->data[0])) == 0;
-}
-
 typedef struct {
     TokenType type;
     uint32_t open_delimiter;
@@ -219,7 +212,7 @@ static inline void deserialize(Scanner *scanner, const char *buffer, unsigned le
 
     uint8_t literal_depth = buffer[i++];
     for (unsigned j = 0; j < literal_depth; j++) {
-        Literal literal;
+        Literal literal = {0};
         literal.type = (TokenType)(buffer[i++]);
         literal.open_delimiter = (unsigned char)buffer[i++];
         literal.close_delimiter = (unsigned char)buffer[i++];
@@ -230,7 +223,7 @@ static inline void deserialize(Scanner *scanner, const char *buffer, unsigned le
 
     uint8_t open_heredoc_count = buffer[i++];
     for (unsigned j = 0; j < open_heredoc_count; j++) {
-        Heredoc heredoc;
+        Heredoc heredoc = {0};
         heredoc.end_word_indentation_allowed = buffer[i++];
         heredoc.allows_interpolation = buffer[i++];
         heredoc.started = buffer[i++];
@@ -241,7 +234,6 @@ static inline void deserialize(Scanner *scanner, const char *buffer, unsigned le
         memcpy(heredoc.word.data, buffer + i, word_length);
         heredoc.word.len = word_length;
         i += word_length;
-
         VEC_PUSH(scanner->open_heredocs, heredoc);
     }
 
@@ -303,7 +295,8 @@ static inline bool scan_whitespace(Scanner *scanner, TSLexer *lexer, const bool 
                     if (lexer->lookahead != '.' && lexer->lookahead != '&' && lexer->lookahead != '#') {
                         lexer->result_symbol = LINE_BREAK;
                     } else if (lexer->lookahead == '.') {
-                        // Don't return LINE_BREAK for the call operator (`.`) but do return one for range operators
+                        // Don't return LINE_BREAK for the call operator (`.`) but do return one for range
+                        // operators
                         // (`..` and `...`)
                         advance(lexer);
                         if (!lexer->eof(lexer) && lexer->lookahead == '.') {
@@ -1043,7 +1036,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
 
         case ':':
             if (valid_symbols[SYMBOL_START]) {
-                Literal literal;
+                Literal literal = {0};
                 literal.type = SYMBOL_START;
                 literal.nesting_depth = 1;
                 advance(lexer);
@@ -1129,7 +1122,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
 
     // Open delimiters for literals
     if (valid_symbols[STRING_START]) {
-        Literal literal;
+        Literal literal = {0};
         literal.nesting_depth = 1;
 
         if (lexer->lookahead == '<') {
@@ -1139,7 +1132,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
             }
             advance(lexer);
 
-            Heredoc heredoc;
+            Heredoc heredoc = {0};
             if (lexer->lookahead == '-' || lexer->lookahead == '~') {
                 advance(lexer);
                 heredoc.end_word_indentation_allowed = true;
