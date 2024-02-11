@@ -10,16 +10,21 @@
   "author": "Rob Rix",
   "license": "MIT",
   "dependencies": {
-    "nan": "^2.14.1",
+    "nan": "^2.18.0",
     "node-gyp": "^10.0.1",
-    "prebuild-install": "^5.0.0"
+    "prebuild-install": "^7.1.1"
   },
   "devDependencies": {
-    "prebuild": "^10.0.1",
-    "tree-sitter-cli": "^0.20.6"
+    "eslint": ">=8.56.0",
+    "eslint-config-google": "^0.14.0",
+    "prebuild": "^13.0.0",
+    "tree-sitter-cli": "^0.20.8"
   },
   "scripts": {
+    "build": "tree-sitter generate && node-gyp build",
     "install": "prebuild-install || node-gyp rebuild",
+    "lint": "eslint grammar.js",
+    "parse": "tree-sitter parse",
     "prebuild": "prebuild -r electron -t 3.0.0 -t 4.0.0 -t 4.0.4 -t 5.0.0 --strip && prebuild -t 8.16.0 -t 10.12.0 --strip",
     "prebuild:upload": "prebuild --upload-all",
     "test": "tree-sitter test && script/parse-examples",
