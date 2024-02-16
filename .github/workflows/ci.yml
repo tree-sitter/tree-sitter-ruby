@@ -1,11 +1,9 @@
-name: Build/test
+name: CI
 on:
-  push:
-    branches:
-      - "**"
+  workflow_dispatch:
   pull_request:
-    branches:
-      - master
+  push:
+
 jobs:
   test:
     runs-on: ${{ matrix.os }}
@@ -14,18 +12,19 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest]
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 18
       - run: npm install
       - run: npm test
+
   test_windows:
-    runs-on: windows-2019
+    runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 18
       - run: npm install
-      - run: npm run-script test-windows
+      - run: npm run test-windows

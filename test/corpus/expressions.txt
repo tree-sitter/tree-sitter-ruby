@@ -1797,10 +1797,16 @@ basic division
 ===============================
 
 10 / 5
-
+x / y
+x /
+5
 ---
 
-(program (binary (integer) (integer)))
+(program
+  (binary (integer) (integer))
+  (binary (identifier) (identifier))
+  (binary (identifier) (integer))
+)
 
 ===============================
 division without spaces
