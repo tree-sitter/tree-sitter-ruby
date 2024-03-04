@@ -3,6 +3,7 @@
   "version": "0.20.1",
   "description": "Ruby grammar for tree-sitter",
   "main": "bindings/node",
+  "types": "bindings/node",
   "keywords": [
     "parser",
     "lexer"
@@ -10,9 +11,9 @@
   "author": "Rob Rix",
   "license": "MIT",
   "dependencies": {
-    "nan": "^2.18.0",
+    "prebuild-install": "^7.1.1",
     "node-gyp": "^10.0.1",
-    "prebuild-install": "^7.1.1"
+    "node-addon-api": "^7.1.0"
   },
   "devDependencies": {
     "eslint": ">=8.56.0",
