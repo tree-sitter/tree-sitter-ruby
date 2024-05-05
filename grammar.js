@@ -1,6 +1,3 @@
-/* eslint-disable arrow-parens */
-/* eslint-disable camelcase */
-/* eslint-disable-next-line spaced-comment */
 /// <reference types="tree-sitter-cli/dsl" />
 // @ts-check
 
@@ -115,7 +112,7 @@ module.exports = grammar({
       ),
     ),
 
-    uninterpreted: $ => /(.|\s)*/,
+    uninterpreted: _ => /(.|\s)*/,
 
     block_body: $ => $._statements,
 
@@ -244,7 +241,7 @@ module.exports = grammar({
       $.optional_parameter,
     ),
 
-    forward_parameter: $ => '...',
+    forward_parameter: _ => '...',
 
     splat_parameter: $ => prec.right(-2, seq(
       '*',
@@ -254,7 +251,7 @@ module.exports = grammar({
       '**',
       field('name', optional($.identifier)),
     ),
-    hash_splat_nil: $ => seq('**', 'nil'),
+    hash_splat_nil: _ => seq('**', 'nil'),
     block_parameter: $ => seq(
       '&',
       field('name', optional($.identifier)),
@@ -546,9 +543,9 @@ module.exports = grammar({
       $.encoding,
     )),
 
-    line: $ => '__LINE__',
-    file: $ => '__FILE__',
-    encoding: $ => '__ENCODING__',
+    line: _ => '__LINE__',
+    file: _ => '__FILE__',
+    encoding: _ => '__ENCODING__',
 
     variable_reference_pattern: $ => seq('^', field('name', choice($.identifier, $._nonlocal_variable))),
 
@@ -737,7 +734,7 @@ module.exports = grammar({
       field('name', $.constant),
     )),
 
-    _call_operator: $ => choice('.', '&.', token.immediate('::')),
+    _call_operator: _ => choice('.', '&.', token.immediate('::')),
     _call: $ => prec.left(PREC.CALL, seq(
       field('receiver', $._primary),
       field('operator', $._call_operator),
@@ -785,7 +782,7 @@ module.exports = grammar({
       );
 
       const args = field('arguments', $.argument_list);
-      const receiver_arguments =
+      const receiverArguments =
         seq(
           choice(
             receiver,
@@ -800,9 +797,9 @@ module.exports = grammar({
       const block = field('block', $.block);
       const doBlock = field('block', $.do_block);
       return choice(
-        receiver_arguments,
-        prec(PREC.CURLY_BLOCK, seq(receiver_arguments, block)),
-        prec(PREC.DO_BLOCK, seq(receiver_arguments, doBlock)),
+        receiverArguments,
+        prec(PREC.CURLY_BLOCK, seq(receiverArguments, block)),
+        prec(PREC.DO_BLOCK, seq(receiverArguments, doBlock)),
         prec(PREC.CURLY_BLOCK, seq(receiver, block)),
         prec(PREC.DO_BLOCK, seq(receiver, doBlock)),
       );
@@ -830,7 +827,7 @@ module.exports = grammar({
       $.pair,
     )),
 
-    forward_argument: $ => '...',
+    forward_argument: _ => '...',
     splat_argument: $ => prec.right(seq(alias($._splat_star, '*'), optional($._arg))),
     hash_splat_argument: $ => prec.right(seq(alias($._hash_splat_star_star, '**'), optional($._arg))),
     block_argument: $ => prec.right(seq(alias($._block_ampersand, '&'), optional($._arg))),
@@ -1026,7 +1023,7 @@ module.exports = grammar({
       $.constant,
     )),
 
-    operator: $ => choice(
+    operator: _ => choice(
       '..', '|', '^', '&', '<=>', '==', '===', '=~', '>', '>=', '<', '<=', '+',
       '-', '*', '/', '%', '!', '!~', '**', '<<', '>>', '~', '+@', '-@', '~@', '[]', '[]=', '`',
     ),
@@ -1057,7 +1054,7 @@ module.exports = grammar({
       field('alias', $._method_name),
     ),
 
-    comment: $ => token(prec(PREC.COMMENT, choice(
+    comment: _ => token(prec(PREC.COMMENT, choice(
       seq('#', /.*/),
       seq(
         /=begin.*\r?\n/,
@@ -1067,36 +1064,37 @@ module.exports = grammar({
           /=e[^n]/,
           /=en[^d]/,
         )),
-        /=end.*/,
+        /[\s*]*=end.*/,
+        /\r?\n/,
       ),
     ))),
 
-    integer: $ => /0[bB][01](_?[01])*|0[oO]?[0-7](_?[0-7])*|(0[dD])?\d(_?\d)*|0[xX][0-9a-fA-F](_?[0-9a-fA-F])*/,
+    integer: _ => /0[bB][01](_?[01])*|0[oO]?[0-7](_?[0-7])*|(0[dD])?\d(_?\d)*|0[xX][0-9a-fA-F](_?[0-9a-fA-F])*/,
     _int_or_float: $ => choice($.integer, $.float),
-    float: $ => /\d(_?\d)*(\.\d)?(_?\d)*([eE][\+-]?\d(_?\d)*)?/,
+    float: _ => /\d(_?\d)*(\.\d)?(_?\d)*([eE][\+-]?\d(_?\d)*)?/,
     complex: $ => choice(
       seq($._int_or_float, token.immediate('i')),
       seq(alias($._int_or_float, $.rational), token.immediate('ri')),
     ),
     rational: $ => seq($._int_or_float, token.immediate('r')),
-    super: $ => 'super',
-    self: $ => 'self',
-    true: $ => 'true',
-    false: $ => 'false',
-    nil: $ => 'nil',
+    super: _ => 'super',
+    self: _ => 'self',
+    true: _ => 'true',
+    false: _ => 'false',
+    nil: _ => 'nil',
 
-    constant: $ => token(seq(/[A-Z]/, IDENTIFIER_CHARS)),
+    constant: _ => token(seq(/[A-Z]/, IDENTIFIER_CHARS)),
     constant_suffix: $ => choice(token(seq(/[A-Z]/, IDENTIFIER_CHARS, /[?]/)), $._constant_suffix),
-    identifier: $ => token(seq(LOWER_ALPHA_CHAR, IDENTIFIER_CHARS)),
+    identifier: _ => token(seq(LOWER_ALPHA_CHAR, IDENTIFIER_CHARS)),
     identifier_suffix: $ => choice(token(seq(LOWER_ALPHA_CHAR, IDENTIFIER_CHARS, /[?]/)), $._identifier_suffix),
-    instance_variable: $ => token(seq('@', ALPHA_CHAR, IDENTIFIER_CHARS)),
-    class_variable: $ => token(seq('@@', ALPHA_CHAR, IDENTIFIER_CHARS)),
+    instance_variable: _ => token(seq('@', ALPHA_CHAR, IDENTIFIER_CHARS)),
+    class_variable: _ => token(seq('@@', ALPHA_CHAR, IDENTIFIER_CHARS)),
 
-    global_variable: $ => /\$(-[a-zA-Z0-9_]|[!@&`'+~=/\\,;.<>*$?:"]|[0-9]+|[a-zA-Z_][a-zA-Z0-9_]*)/,
+    global_variable: _ => /\$(-[a-zA-Z0-9_]|[!@&`'+~=/\\,;.<>*$?:"]|[0-9]+|[a-zA-Z_][a-zA-Z0-9_]*)/,
 
     chained_string: $ => seq($.string, repeat1($.string)),
 
-    character: $ => /\?(\\\S(\{[0-9A-Fa-f]*\}|[0-9A-Fa-f]*|-\S([MC]-\S)?)?|\S)/,
+    character: _ => /\?(\\\S(\{[0-9A-Fa-f]*\}|[0-9A-Fa-f]*|-\S([MC]-\S)?)?|\S)/,
 
     interpolation: $ => choice(
       seq('#{', optional($._statements), '}'),
@@ -1160,7 +1158,7 @@ module.exports = grammar({
     )),
 
     // https://ruby-doc.org/core-2.5.0/doc/syntax/literals_rdoc.html#label-Strings
-    escape_sequence: $ => token(seq(
+    escape_sequence: _ => token(seq(
       '\\',
       choice(
         /[^ux0-7]/, // single character
@@ -1226,7 +1224,7 @@ module.exports = grammar({
       field('body', choice($.block, $.do_block)),
     ),
 
-    empty_statement: $ => prec(-1, ';'),
+    empty_statement: _ => prec(-1, ';'),
 
     _terminator: $ => choice(
       $._line_break,
