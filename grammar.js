@@ -1096,7 +1096,7 @@ module.exports = grammar({
 
     chained_string: $ => seq($.string, repeat1($.string)),
 
-    character: $ => /\?(\\\S({[0-9A-Fa-f]*}|[0-9A-Fa-f]*|-\S([MC]-\S)?)?|\S)/,
+    character: $ => /\?(\\\S(\{[0-9A-Fa-f]*\}|[0-9A-Fa-f]*|-\S([MC]-\S)?)?|\S)/,
 
     interpolation: $ => choice(
       seq('#{', optional($._statements), '}'),
@@ -1167,7 +1167,7 @@ module.exports = grammar({
         /x[0-9a-fA-F]{1,2}/, // hex code
         /[0-7]{1,3}/, // octal
         /u[0-9a-fA-F]{4}/, // single unicode
-        /u{[0-9a-fA-F ]+}/, // multiple unicode
+        /u\{[0-9a-fA-F]+\}/, // multiple unicode
       ),
     )),
 
