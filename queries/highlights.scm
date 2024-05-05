@@ -1,4 +1,7 @@
-; Keywords
+(identifier) @variable
+
+((identifier) @function.method
+ (#is-not? local))
 
 [
   "alias"
@@ -33,15 +36,17 @@
 ((identifier) @keyword
  (#match? @keyword "^(private|protected|public)$"))
 
-; Function calls
+(constant) @constructor
 
-((identifier) @function.method.builtin
- (#eq? @function.method.builtin "require"))
+; Function calls
 
 "defined?" @function.method.builtin
 
 (call
   method: [(identifier) (constant)] @function.method)
+
+((identifier) @function.method.builtin
+ (#eq? @function.method.builtin "require"))
 
 ; Function definitions
 
@@ -65,16 +70,15 @@
 (encoding) @constant.builtin
 
 (hash_splat_nil
-  "**" @operator
-) @constant.builtin
+  "**" @operator) @constant.builtin
 
 ((constant) @constant
  (#match? @constant "^[A-Z\\d_]+$"))
 
-(constant) @constructor
-
-(self) @variable.builtin
-(super) @variable.builtin
+[
+  (self)
+  (super)
+] @variable.builtin
 
 (block_parameter (identifier) @variable.parameter)
 (block_parameters (identifier) @variable.parameter)
@@ -86,10 +90,6 @@
 
 (keyword_parameter name: (identifier) @variable.parameter)
 (optional_parameter name: (identifier) @variable.parameter)
-
-((identifier) @function.method
- (#is-not? local))
-(identifier) @variable
 
 ; Literals
 
@@ -120,7 +120,7 @@
   (nil)
   (true)
   (false)
-]@constant.builtin
+] @constant.builtin
 
 (interpolation
   "#{" @punctuation.special
