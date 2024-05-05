@@ -7130,7 +7130,11 @@
                 },
                 {
                   "type": "PATTERN",
-                  "value": "=end.*"
+                  "value": "[\\s*]*=end.*"
+                },
+                {
+                  "type": "PATTERN",
+                  "value": "\\r?\\n"
                 }
               ]
             }
