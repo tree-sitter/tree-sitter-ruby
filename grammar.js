@@ -724,6 +724,12 @@ module.exports = grammar({
       alias($._element_reference_bracket, '['),
       optional($._argument_list_with_trailing_comma),
       ']',
+      optional(
+        choice(
+          field('block', $.block),
+          field('block', $.do_block)
+        )
+      )
     )),
 
     scope_resolution: $ => prec.left(PREC.CALL + 1, seq(

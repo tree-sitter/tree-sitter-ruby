@@ -1630,6 +1630,20 @@
     "type": "element_reference",
     "named": true,
     "fields": {
+      "block": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "block",
+            "named": true
+          },
+          {
+            "type": "do_block",
+            "named": true
+          }
+        ]
+      },
       "object": {
         "multiple": false,
         "required": true,

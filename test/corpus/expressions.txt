@@ -1872,3 +1872,37 @@ multiline regex
 ---
 
 (program (regex (string_content)))
+
+======================================
+method call index with block - braced
+======================================
+
+Constant[:key_value] { default_value }
+
+---
+
+    (program
+      (element_reference
+        (constant)
+        (simple_symbol)
+        (block
+          (block_body
+            (identifier)))))
+
+======================================
+method call index with block - do
+======================================
+
+Constant[:key_value] do
+ default_value
+end
+
+---
+
+    (program
+      (element_reference
+        (constant)
+        (simple_symbol)
+        (do_block
+          (body_statement
+            (identifier)))))
