@@ -108,8 +108,10 @@ single quoted symbol
 
 (program
   (delimited_symbol)
-  (delimited_symbol (string_content))
-  (delimited_symbol (string_content)))
+  (delimited_symbol
+    (string_content))
+  (delimited_symbol
+    (string_content)))
 
 ====================
 double quoted symbol
@@ -120,7 +122,11 @@ double quoted symbol
 
 ---
 
-(program (delimited_symbol (string_content)) (delimited_symbol (string_content)))
+(program
+  (delimited_symbol
+    (string_content))
+  (delimited_symbol
+    (string_content)))
 
 =======================================
 double quoted symbol with interpolation
@@ -130,7 +136,11 @@ double quoted symbol with interpolation
 
 ---
 
-(program (delimited_symbol (string_content) (interpolation (identifier))))
+(program
+  (delimited_symbol
+    (string_content)
+    (interpolation
+      (identifier))))
 
 =======================================
 interpolation with no content
@@ -140,7 +150,10 @@ interpolation with no content
 
 ---
 
-(program (delimited_symbol (string_content) (interpolation)))
+(program
+  (delimited_symbol
+    (string_content)
+    (interpolation)))
 
 =========================================
 percent symbol with unbalanced delimiters
@@ -152,7 +165,13 @@ percent symbol with unbalanced delimiters
 
 ---
 
-(program (delimited_symbol (string_content)) (delimited_symbol (string_content)) (delimited_symbol (string_content)))
+(program
+  (delimited_symbol
+    (string_content))
+  (delimited_symbol
+    (string_content))
+  (delimited_symbol
+    (string_content)))
 
 =======================================
 percent symbol with balanced delimiters
@@ -165,7 +184,15 @@ percent symbol with balanced delimiters
 
 ---
 
-(program (delimited_symbol (string_content)) (delimited_symbol (string_content)) (delimited_symbol (string_content)) (delimited_symbol (string_content)))
+(program
+  (delimited_symbol
+    (string_content))
+  (delimited_symbol
+    (string_content))
+  (delimited_symbol
+    (string_content))
+  (delimited_symbol
+    (string_content)))
 
 =======================================
 global variables
@@ -217,7 +244,7 @@ $VERBOSE
 
 ---
 
- (program
+(program
   (global_variable)
   (global_variable)
   (global_variable)
@@ -270,7 +297,8 @@ integer
 
 ---
 
-(program (integer))
+(program
+  (integer))
 
 =======
 integer as object
@@ -280,7 +308,10 @@ integer as object
 
 ---
 
-(program (call (integer) (identifier)))
+(program
+  (call
+    (integer)
+    (identifier)))
 
 =======================
 integer with underscore
@@ -290,7 +321,8 @@ integer with underscore
 
 ---
 
-(program (integer))
+(program
+  (integer))
 
 ===========================
 integer with decimal prefix
@@ -301,7 +333,9 @@ integer with decimal prefix
 
 ---
 
-(program (integer) (integer))
+(program
+  (integer)
+  (integer))
 
 ===============================
 integer with hexadecimal prefix
@@ -311,7 +345,8 @@ integer with hexadecimal prefix
 
 ---
 
-(program (integer))
+(program
+  (integer))
 
 ===============================
 integer with hexadecimal prefix capitalised
@@ -321,7 +356,8 @@ integer with hexadecimal prefix capitalised
 
 ---
 
-(program (integer))
+(program
+  (integer))
 
 =========================
 integer with octal prefix
@@ -332,7 +368,9 @@ integer with octal prefix
 
 ---
 
-(program (integer) (integer))
+(program
+  (integer)
+  (integer))
 
 ==========================
 integer with binary prefix
@@ -342,7 +380,9 @@ integer with binary prefix
 
 ---
 
-(program (integer) (integer))
+(program
+  (integer)
+  (integer))
 
 =====
 float
@@ -355,7 +395,11 @@ float
 
 ---
 
-(program (float) (float) (float) (float))
+(program
+  (float)
+  (float)
+  (float)
+  (float))
 
 =====
 complex
@@ -474,14 +518,26 @@ rational
 ---
 
 (program
-  (binary (integer) (rational (integer)))
-  (rational (float))
-  (unary (rational (float)))
-  (unary (rational (integer)))
-  (rational (integer))
-  (rational (integer))
-  (rational (integer))
-  (rational (integer)))
+  (binary
+    (integer)
+    (rational
+      (integer)))
+  (rational
+    (float))
+  (unary
+    (rational
+      (float)))
+  (unary
+    (rational
+      (integer)))
+  (rational
+    (integer))
+  (rational
+    (integer))
+  (rational
+    (integer))
+  (rational
+    (integer)))
 
 =======
 boolean
@@ -492,7 +548,9 @@ false
 
 ---
 
-(program (true) (false))
+(program
+  (true)
+  (false))
 
 ===
 nil
@@ -502,7 +560,8 @@ nil
 
 ---
 
-(program (nil))
+(program
+  (nil))
 
 ====================
 single-quoted string
@@ -514,7 +573,12 @@ single-quoted string
 
 ---
 
-(program (string) (string (string_content)) (string (string_content)))
+(program
+  (string)
+  (string
+    (string_content))
+  (string
+    (string_content)))
 
 ==============================================
 single-quoted strings with backslashes
@@ -527,9 +591,12 @@ single-quoted strings with backslashes
 ---
 
 (program
-  (string (string_content))
-  (string (string_content))
-  (string (string_content)))
+  (string
+    (string_content))
+  (string
+    (string_content))
+  (string
+    (string_content)))
 
 =================================================
 single-quoted string with pound and curly brace
@@ -539,7 +606,9 @@ single-quoted string with pound and curly brace
 
 ---
 
-(program (string (string_content)))
+(program
+  (string
+    (string_content)))
 
 ====================
 double-quoted string
@@ -551,7 +620,12 @@ double-quoted string
 
 ---
 
-(program (string) (string (string_content)) (string (string_content)))
+(program
+  (string)
+  (string
+    (string_content))
+  (string
+    (string_content)))
 
 ==============================================
 double-quoted strings with escape sequences
@@ -561,14 +635,25 @@ double-quoted strings with escape sequences
 "\\"
 "\d"
 "\#{foo}"
+"\u{1F600}"
+"\u{1F600 1F600}"
 
 ---
 
 (program
-  (string (escape_sequence))
-  (string (escape_sequence))
-  (string (escape_sequence))
-  (string (escape_sequence) (string_content)))
+  (string
+    (escape_sequence))
+  (string
+    (escape_sequence))
+  (string
+    (escape_sequence))
+  (string
+    (escape_sequence)
+    (string_content))
+  (string
+    (escape_sequence))
+  (string
+    (escape_sequence)))
 
 =================================
 double-quoted string with just pound
@@ -578,7 +663,9 @@ double-quoted string with just pound
 
 ---
 
-(program (string (string_content)))
+(program
+  (string
+    (string_content)))
 
 =============
 interpolation
@@ -600,18 +687,43 @@ interpolation
 ---
 
 (program
-  (string (interpolation (identifier)))
-  (string (string_content) (interpolation (instance_variable)))
-  (string (interpolation (class_variable)))
-  (string (interpolation (global_variable)))
-  (string (string_content))
-  (string (interpolation (global_variable)))
-  (string (interpolation (global_variable)))
-  (string (interpolation (global_variable)) (string_content))
-  (string (string_content))
-  (string (string_content))
-  (string (string_content))
-  (string (interpolation (unless_modifier (string (string_content)) (identifier)))))
+  (string
+    (interpolation
+      (identifier)))
+  (string
+    (string_content)
+    (interpolation
+      (instance_variable)))
+  (string
+    (interpolation
+      (class_variable)))
+  (string
+    (interpolation
+      (global_variable)))
+  (string
+    (string_content))
+  (string
+    (interpolation
+      (global_variable)))
+  (string
+    (interpolation
+      (global_variable)))
+  (string
+    (interpolation
+      (global_variable))
+    (string_content))
+  (string
+    (string_content))
+  (string
+    (string_content))
+  (string
+    (string_content))
+  (string
+    (interpolation
+      (unless_modifier
+        (string
+          (string_content))
+        (identifier)))))
 
 ===========================================
 percent q string with unbalanced delimiters
@@ -623,7 +735,13 @@ percent q string with unbalanced delimiters
 
 ---
 
-(program (string (string_content)) (string (string_content)) (string (string_content)))
+(program
+  (string
+    (string_content))
+  (string
+    (string_content))
+  (string
+    (string_content)))
 
 =========================================
 percent q string with balanced delimiters
@@ -636,7 +754,15 @@ percent q string with balanced delimiters
 
 ---
 
-(program (string (string_content)) (string (string_content)) (string (string_content)) (string (string_content)))
+(program
+  (string
+    (string_content))
+  (string
+    (string_content))
+  (string
+    (string_content))
+  (string
+    (string_content)))
 
 =========================================
 percent string with unbalanced delimiters
@@ -648,7 +774,13 @@ percent string with unbalanced delimiters
 
 ---
 
-(program (string (string_content)) (string (string_content)) (string (string_content)))
+(program
+  (string
+    (string_content))
+  (string
+    (string_content))
+  (string
+    (string_content)))
 
 =========================================
 percent string with balanced delimiters
@@ -661,7 +793,15 @@ percent string with balanced delimiters
 
 ---
 
-(program (string (string_content)) (string (string_content)) (string (string_content)) (string (string_content)))
+(program
+  (string
+    (string_content))
+  (string
+    (string_content))
+  (string
+    (string_content))
+  (string
+    (string_content)))
 
 ===========================================
 percent Q string with unbalanced delimiters
@@ -673,7 +813,13 @@ percent Q string with unbalanced delimiters
 
 ---
 
-(program (string (string_content)) (string (string_content)) (string (string_content)))
+(program
+  (string
+    (string_content))
+  (string
+    (string_content))
+  (string
+    (string_content)))
 
 =========================================
 percent Q string with balanced delimiters
@@ -686,7 +832,15 @@ percent Q string with balanced delimiters
 
 ---
 
-(program (string (string_content)) (string (string_content)) (string (string_content)) (string (string_content)))
+(program
+  (string
+    (string_content))
+  (string
+    (string_content))
+  (string
+    (string_content))
+  (string
+    (string_content)))
 
 ===============
 string chaining
@@ -698,8 +852,18 @@ string chaining
 ---
 
 (program
-  (chained_string (string (string_content)) (string (string_content)) (string (string_content)))
-  (chained_string (string (string_content)) (string (string_content))))
+  (chained_string
+    (string
+      (string_content))
+    (string
+      (string_content))
+    (string
+      (string_content)))
+  (chained_string
+    (string
+      (string_content))
+    (string
+      (string_content))))
 
 ==========================
 newline-delimited strings
@@ -710,9 +874,16 @@ flash[:notice] = "Pattern addition failed for '%s' in '%s'", %
 
 ----
 
-(program (assignment
-  (element_reference (identifier) (simple_symbol))
-  (right_assignment_list (string (string_content)) (string (string_content)))))
+(program
+  (assignment
+    (element_reference
+      (identifier)
+      (simple_symbol))
+    (right_assignment_list
+      (string
+        (string_content))
+      (string
+        (string_content)))))
 
 ==========================
 % formatting that looks like a newline-delimited strings
@@ -728,8 +899,11 @@ foo("%s '%s' " %
     (identifier)
     (argument_list
       (binary
-        (string (string_content))
-        (array (identifier) (identifier))))))
+        (string
+          (string_content))
+        (array
+          (identifier)
+          (identifier))))))
 
 ========================================
 Single character string literals
@@ -766,7 +940,10 @@ foo(?/)
   (character)
   (character)
   (character)
-  (call (identifier) (argument_list (character))))
+  (call
+    (identifier)
+    (argument_list
+      (character))))
 
 ========================================
 nested strings with different delimiters
@@ -782,7 +959,16 @@ nested strings with different delimiters
 ---
 
 (program
-  (string (string_content) (interpolation (regex (string_content) (interpolation (subshell (string_content))) (string_content))) (string_content)))
+  (string
+    (string_content)
+    (interpolation
+      (regex
+        (string_content)
+        (interpolation
+          (subshell
+            (string_content)))
+        (string_content)))
+    (string_content)))
 
 ========================================
 basic heredocs
@@ -824,16 +1010,44 @@ heredoc content
 ---
 
 (program
-  (heredoc_beginning) (heredoc_body (heredoc_content) (escape_sequence) (heredoc_content) (heredoc_end))
-  (heredoc_beginning) (heredoc_body (heredoc_content) (heredoc_end))
-  (heredoc_beginning) (heredoc_body (heredoc_content) (heredoc_end))
-  (heredoc_beginning) (heredoc_body (heredoc_content) (heredoc_end))
-  (if (call (identifier)) (then
-    (heredoc_beginning) (heredoc_body (heredoc_content) (heredoc_end))
-    (heredoc_beginning) (heredoc_body (heredoc_content) (heredoc_end))
-    (heredoc_beginning) (heredoc_body (heredoc_content) (heredoc_end))))
-  (heredoc_beginning) (heredoc_body (heredoc_content) (heredoc_end)))
-
+  (heredoc_beginning)
+  (heredoc_body
+    (heredoc_content)
+    (escape_sequence)
+    (heredoc_content)
+    (heredoc_end))
+  (heredoc_beginning)
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end))
+  (heredoc_beginning)
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end))
+  (heredoc_beginning)
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end))
+  (if
+    (call
+      (identifier))
+    (then
+      (heredoc_beginning)
+      (heredoc_body
+        (heredoc_content)
+        (heredoc_end))
+      (heredoc_beginning)
+      (heredoc_body
+        (heredoc_content)
+        (heredoc_end))
+      (heredoc_beginning)
+      (heredoc_body
+        (heredoc_content)
+        (heredoc_end))))
+  (heredoc_beginning)
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end)))
 
 ========================================
 heredoc with interspersed end word
@@ -845,7 +1059,11 @@ eos
 
 ---
 
-(program (heredoc_beginning) (heredoc_body (heredoc_content) (heredoc_end)))
+(program
+  (heredoc_beginning)
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end)))
 
 ========================================
 heredoc with end word in content
@@ -864,8 +1082,14 @@ a
 ---
 
 (program
-  (heredoc_beginning) (heredoc_body (heredoc_content) (heredoc_end))
-  (heredoc_beginning) (heredoc_body (heredoc_content) (heredoc_end)))
+  (heredoc_beginning)
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end))
+  (heredoc_beginning)
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end)))
 
 ========================================
 heredocs in context starting with dot
@@ -879,10 +1103,17 @@ end
 
 ---
 
-(program (method (identifier)
-  (body_statement
-    (call (identifier) (argument_list (heredoc_beginning)))
-    (heredoc_body (heredoc_content) (heredoc_end)))))
+(program
+  (method
+    (identifier)
+    (body_statement
+      (call
+        (identifier)
+        (argument_list
+          (heredoc_beginning)))
+      (heredoc_body
+        (heredoc_content)
+        (heredoc_end)))))
 
 ========================================
 heredocs with method continuation
@@ -895,13 +1126,17 @@ SQL
 
 ---
 
-(program (call
-  receiver: (call
+(program
+  (call
+    receiver: (call
+      method: (identifier)
+      arguments: (argument_list
+        (heredoc_beginning)))
+    (heredoc_body
+      (heredoc_content)
+      (heredoc_end))
     method: (identifier)
-    arguments: (argument_list (heredoc_beginning)))
-    (heredoc_body (heredoc_content) (heredoc_end))
-  method: (identifier)
-  arguments: (argument_list)))
+    arguments: (argument_list)))
 
 ========================================
 heredocs with suffix dot method continuation
@@ -918,10 +1153,15 @@ where("a")
   (call
     receiver: (call
       method: (identifier)
-      arguments: (argument_list (heredoc_beginning)))
-    (heredoc_body (heredoc_content) (heredoc_end))
+      arguments: (argument_list
+        (heredoc_beginning)))
+    (heredoc_body
+      (heredoc_content)
+      (heredoc_end))
     method: (identifier)
-    arguments: (argument_list (string (string_content)))))
+    arguments: (argument_list
+      (string
+        (string_content)))))
 
 ========================================
 multiple heredocs with method continuation
@@ -941,12 +1181,21 @@ group("b")
     receiver: (call
       receiver: (call
         method: (identifier)
-        arguments: (argument_list (heredoc_beginning)))
+        arguments: (argument_list
+          (heredoc_beginning)))
       method: (identifier)
-      arguments: (argument_list (heredoc_beginning)))
-      (heredoc_body (heredoc_content) (heredoc_end)) (heredoc_body (heredoc_content) (heredoc_end))
+      arguments: (argument_list
+        (heredoc_beginning)))
+    (heredoc_body
+      (heredoc_content)
+      (heredoc_end))
+    (heredoc_body
+      (heredoc_content)
+      (heredoc_end))
     method: (identifier)
-    arguments: (argument_list (string (string_content)))))
+    arguments: (argument_list
+      (string
+        (string_content)))))
 
 ========================================
 heredocs with interpolation
@@ -974,15 +1223,40 @@ return
 
 (program
   (heredoc_beginning)
-  (heredoc_body (heredoc_content)
-    (interpolation (array (integer) (string (string_content) (interpolation (integer)) (string_content)) (integer)))
-    (heredoc_content) (interpolation (integer)) (heredoc_content)
-    (interpolation (call (identifier) (identifier)))
-    (heredoc_content) (interpolation (if_modifier (identifier) (identifier))) (heredoc_content)
+  (heredoc_body
+    (heredoc_content)
+    (interpolation
+      (array
+        (integer)
+        (string
+          (string_content)
+          (interpolation
+            (integer))
+          (string_content))
+        (integer)))
+    (heredoc_content)
+    (interpolation
+      (integer))
+    (heredoc_content)
+    (interpolation
+      (call
+        (identifier)
+        (identifier)))
+    (heredoc_content)
+    (interpolation
+      (if_modifier
+        (identifier)
+        (identifier)))
+    (heredoc_content)
     (interpolation
       (comment)
-      (call (call (identifier) (argument_list (integer) (identifier))) (identifier)))
-
+      (call
+        (call
+          (identifier)
+          (argument_list
+            (integer)
+            (identifier)))
+        (identifier)))
     (heredoc_content)
     (interpolation
       (instance_variable))
@@ -990,7 +1264,8 @@ return
       (class_variable))
     (interpolation
       (global_variable))
-    (heredoc_content) (heredoc_end))
+    (heredoc_content)
+    (heredoc_end))
   (return))
 
 ========================================
@@ -1037,18 +1312,48 @@ foo[
     receiver: (identifier)
     method: (identifier)
     arguments: (argument_list
-      (pair key: (hash_key_symbol) value: (heredoc_beginning))
-      (heredoc_body (heredoc_content) (heredoc_end))
-      (pair key: (hash_key_symbol) value: (heredoc_beginning))
-      (heredoc_body (heredoc_content) (heredoc_end))))
+      (pair
+        key: (hash_key_symbol)
+        value: (heredoc_beginning))
+      (heredoc_body
+        (heredoc_content)
+        (heredoc_end))
+      (pair
+        key: (hash_key_symbol)
+        value: (heredoc_beginning))
+      (heredoc_body
+        (heredoc_content)
+        (heredoc_end))))
   (hash
-    (pair key: (hash_key_symbol) value: (heredoc_beginning))
-    (heredoc_body (heredoc_content) (heredoc_end))
-    (pair key: (hash_key_symbol) value: (heredoc_beginning))
-    (heredoc_body (heredoc_content) (heredoc_end)))
-  (array (heredoc_beginning) (heredoc_body (heredoc_content) (heredoc_end)) (heredoc_beginning) (heredoc_body (heredoc_content) (heredoc_end)))
+    (pair
+      key: (hash_key_symbol)
+      value: (heredoc_beginning))
+    (heredoc_body
+      (heredoc_content)
+      (heredoc_end))
+    (pair
+      key: (hash_key_symbol)
+      value: (heredoc_beginning))
+    (heredoc_body
+      (heredoc_content)
+      (heredoc_end)))
+  (array
+    (heredoc_beginning)
+    (heredoc_body
+      (heredoc_content)
+      (heredoc_end))
+    (heredoc_beginning)
+    (heredoc_body
+      (heredoc_content)
+      (heredoc_end)))
   (assignment
-    left: (element_reference object: (identifier) (integer) (heredoc_beginning) (heredoc_body (heredoc_content) (heredoc_end)))
+    left: (element_reference
+      object: (identifier)
+      (integer)
+      (heredoc_beginning)
+      (heredoc_body
+        (heredoc_content)
+        (heredoc_end)))
     right: (integer)))
 
 ==============================================================
@@ -1067,16 +1372,22 @@ foo(<<-STR.strip_heredoc.tr()
     method: (identifier)
     arguments: (argument_list
       (call
-        receiver: (call receiver: (heredoc_beginning) method: (identifier))
+        receiver: (call
+          receiver: (heredoc_beginning)
+          method: (identifier))
         method: (identifier)
         arguments: (argument_list))
-      (heredoc_body (heredoc_content)
-        (interpolation (identifier) (call
-          receiver: (call
-            method: (identifier)
-            arguments: (argument_list))
-          method: (identifier)))
-        (heredoc_content) (heredoc_end)))))
+      (heredoc_body
+        (heredoc_content)
+        (interpolation
+          (identifier)
+          (call
+            receiver: (call
+              method: (identifier)
+              arguments: (argument_list))
+            method: (identifier)))
+        (heredoc_content)
+        (heredoc_end)))))
 
 ========================================
 multiple heredocs
@@ -1094,10 +1405,18 @@ TWO
   (call
     (identifier)
     (argument_list
-      (call (heredoc_beginning) (identifier))
-      (call (heredoc_beginning) (identifier))))
-  (heredoc_body (heredoc_content) (heredoc_end))
-  (heredoc_body (heredoc_content) (heredoc_end)))
+      (call
+        (heredoc_beginning)
+        (identifier))
+      (call
+        (heredoc_beginning)
+        (identifier))))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end)))
 
 ========================================
 heredoc content that starts with a dot
@@ -1112,12 +1431,16 @@ heredoc content that starts with a dot
 ---
 
 (program
-  (lambda (block
-    (block_body
-      (call
-        (identifier)
-        (argument_list (heredoc_beginning)))
-      (heredoc_body (heredoc_content) (heredoc_end))))))
+  (lambda
+    (block
+      (block_body
+        (call
+          (identifier)
+          (argument_list
+            (heredoc_beginning)))
+        (heredoc_body
+          (heredoc_content)
+          (heredoc_end))))))
 
 ========================================
 un-terminated heredocs
@@ -1129,7 +1452,9 @@ un-terminated heredocs
 
 (program
   (heredoc_beginning)
-  (heredoc_body (heredoc_content) (heredoc_end)))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end)))
 
 =================================
 no interpolation or escape sequences in single quoted heredoc
@@ -1161,8 +1486,7 @@ EOF
   (heredoc_beginning)
   (heredoc_body
     (heredoc_content)
-    (heredoc_end))
-)
+    (heredoc_end)))
 
 ==================
 backticks subshell
@@ -1172,7 +1496,9 @@ backticks subshell
 
 ---
 
-(program (subshell (string_content)))
+(program
+  (subshell
+    (string_content)))
 
 ==============================
 backticks subshell with escape
@@ -1182,9 +1508,12 @@ backticks subshell with escape
 
 ---
 
-(program (subshell
-  (string_content) (escape_sequence)
-  (string_content) (escape_sequence)))
+(program
+  (subshell
+    (string_content)
+    (escape_sequence)
+    (string_content)
+    (escape_sequence)))
 
 ===========
 empty array
@@ -1194,7 +1523,8 @@ empty array
 
 ---
 
-(program (array))
+(program
+  (array))
 
 =====
 array
@@ -1209,11 +1539,26 @@ array
 ---
 
 (program
-  (array (identifier) (identifier))
-  (array (identifier) (splat_argument (identifier)))
-  (array (identifier) (splat_argument (instance_variable)))
-  (array (identifier) (splat_argument (global_variable)))
-  (array (identifier) (pair (simple_symbol) (integer))))
+  (array
+    (identifier)
+    (identifier))
+  (array
+    (identifier)
+    (splat_argument
+      (identifier)))
+  (array
+    (identifier)
+    (splat_argument
+      (instance_variable)))
+  (array
+    (identifier)
+    (splat_argument
+      (global_variable)))
+  (array
+    (identifier)
+    (pair
+      (simple_symbol)
+      (integer))))
 
 =====
 array as object
@@ -1222,13 +1567,20 @@ array as object
 [1, 2].any? { |i| i > 1 }
 
 ---
+
 (program
   (call
-    receiver: (array (integer) (integer))
+    receiver: (array
+      (integer)
+      (integer))
     method: (identifier)
     block: (block
-      parameters: (block_parameters (identifier))
-      body: (block_body (binary left: (identifier) right: (integer))))))
+      parameters: (block_parameters
+        (identifier))
+      body: (block_body
+        (binary
+          left: (identifier)
+          right: (integer))))))
 
 =========================
 array with trailing comma
@@ -1238,7 +1590,9 @@ array with trailing comma
 
 ---
 
-(program (array (identifier)))
+(program
+  (array
+    (identifier)))
 
 =====================
 empty percent w array
@@ -1248,7 +1602,8 @@ empty percent w array
 
 ---
 
-(program (string_array))
+(program
+  (string_array))
 
 ==========================
 unbalanced percent w array
@@ -1258,7 +1613,12 @@ unbalanced percent w array
 
 ---
 
-(program (string_array (bare_string (string_content)) (bare_string (string_content))))
+(program
+  (string_array
+    (bare_string
+      (string_content))
+    (bare_string
+      (string_content))))
 
 ===============
 percent w array
@@ -1268,7 +1628,12 @@ percent w array
 
 ---
 
-(program (string_array (bare_string (string_content)) (bare_string (string_content))))
+(program
+  (string_array
+    (bare_string
+      (string_content))
+    (bare_string
+      (string_content))))
 
 ===================================
 percent W array with interpolations
@@ -1278,10 +1643,15 @@ percent W array with interpolations
 
 ---
 
-(program (string_array
-  (bare_string (string_content))
-  (bare_string (interpolation (identifier)))
-  (bare_string (string_content))))
+(program
+  (string_array
+    (bare_string
+      (string_content))
+    (bare_string
+      (interpolation
+        (identifier)))
+    (bare_string
+      (string_content))))
 
 =====================
 empty percent i array
@@ -1291,7 +1661,8 @@ empty percent i array
 
 ---
 
-(program (symbol_array))
+(program
+  (symbol_array))
 
 ==========================
 unbalanced percent i array
@@ -1301,7 +1672,12 @@ unbalanced percent i array
 
 ---
 
-(program (symbol_array (bare_symbol (string_content)) (bare_symbol (string_content))))
+(program
+  (symbol_array
+    (bare_symbol
+      (string_content))
+    (bare_symbol
+      (string_content))))
 
 ===============
 percent i array
@@ -1311,7 +1687,12 @@ percent i array
 
 ---
 
-(program (symbol_array (bare_symbol (string_content)) (bare_symbol (string_content))))
+(program
+  (symbol_array
+    (bare_symbol
+      (string_content))
+    (bare_symbol
+      (string_content))))
 
 ====================================
 percent I array with interpolations
@@ -1321,10 +1702,15 @@ percent I array with interpolations
 
 ---
 
-(program (symbol_array
-  (bare_symbol (string_content))
-  (bare_symbol (interpolation (identifier)))
-  (bare_symbol (string_content))))
+(program
+  (symbol_array
+    (bare_symbol
+      (string_content))
+    (bare_symbol
+      (interpolation
+        (identifier)))
+    (bare_symbol
+      (string_content))))
 
 ====================================
 percent i array with spaces
@@ -1338,10 +1724,17 @@ percent i array with spaces
 
 ---
 
-(program (symbol_array
-  (bare_symbol (string_content))
-  (bare_symbol (string_content) (interpolation (identifier)) (string_content))
-  (bare_symbol (string_content))))
+(program
+  (symbol_array
+    (bare_symbol
+      (string_content))
+    (bare_symbol
+      (string_content)
+      (interpolation
+        (identifier))
+      (string_content))
+    (bare_symbol
+      (string_content))))
 
 ==========
 empty hash
@@ -1351,7 +1744,8 @@ empty hash
 
 ---
 
-(program (hash))
+(program
+  (hash))
 
 =========================
 hash with no spaces
@@ -1361,7 +1755,12 @@ hash with no spaces
 
 ---
 
-(program (hash (pair (simple_symbol) (string (string_content)))))
+(program
+  (hash
+    (pair
+      (simple_symbol)
+      (string
+        (string_content)))))
 
 =========================
 hash with expression keys
@@ -1374,9 +1773,23 @@ hash with expression keys
 ---
 
 (program
-	(hash (pair (string (string_content)) (integer)) (pair (string (string_content)) (integer)))
-	(hash (pair (array) (integer)))
-	(hash (pair (identifier) (integer))))
+  (hash
+    (pair
+      (string
+        (string_content))
+      (integer))
+    (pair
+      (string
+        (string_content))
+      (integer)))
+  (hash
+    (pair
+      (array)
+      (integer)))
+  (hash
+    (pair
+      (identifier)
+      (integer))))
 
 =========================
 hash with reserved word key
@@ -1424,44 +1837,118 @@ hash with reserved word key
 
 ---
 
-(program (hash
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol) (simple_symbol))
-  (pair (hash_key_symbol))))
+(program
+  (hash
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol)
+      (simple_symbol))
+    (pair
+      (hash_key_symbol))))
 
 ======================
 hash with keyword keys
@@ -1477,18 +1964,32 @@ hash with keyword keys
 
 (program
   (hash
-    (pair (hash_key_symbol) (integer))
-    (pair (hash_key_symbol) (integer))
-    (pair (string (string_content)) (integer)))
+    (pair
+      (hash_key_symbol)
+      (integer))
+    (pair
+      (hash_key_symbol)
+      (integer))
+    (pair
+      (string
+        (string_content))
+      (integer)))
   (hash
-    (pair (hash_key_symbol) (integer))
-    (pair (hash_key_symbol) (integer))
-    (pair (string (string_content)) (integer)))
+    (pair
+      (hash_key_symbol)
+      (integer))
+    (pair
+      (hash_key_symbol)
+      (integer))
+    (pair
+      (string
+        (string_content))
+      (integer)))
   (hash
-    (pair (hash_key_symbol))
-    (pair (hash_key_symbol))
-  )
-)
+    (pair
+      (hash_key_symbol))
+    (pair
+      (hash_key_symbol))))
 
 ========================
 hash with trailing comma
@@ -1498,7 +1999,11 @@ hash with trailing comma
 
 ---
 
-(program (hash (pair (hash_key_symbol) (integer))))
+(program
+  (hash
+    (pair
+      (hash_key_symbol)
+      (integer))))
 
 ========================
 hash initialization with hash splat
@@ -1508,9 +2013,16 @@ hash initialization with hash splat
 
 ---
 
-(program (hash
-  (pair (hash_key_symbol) (integer))
-  (hash_splat_argument (hash (pair (hash_key_symbol) (integer))))))
+(program
+  (hash
+    (pair
+      (hash_key_symbol)
+      (integer))
+    (hash_splat_argument
+      (hash
+        (pair
+          (hash_key_symbol)
+          (integer))))))
 
 ========================
 hash with line breaks and inline comments
@@ -1527,9 +2039,13 @@ hash with line breaks and inline comments
 
 (program
   (hash
-    (pair (simple_symbol) (identifier))
+    (pair
+      (simple_symbol)
+      (identifier))
     (comment)
-    (pair (simple_symbol) (integer))))
+    (pair
+      (simple_symbol)
+      (integer))))
 
 ==================
 regular expression
@@ -1539,7 +2055,9 @@ regular expression
 
 ---
 
-(program (regex (string_content)))
+(program
+  (regex
+    (string_content)))
 
 =====================================
 regular expression with interpolation
@@ -1552,9 +2070,15 @@ regular expression with interpolation
 ---
 
 (program
-  (regex (string_content) (interpolation (identifier)) (string_content))
-  (regex (string_content))
-  (regex (string_content)))
+  (regex
+    (string_content)
+    (interpolation
+      (identifier))
+    (string_content))
+  (regex
+    (string_content))
+  (regex
+    (string_content)))
 
 =======================================================
 percent r regular expression with unbalanced delimiters
@@ -1566,8 +2090,13 @@ percent r regular expression with unbalanced delimiters
 
 ---
 
-(program (regex (string_content)) (regex (string_content)) (regex (string_content)))
-
+(program
+  (regex
+    (string_content))
+  (regex
+    (string_content))
+  (regex
+    (string_content)))
 
 =====================================================
 percent r regular expression with balanced delimiters
@@ -1581,7 +2110,17 @@ percent r regular expression with balanced delimiters
 
 ---
 
-(program (regex (string_content)) (regex (string_content)) (regex (string_content)) (regex (string_content)) (regex (string_content)))
+(program
+  (regex
+    (string_content))
+  (regex
+    (string_content))
+  (regex
+    (string_content))
+  (regex
+    (string_content))
+  (regex
+    (string_content)))
 
 =========================================================================
 percent r regular expression with unbalanced delimiters and interpolation
@@ -1591,7 +2130,12 @@ percent r regular expression with unbalanced delimiters and interpolation
 
 ---
 
-(program (regex (string_content) (interpolation (identifier)) (string_content)))
+(program
+  (regex
+    (string_content)
+    (interpolation
+      (identifier))
+    (string_content)))
 
 =======================================================================
 percent r regular expression with balanced delimiters and interpolation
@@ -1601,7 +2145,12 @@ percent r regular expression with balanced delimiters and interpolation
 
 ---
 
-(program (regex (string_content) (interpolation (identifier)) (string_content)))
+(program
+  (regex
+    (string_content)
+    (interpolation
+      (identifier))
+    (string_content)))
 
 ==============
 empty function
@@ -1611,7 +2160,9 @@ empty function
 
 ---
 
-(program (lambda (block)))
+(program
+  (lambda
+    (block)))
 
 ==================
 lambda literal with body
@@ -1621,7 +2172,11 @@ lambda literal with body
 
 ---
 
-(program (lambda (block (block_body (identifier)))))
+(program
+  (lambda
+    (block
+      (block_body
+        (identifier)))))
 
 ====================
 lambda literal with an arg
@@ -1636,11 +2191,40 @@ lambda literal with an arg
 ---
 
 (program
-  (lambda (lambda_parameters (identifier)) (block (block_body (integer))))
-  (lambda (lambda_parameters (identifier)) (block (block_body (integer))))
-  (lambda (lambda_parameters (splat_parameter (identifier))) (block (block_body (integer))))
-  (lambda (lambda_parameters (keyword_parameter (identifier) (integer))) (block (block_body (integer))))
-  (lambda (lambda_parameters (identifier) (identifier)) (block (block_body (integer)))))
+  (lambda
+    (lambda_parameters
+      (identifier))
+    (block
+      (block_body
+        (integer))))
+  (lambda
+    (lambda_parameters
+      (identifier))
+    (block
+      (block_body
+        (integer))))
+  (lambda
+    (lambda_parameters
+      (splat_parameter
+        (identifier)))
+    (block
+      (block_body
+        (integer))))
+  (lambda
+    (lambda_parameters
+      (keyword_parameter
+        (identifier)
+        (integer)))
+    (block
+      (block_body
+        (integer))))
+  (lambda
+    (lambda_parameters
+      (identifier)
+      (identifier))
+    (block
+      (block_body
+        (integer)))))
 
 ===========================
 lambda literal with multiple args
@@ -1653,10 +2237,16 @@ lambda literal with multiple args
 
 ---
 
-(program (lambda (lambda_parameters (identifier) (identifier) (identifier)) (block
-  (block_body
-    (integer)
-    (integer)))))
+(program
+  (lambda
+    (lambda_parameters
+      (identifier)
+      (identifier)
+      (identifier))
+    (block
+      (block_body
+        (integer)
+        (integer)))))
 
 ====================
 lambda literal with do end
@@ -1668,7 +2258,13 @@ end
 
 ---
 
-(program (lambda (lambda_parameters (identifier)) (do_block (body_statement (integer)))))
+(program
+  (lambda
+    (lambda_parameters
+      (identifier))
+    (do_block
+      (body_statement
+        (integer)))))
 
 ====================
 non-ascii identifiers
