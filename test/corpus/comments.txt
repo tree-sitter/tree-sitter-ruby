@@ -92,3 +92,14 @@ multi-line block comments with almost end
 ---
 
 (program (comment))
+
+=========================
+block comment without newline after end
+=========================
+
+=begin
+comment
+=end
+---
+
+(program (comment))

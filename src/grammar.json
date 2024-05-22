@@ -7131,10 +7131,6 @@
                 {
                   "type": "PATTERN",
                   "value": "[\\s*]*=end.*"
-                },
-                {
-                  "type": "PATTERN",
-                  "value": "\\r?\\n"
                 }
               ]
             }
