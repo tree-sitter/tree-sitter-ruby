@@ -1065,7 +1065,6 @@ module.exports = grammar({
           /=en[^d]/,
         )),
         /[\s*]*=end.*/,
-        /\r?\n/,
       ),
     ))),
 
