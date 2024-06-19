@@ -2382,24 +2382,22 @@ end
 ---
 
 (program
-  (binary
-    (binary
-      (binary
-        (binary
-          (element_reference
-            (identifier)
-            (simple_symbol))
-          (ERROR)
-          (identifier))
-        (ERROR
-          (identifier))
-        (element_reference
-          (identifier)
-          (simple_symbol)))
-      (ERROR)
-      (identifier))
-    (identifier))
-  (identifier))
+  (element_reference
+    (identifier)
+    (simple_symbol)
+    (block
+      (block_parameters
+        (identifier))
+      (block_body
+        (identifier))))
+  (element_reference
+    (identifier)
+    (simple_symbol)
+    (do_block
+      (block_parameters
+        (identifier))
+      (body_statement
+        (identifier)))))
 
 ======================================
 call with array and block
