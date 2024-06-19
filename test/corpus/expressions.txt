@@ -2369,6 +2369,38 @@ d.find { |x| x > 1 } [0] == 0
       (integer))
     (integer)))
 
+============================
+element reference with block
+============================
+
+foo[:bar] { |baz| baz }
+
+foo[:bar] do |baz|
+  baz
+end
+
+---
+
+(program
+  (binary
+    (binary
+      (binary
+        (binary
+          (element_reference
+            (identifier)
+            (simple_symbol))
+          (ERROR)
+          (identifier))
+        (ERROR
+          (identifier))
+        (element_reference
+          (identifier)
+          (simple_symbol)))
+      (ERROR)
+      (identifier))
+    (identifier))
+  (identifier))
+
 ======================================
 call with array and block
 ======================================
