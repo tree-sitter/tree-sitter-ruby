@@ -35,10 +35,19 @@ foo[]
 ---
 
 (program
-  (element_reference object: (identifier) (identifier))
-  (element_reference object: (identifier) (splat_argument (identifier)))
-  (element_reference object: (identifier) (splat_argument (identifier)))
-  (element_reference object: (identifier)))
+  (element_reference
+    object: (identifier)
+    (identifier))
+  (element_reference
+    object: (identifier)
+    (splat_argument
+      (identifier)))
+  (element_reference
+    object: (identifier)
+    (splat_argument
+      (identifier)))
+  (element_reference
+    object: (identifier)))
 
 ============
 element reference with string
@@ -48,7 +57,11 @@ foo["bar"]
 
 ---
 
-(program (element_reference (identifier) (string (string_content))))
+(program
+  (element_reference
+    (identifier)
+    (string
+      (string_content))))
 
 ============
 element reference with symbol
@@ -58,7 +71,10 @@ foo[:bar]
 
 ---
 
-(program (element_reference (identifier) (simple_symbol)))
+(program
+  (element_reference
+    (identifier)
+    (simple_symbol)))
 
 ============
 element assignment
@@ -68,11 +84,12 @@ foo[bar] = 1
 
 ---
 
-(program (assignment
-  left: (element_reference
-    object: (identifier)
-    (identifier))
-  right: (integer)))
+(program
+  (assignment
+    left: (element_reference
+      object: (identifier)
+      (identifier))
+    right: (integer)))
 
 ===============
 vacuous literal
@@ -82,7 +99,8 @@ vacuous literal
 
 ---
 
-(program (parenthesized_statements))
+(program
+  (parenthesized_statements))
 
 ===============
 empty statement
@@ -92,7 +110,8 @@ empty statement
 
 ---
 
-(program (empty_statement))
+(program
+  (empty_statement))
 
 ===================
 yield without value
@@ -102,7 +121,8 @@ yield
 
 ---
 
-(program (yield))
+(program
+  (yield))
 
 =====
 yield
@@ -115,9 +135,16 @@ yield(baz)
 ---
 
 (program
-  (yield (argument_list (identifier)))
-  (yield (argument_list (identifier) (identifier)))
-  (yield (argument_list (identifier))))
+  (yield
+    (argument_list
+      (identifier)))
+  (yield
+    (argument_list
+      (identifier)
+      (identifier)))
+  (yield
+    (argument_list
+      (identifier))))
 
 ===
 not
@@ -127,7 +154,9 @@ not foo
 
 ---
 
-(program (unary (identifier)))
+(program
+  (unary
+    (identifier)))
 
 ===
 and
@@ -137,7 +166,10 @@ foo and bar
 
 ---
 
-(program (binary (identifier) (identifier)))
+(program
+  (binary
+    (identifier)
+    (identifier)))
 
 ===
 or
@@ -147,7 +179,10 @@ foo or bar
 
 ---
 
-(program (binary (identifier) (identifier)))
+(program
+  (binary
+    (identifier)
+    (identifier)))
 
 ====================
 and or associativity
@@ -157,7 +192,12 @@ a or b and c
 
 ---
 
-(program (binary (binary (identifier) (identifier)) (identifier)))
+(program
+  (binary
+    (binary
+      (identifier)
+      (identifier))
+    (identifier)))
 
 ========
 defined?
@@ -173,15 +213,28 @@ defined?(@äö).should be_true
 ---
 
 (program
-  (unary operand: (identifier))
-  (unary operand: (call receiver: (constant) method: (identifier)))
-  (unary operand: (parenthesized_statements (identifier)))
-  (unary operand: (parenthesized_statements (global_variable)))
-  (unary operand: (parenthesized_statements (instance_variable)))
+  (unary
+    operand: (identifier))
+  (unary
+    operand: (call
+      receiver: (constant)
+      method: (identifier)))
+  (unary
+    operand: (parenthesized_statements
+      (identifier)))
+  (unary
+    operand: (parenthesized_statements
+      (global_variable)))
+  (unary
+    operand: (parenthesized_statements
+      (instance_variable)))
   (call
-    receiver: (unary operand: (parenthesized_statements (instance_variable)))
+    receiver: (unary
+      operand: (parenthesized_statements
+        (instance_variable)))
     method: (identifier)
-    arguments: (argument_list (identifier))))
+    arguments: (argument_list
+      (identifier))))
 
 ==========
 assignment
@@ -196,11 +249,25 @@ NIL = "nil"
 ---
 
 (program
-  (assignment (identifier) (identifier))
-  (assignment (identifier) (splat_argument (identifier)))
-  (assignment (constant) (string (string_content)))
-  (assignment (constant) (string (string_content)))
-  (assignment (constant) (string (string_content))))
+  (assignment
+    (identifier)
+    (identifier))
+  (assignment
+    (identifier)
+    (splat_argument
+      (identifier)))
+  (assignment
+    (constant)
+    (string
+      (string_content)))
+  (assignment
+    (constant)
+    (string
+      (string_content)))
+  (assignment
+    (constant)
+    (string
+      (string_content))))
 
 =====================
 multiple assignment
@@ -217,13 +284,62 @@ self.foo, self.bar = target.a?, target.b
 ---
 
 (program
-  (assignment (left_assignment_list (identifier) (identifier)) (array (integer) (integer)))
-  (assignment (left_assignment_list (identifier) (rest_assignment)) (array (integer) (integer)))
-  (assignment (left_assignment_list (identifier) (rest_assignment (identifier))) (array (integer) (integer)))
-  (assignment (left_assignment_list (identifier) (identifier)) (splat_argument (identifier)))
-  (assignment (left_assignment_list (call (self) (identifier)) (call (self) (identifier))) (right_assignment_list (call (identifier) (identifier)) (call (identifier) (identifier))))
-  (assignment (left_assignment_list (destructured_left_assignment (identifier) (identifier))) (identifier))
-  (parenthesized_statements (assignment (left_assignment_list (identifier) (identifier) (identifier)) (integer))))
+  (assignment
+    (left_assignment_list
+      (identifier)
+      (identifier))
+    (array
+      (integer)
+      (integer)))
+  (assignment
+    (left_assignment_list
+      (identifier)
+      (rest_assignment))
+    (array
+      (integer)
+      (integer)))
+  (assignment
+    (left_assignment_list
+      (identifier)
+      (rest_assignment
+        (identifier)))
+    (array
+      (integer)
+      (integer)))
+  (assignment
+    (left_assignment_list
+      (identifier)
+      (identifier))
+    (splat_argument
+      (identifier)))
+  (assignment
+    (left_assignment_list
+      (call
+        (self)
+        (identifier))
+      (call
+        (self)
+        (identifier)))
+    (right_assignment_list
+      (call
+        (identifier)
+        (identifier))
+      (call
+        (identifier)
+        (identifier))))
+  (assignment
+    (left_assignment_list
+      (destructured_left_assignment
+        (identifier)
+        (identifier)))
+    (identifier))
+  (parenthesized_statements
+    (assignment
+      (left_assignment_list
+        (identifier)
+        (identifier)
+        (identifier))
+      (integer))))
 
 ==================================================
 multiple assignment with multiple right hand sides
@@ -235,10 +351,18 @@ x, y = foo, bar
 ---
 
 (program
-  (assignment (identifier) (right_assignment_list (integer) (integer)))
   (assignment
-    (left_assignment_list (identifier) (identifier))
-    (right_assignment_list (identifier) (identifier))))
+    (identifier)
+    (right_assignment_list
+      (integer)
+      (integer)))
+  (assignment
+    (left_assignment_list
+      (identifier)
+      (identifier))
+    (right_assignment_list
+      (identifier)
+      (identifier))))
 
 ==================================================
 destructured left hand side assignment
@@ -252,11 +376,15 @@ a, (b, c), d, (e, (f, g)) = foo
   (assignment
     left: (left_assignment_list
       (identifier)
-      (destructured_left_assignment (identifier) (identifier))
+      (destructured_left_assignment
+        (identifier)
+        (identifier))
       (identifier)
       (destructured_left_assignment
         (identifier)
-        (destructured_left_assignment (identifier) (identifier))))
+        (destructured_left_assignment
+          (identifier)
+          (identifier))))
     right: (identifier)))
 
 ==========
@@ -269,12 +397,25 @@ x = foo a, :b => 1, :c => 2
 ---
 
 (program
-  (assignment (identifier)
-    (call (identifier)
-      (argument_list (identifier) (identifier))))
-  (assignment (identifier)
-    (call (identifier)
-      (argument_list (identifier) (pair (simple_symbol) (integer)) (pair (simple_symbol) (integer))))))
+  (assignment
+    (identifier)
+    (call
+      (identifier)
+      (argument_list
+        (identifier)
+        (identifier))))
+  (assignment
+    (identifier)
+    (call
+      (identifier)
+      (argument_list
+        (identifier)
+        (pair
+          (simple_symbol)
+          (integer))
+        (pair
+          (simple_symbol)
+          (integer))))))
 
 ==========
 math assignment
@@ -290,12 +431,26 @@ puts "/hi"
 ---
 
 (program
-  (operator_assignment (identifier) (identifier))
-  (operator_assignment (identifier) (identifier))
-  (operator_assignment (identifier) (identifier))
-  (operator_assignment (identifier) (identifier))
-  (operator_assignment (identifier) (identifier))
-  (call (identifier) (argument_list (string (string_content)))))
+  (operator_assignment
+    (identifier)
+    (identifier))
+  (operator_assignment
+    (identifier)
+    (identifier))
+  (operator_assignment
+    (identifier)
+    (identifier))
+  (operator_assignment
+    (identifier)
+    (identifier))
+  (operator_assignment
+    (identifier)
+    (identifier))
+  (call
+    (identifier)
+    (argument_list
+      (string
+        (string_content)))))
 
 ==========
 operator assignment
@@ -313,14 +468,30 @@ x ^= y
 ---
 
 (program
-  (operator_assignment (identifier) (identifier))
-  (operator_assignment (identifier) (identifier))
-  (operator_assignment (identifier) (identifier))
-  (operator_assignment (identifier) (identifier))
-  (operator_assignment (identifier) (identifier))
-  (operator_assignment (identifier) (identifier))
-  (operator_assignment (identifier) (identifier))
-  (operator_assignment (identifier) (identifier)))
+  (operator_assignment
+    (identifier)
+    (identifier))
+  (operator_assignment
+    (identifier)
+    (identifier))
+  (operator_assignment
+    (identifier)
+    (identifier))
+  (operator_assignment
+    (identifier)
+    (identifier))
+  (operator_assignment
+    (identifier)
+    (identifier))
+  (operator_assignment
+    (identifier)
+    (identifier))
+  (operator_assignment
+    (identifier)
+    (identifier))
+  (operator_assignment
+    (identifier)
+    (identifier)))
 
 ===========
 conditional
@@ -350,7 +521,14 @@ conditional and character literal ambiguity
 true ?")":"c"
 
 ---
-(program (conditional (true) (string (string_content)) (string (string_content))))
+
+(program
+  (conditional
+    (true)
+    (string
+      (string_content))
+    (string
+      (string_content))))
 
 ===========================================
 conditional with reserved identifiers
@@ -362,8 +540,14 @@ foo ? return: false
 ---
 
 (program
-  (conditional (identifier) (true) (false))
-  (conditional (identifier) (return) (false)))
+  (conditional
+    (identifier)
+    (true)
+    (false))
+  (conditional
+    (identifier)
+    (return)
+    (false)))
 
 ===============
 inclusive range
@@ -373,7 +557,10 @@ a..b
 
 ---
 
-(program (range (identifier) (identifier)))
+(program
+  (range
+    (identifier)
+    (identifier)))
 
 ===============
 exclusive range
@@ -383,7 +570,10 @@ a...b
 
 ---
 
-(program (range (identifier) (identifier)))
+(program
+  (range
+    (identifier)
+    (identifier)))
 
 ==========
 boolean or
@@ -393,7 +583,10 @@ a || b
 
 ---
 
-(program (binary (identifier) (identifier)))
+(program
+  (binary
+    (identifier)
+    (identifier)))
 
 ===========
 boolean and
@@ -403,7 +596,10 @@ a && b
 
 ---
 
-(program (binary (identifier) (identifier)))
+(program
+  (binary
+    (identifier)
+    (identifier)))
 
 ===========
 boolean and/or
@@ -446,23 +642,46 @@ a!~b # not a binary operation
 ---
 
 (program
-  (binary left: (identifier) right: (identifier))
-  (binary left: (identifier) right: (identifier))
-  (binary left: (identifier) right: (identifier))
-  (binary left: (identifier) right: (identifier))
-  (binary left: (identifier) right: (identifier))
-  (binary left: (identifier) right: (identifier))
-  (binary left: (identifier) right: (identifier))
-  (binary left: (identifier) right: (identifier))
-  (binary left: (identifier) right: (identifier))
-  (binary left: (identifier) right: (identifier))
-  (binary left: (identifier) right: (identifier))
+  (binary
+    left: (identifier)
+    right: (identifier))
+  (binary
+    left: (identifier)
+    right: (identifier))
+  (binary
+    left: (identifier)
+    right: (identifier))
+  (binary
+    left: (identifier)
+    right: (identifier))
+  (binary
+    left: (identifier)
+    right: (identifier))
+  (binary
+    left: (identifier)
+    right: (identifier))
+  (binary
+    left: (identifier)
+    right: (identifier))
+  (binary
+    left: (identifier)
+    right: (identifier))
+  (binary
+    left: (identifier)
+    right: (identifier))
+  (binary
+    left: (identifier)
+    right: (identifier))
+  (binary
+    left: (identifier)
+    right: (identifier))
   (call
     method: (identifier)
     arguments: (argument_list
       (unary
         operand: (identifier))))
   (comment))
+
 ==========
 comparison
 ==========
@@ -475,10 +694,18 @@ a >= b
 ---
 
 (program
-  (binary (identifier) (identifier))
-  (binary (identifier) (identifier))
-  (binary (identifier) (identifier))
-  (binary (identifier) (identifier)))
+  (binary
+    (identifier)
+    (identifier))
+  (binary
+    (identifier)
+    (identifier))
+  (binary
+    (identifier)
+    (identifier))
+  (binary
+    (identifier)
+    (identifier)))
 
 ==========
 bitwise or
@@ -488,7 +715,10 @@ a | b
 
 ---
 
-(program (binary (identifier) (identifier)))
+(program
+  (binary
+    (identifier)
+    (identifier)))
 
 ===========
 bitwise xor
@@ -498,7 +728,10 @@ a ^ b
 
 ---
 
-(program (binary (identifier) (identifier)))
+(program
+  (binary
+    (identifier)
+    (identifier)))
 
 ===========
 bitwise and
@@ -508,7 +741,10 @@ a & b
 
 ---
 
-(program (binary (identifier) (identifier)))
+(program
+  (binary
+    (identifier)
+    (identifier)))
 
 =====
 shift
@@ -520,8 +756,12 @@ a << b
 ---
 
 (program
-  (binary (identifier) (identifier))
-  (binary (identifier) (identifier)))
+  (binary
+    (identifier)
+    (identifier))
+  (binary
+    (identifier)
+    (identifier)))
 
 ========
 additive
@@ -531,7 +771,10 @@ a + b
 
 ---
 
-(program (binary (identifier) (identifier)))
+(program
+  (binary
+    (identifier)
+    (identifier)))
 
 ==============
 multiplicative
@@ -568,7 +811,12 @@ binary operations
 
 ---
 
-(program (binary (integer) (binary (integer) (integer))))
+(program
+  (binary
+    (integer)
+    (binary
+      (integer)
+      (integer))))
 
 ===========
 unary minus
@@ -581,9 +829,20 @@ foo(-a, bar)
 ---
 
 (program
-  (unary (identifier))
-  (call (identifier) (argument_list (unary (identifier)) (identifier)))
-  (call (identifier) (argument_list (unary (identifier)) (identifier))))
+  (unary
+    (identifier))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (identifier))
+      (identifier)))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (identifier))
+      (identifier))))
 
 ===========
 binary minus
@@ -595,8 +854,12 @@ foo-a
 ---
 
 (program
-  (binary (identifier) (identifier))
-  (binary (instance_variable) (integer)))
+  (binary
+    (identifier)
+    (identifier))
+  (binary
+    (instance_variable)
+    (integer)))
 
 ===========
 exponential
@@ -606,7 +869,10 @@ a ** b
 
 ---
 
-(program (binary (identifier) (identifier)))
+(program
+  (binary
+    (identifier)
+    (identifier)))
 
 ====
 minus, call, exponential, range
@@ -706,7 +972,9 @@ complement
 
 ---
 
-(program (unary (identifier)))
+(program
+  (unary
+    (identifier)))
 
 ===============================
 method call
@@ -733,10 +1001,14 @@ exit!() if done
     arguments: (argument_list))
   (call
     method: (identifier)
-    arguments: (argument_list (string (string_content))))
+    arguments: (argument_list
+      (string
+        (string_content))))
   (call
     method: (identifier)
-    arguments: (argument_list (string (string_content))))
+    arguments: (argument_list
+      (string
+        (string_content))))
   (call
     method: (identifier))
   (call
@@ -746,10 +1018,14 @@ exit!() if done
     method: (identifier))
   (call
     method: (identifier)
-    arguments: (argument_list (string (string_content))))
+    arguments: (argument_list
+      (string
+        (string_content))))
   (call
     method: (identifier)
-    arguments: (argument_list (string (string_content))))
+    arguments: (argument_list
+      (string
+        (string_content))))
   (if_modifier
     body: (call
       method: (identifier))
@@ -799,7 +1075,10 @@ foo a,
 (program
   (call
     method: (identifier)
-    arguments: (argument_list (identifier) (identifier) (identifier))))
+    arguments: (argument_list
+      (identifier)
+      (identifier)
+      (identifier))))
 
 ===============================
 method call with trailing comma
@@ -811,8 +1090,18 @@ foo(bar(a),)
 ---
 
 (program
-  (call (identifier) (argument_list (identifier) (identifier)))
-  (call (identifier) (argument_list (call (identifier) (argument_list (identifier))))))
+  (call
+    (identifier)
+    (argument_list
+      (identifier)
+      (identifier)))
+  (call
+    (identifier)
+    (argument_list
+      (call
+        (identifier)
+        (argument_list
+          (identifier))))))
 
 ==============================================
 keyword arguments, no space, trailing comma
@@ -827,11 +1116,36 @@ foo(a2:b,)
 ---
 
 (program
-  (call (identifier) (argument_list (pair (hash_key_symbol) (identifier))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (identifier))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (identifier))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (identifier))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (identifier)))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (identifier))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (identifier))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (identifier))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (identifier))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (identifier)))))
 
 ===============================
 method call with receiver
@@ -857,19 +1171,29 @@ foo.bar("hi", 2)
   (call
     receiver: (identifier)
     method: (identifier)
-    arguments: (argument_list (string (string_content))))
+    arguments: (argument_list
+      (string
+        (string_content))))
   (call
     receiver: (identifier)
     method: (identifier)
-    arguments: (argument_list (string (string_content)) (integer)))
+    arguments: (argument_list
+      (string
+        (string_content))
+      (integer)))
   (call
     receiver: (identifier)
     method: (identifier)
-    arguments: (argument_list (string (string_content))))
+    arguments: (argument_list
+      (string
+        (string_content))))
   (call
     receiver: (identifier)
     method: (identifier)
-    arguments: (argument_list (string (string_content)) (integer))))
+    arguments: (argument_list
+      (string
+        (string_content))
+      (integer))))
 
 ===============================
 implicit call
@@ -882,11 +1206,15 @@ foo.(1, 2)
 
 (program
   (call
-    receiver: (element_reference object: (identifier) (identifier))
+    receiver: (element_reference
+      object: (identifier)
+      (identifier))
     arguments: (argument_list))
   (call
     receiver: (identifier)
-    arguments: (argument_list (integer) (integer))))
+    arguments: (argument_list
+      (integer)
+      (integer))))
 
 ===============================
 implicit call with block
@@ -906,9 +1234,13 @@ end
     block: (block))
   (call
     receiver: (identifier)
-    arguments: (argument_list (pair key: (hash_key_symbol) value: (identifier)))
+    arguments: (argument_list
+      (pair
+        key: (hash_key_symbol)
+        value: (identifier)))
     block: (do_block
-      body: (body_statement (identifier)))))
+      body: (body_statement
+        (identifier)))))
 
 ===============================
 call with operator method name
@@ -935,12 +1267,18 @@ Foo::Bar::baz
 ---
 
 (program
-  (call (identifier) (identifier))
-  (call (scope_resolution (constant)) (identifier))
-  (call (scope_resolution (constant) (constant)) (identifier))
-)
-
-
+  (call
+    (identifier)
+    (identifier))
+  (call
+    (scope_resolution
+      (constant))
+    (identifier))
+  (call
+    (scope_resolution
+      (constant)
+      (constant))
+    (identifier)))
 
 ===============================
 method call with safe navigation operator
@@ -950,7 +1288,10 @@ foo&.bar
 
 ---
 
-(program (call (identifier) (identifier)))
+(program
+  (call
+    (identifier)
+    (identifier)))
 
 ===============================
 calls to methods on negated literals
@@ -964,15 +1305,18 @@ calls to methods on negated literals
 (program
   (call
     receiver: (call
-      receiver: (unary operand: (integer))
+      receiver: (unary
+        operand: (integer))
       method: (identifier))
     method: (identifier)
     arguments: (argument_list
+      (call
+        method: (identifier)
+        arguments: (argument_list
+          (constant)))))
   (call
-    method: (identifier)
-    arguments: (argument_list (constant)))))
-  (call
-    receiver: (unary operand: (float))
+    receiver: (unary
+      operand: (float))
     method: (identifier)))
 
 ===============================
@@ -987,10 +1331,33 @@ foo :a => true, :c => 1
 ---
 
 (program
-  (call (identifier) (argument_list (pair (simple_symbol) (true))))
-  (call (identifier) (argument_list (pair (array) (integer))))
-  (call (identifier) (argument_list (pair (identifier) (integer))))
-  (call (identifier) (argument_list (pair (simple_symbol) (true)) (pair (simple_symbol) (integer)))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (simple_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (array)
+        (integer))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (identifier)
+        (integer))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (simple_symbol)
+        (true))
+      (pair
+        (simple_symbol)
+        (integer)))))
 
 ===============================
 method call with keyword args
@@ -1005,12 +1372,34 @@ foo B:
 ---
 
 (program
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol))))
-  (call (identifier) (argument_list (pair (hash_key_symbol))))
-)
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)))))
 
 ===============================
 method call with reserved keyword args
@@ -1058,44 +1447,233 @@ foo yield:
 ---
 
 (program
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol) (true))))
-  (call (identifier) (argument_list (pair (hash_key_symbol)))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (true))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)))))
 
 ===============================
 method call with paren args
@@ -1105,7 +1683,13 @@ foo (b), a
 
 ---
 
-(program (call (identifier) (argument_list (parenthesized_statements (identifier)) (identifier))))
+(program
+  (call
+    (identifier)
+    (argument_list
+      (parenthesized_statements
+        (identifier))
+      (identifier))))
 
 ===============================
 method call with block argument
@@ -1124,16 +1708,51 @@ foo 1, &;
 ---
 
 (program
-  (call (identifier) (argument_list (block_argument (simple_symbol))))
-  (call (identifier) (argument_list (block_argument (identifier))))
-  (call (identifier) (argument_list (block_argument (identifier)) (integer)))
-  (call (identifier) (argument_list (block_argument (identifier))))
-  (call (identifier) (argument_list (block_argument (identifier)) (integer)))
-  (call (identifier) (argument_list (block_argument)))
-  (call (identifier) (argument_list (block_argument) (integer)))
-  (call (identifier) (argument_list (block_argument)))
-  (call (identifier) (argument_list (integer) (block_argument)))
-)
+  (call
+    (identifier)
+    (argument_list
+      (block_argument
+        (simple_symbol))))
+  (call
+    (identifier)
+    (argument_list
+      (block_argument
+        (identifier))))
+  (call
+    (identifier)
+    (argument_list
+      (block_argument
+        (identifier))
+      (integer)))
+  (call
+    (identifier)
+    (argument_list
+      (block_argument
+        (identifier))))
+  (call
+    (identifier)
+    (argument_list
+      (block_argument
+        (identifier))
+      (integer)))
+  (call
+    (identifier)
+    (argument_list
+      (block_argument)))
+  (call
+    (identifier)
+    (argument_list
+      (block_argument)
+      (integer)))
+  (call
+    (identifier)
+    (argument_list
+      (block_argument)))
+  (call
+    (identifier)
+    (argument_list
+      (integer)
+      (block_argument))))
 
 ===============================
 method call with splat argument
@@ -1147,10 +1766,33 @@ foo *(bar.baz)
 ---
 
 (program
-  (call (identifier) (argument_list (splat_argument (identifier))))
-  (call (identifier) (argument_list (splat_argument (identifier))))
-  (call (identifier) (argument_list (splat_argument (string_array (bare_string (string_content)) (bare_string (string_content))))))
-  (call (identifier) (argument_list (splat_argument (parenthesized_statements (call (identifier) (identifier)))))))
+  (call
+    (identifier)
+    (argument_list
+      (splat_argument
+        (identifier))))
+  (call
+    (identifier)
+    (argument_list
+      (splat_argument
+        (identifier))))
+  (call
+    (identifier)
+    (argument_list
+      (splat_argument
+        (string_array
+          (bare_string
+            (string_content))
+          (bare_string
+            (string_content))))))
+  (call
+    (identifier)
+    (argument_list
+      (splat_argument
+        (parenthesized_statements
+          (call
+            (identifier)
+            (identifier)))))))
 
 ===============================
 method call lambda argument
@@ -1162,16 +1804,31 @@ foo :bar, -> (a) { where(:c => b) }
 ---
 
 (program
-  (call (identifier)
-    (argument_list
-      (simple_symbol)
-      (lambda (lambda_parameters (identifier)) (block (block_body (integer))))))
-  (call (identifier)
+  (call
+    (identifier)
     (argument_list
       (simple_symbol)
       (lambda
-        (lambda_parameters (identifier))
-        (block (block_body (call (identifier) (argument_list (pair (simple_symbol) (identifier))))))))))
+        (lambda_parameters
+          (identifier))
+        (block
+          (block_body
+            (integer))))))
+  (call
+    (identifier)
+    (argument_list
+      (simple_symbol)
+      (lambda
+        (lambda_parameters
+          (identifier))
+        (block
+          (block_body
+            (call
+              (identifier)
+              (argument_list
+                (pair
+                  (simple_symbol)
+                  (identifier))))))))))
 
 ===============================
 method call lambda argument and do block
@@ -1183,8 +1840,16 @@ end
 ---
 
 (program
-  (call (identifier)
-    (argument_list (simple_symbol) (lambda (lambda_parameters (identifier)) (block (block_body (integer)))))
+  (call
+    (identifier)
+    (argument_list
+      (simple_symbol)
+      (lambda
+        (lambda_parameters
+          (identifier))
+        (block
+          (block_body
+            (integer)))))
     (do_block)))
 
 ===============================================
@@ -1208,21 +1873,27 @@ end
       method: (identifier)
       arguments: (argument_list
         (identifier)
-        (splat_argument (identifier)))
+        (splat_argument
+          (identifier)))
       block: (do_block
-        parameters: (block_parameters (identifier))
-        body: (body_statement (identifier))))
+        parameters: (block_parameters
+          (identifier))
+        body: (body_statement
+          (identifier))))
     method: (identifier)
     arguments: (argument_list
       (call
         receiver: (call
           method: (identifier)
           block: (block
-            parameters: (block_parameters (identifier))
-            body: (block_body (identifier))))
+            parameters: (block_parameters
+              (identifier))
+            body: (block_body
+              (identifier))))
         method: (identifier)
         block: (do_block
-          body: (body_statement (identifier)))))))
+          body: (body_statement
+            (identifier)))))))
 
 ===============================
 method calls in binary expression
@@ -1239,13 +1910,19 @@ one two or
     left: (binary
       left: (call
         method: (identifier)
-        arguments: (argument_list (identifier)))
+        arguments: (argument_list
+          (identifier)))
       right: (call
         method: (identifier)
-        arguments: (argument_list (identifier) (identifier))))
+        arguments: (argument_list
+          (identifier)
+          (identifier))))
     right: (call
       method: (identifier)
-      arguments: (argument_list (identifier) (identifier) (identifier)))))
+      arguments: (argument_list
+        (identifier)
+        (identifier)
+        (identifier)))))
 
 ===============================
 method calls in unary expression
@@ -1260,7 +1937,8 @@ method calls in unary expression
     operand: (call
       receiver: (identifier)
       method: (identifier)
-      arguments: (argument_list (identifier)))))
+      arguments: (argument_list
+        (identifier)))))
 
 ===============================
 method calls with splat argument
@@ -1279,16 +1957,62 @@ foo x, **
 ---
 
 (program
-  (call (identifier) (argument_list (splat_argument (identifier))))
-  (call (identifier) (argument_list (splat_argument (call (array (identifier) (identifier)) (identifier)))))
-  (call (identifier) (argument_list (identifier) (splat_argument (identifier))))
-  (call (identifier) (argument_list (splat_argument (call (identifier) (identifier)))))
-  (call (identifier) (argument_list (hash_splat_argument (identifier))))
-  (call (identifier) (argument_list (hash_splat_argument (identifier)) (identifier)))
-  (call (identifier) (argument_list (splat_argument)))
-  (call (identifier) (argument_list (identifier) (splat_argument)))
-  (call (identifier) (argument_list (hash_splat_argument)))
-  (call (identifier) (argument_list (identifier) (hash_splat_argument))))
+  (call
+    (identifier)
+    (argument_list
+      (splat_argument
+        (identifier))))
+  (call
+    (identifier)
+    (argument_list
+      (splat_argument
+        (call
+          (array
+            (identifier)
+            (identifier))
+          (identifier)))))
+  (call
+    (identifier)
+    (argument_list
+      (identifier)
+      (splat_argument
+        (identifier))))
+  (call
+    (identifier)
+    (argument_list
+      (splat_argument
+        (call
+          (identifier)
+          (identifier)))))
+  (call
+    (identifier)
+    (argument_list
+      (hash_splat_argument
+        (identifier))))
+  (call
+    (identifier)
+    (argument_list
+      (hash_splat_argument
+        (identifier))
+      (identifier)))
+  (call
+    (identifier)
+    (argument_list
+      (splat_argument)))
+  (call
+    (identifier)
+    (argument_list
+      (identifier)
+      (splat_argument)))
+  (call
+    (identifier)
+    (argument_list
+      (hash_splat_argument)))
+  (call
+    (identifier)
+    (argument_list
+      (identifier)
+      (hash_splat_argument))))
 
 ============================
 method call without parens
@@ -1298,7 +2022,15 @@ include D::E.f
 
 ---
 
-(program (call (identifier) (argument_list (call (scope_resolution (constant) (constant)) (identifier)))))
+(program
+  (call
+    (identifier)
+    (argument_list
+      (call
+        (scope_resolution
+          (constant)
+          (constant))
+        (identifier)))))
 
 ============================
 method call with line break
@@ -1323,10 +2055,25 @@ Foo
 ---
 
 (program
-  (call (call (constant) (identifier)) (identifier))
-  (call (constant) (identifier))
-  (call (call (constant) (identifier)) (identifier))
-  (call (call (constant) (comment) (identifier)) (identifier)))
+  (call
+    (call
+      (constant)
+      (identifier))
+    (identifier))
+  (call
+    (constant)
+    (identifier))
+  (call
+    (call
+      (constant)
+      (identifier))
+    (identifier))
+  (call
+    (call
+      (constant)
+      (comment)
+      (identifier))
+    (identifier)))
 
 ======================================
 method call with block argument do end
@@ -1363,42 +2110,57 @@ end
   (call
     method: (identifier)
     block: (do_block
-      parameters: (block_parameters (identifier))
-    body: (body_statement
-      (identifier)
+      parameters: (block_parameters
+        (identifier))
+      body: (body_statement
+        (identifier)
         (rescue
-          exceptions: (exceptions (constant))
-          body: (then (identifier)))
+          exceptions: (exceptions
+            (constant))
+          body: (then
+            (identifier)))
         (ensure
           (identifier)))))
   (call
     method: (identifier)
     block: (do_block
-      parameters: (block_parameters (identifier))
-      body: (body_statement (identifier))))
-  (call method: (identifier) block: (do_block))
+      parameters: (block_parameters
+        (identifier))
+      body: (body_statement
+        (identifier))))
   (call
     method: (identifier)
-    arguments: (argument_list (identifier))
+    block: (do_block))
+  (call
+    method: (identifier)
+    arguments: (argument_list
+      (identifier))
     block: (do_block
-      parameters: (block_parameters (identifier))
-      body: (body_statement (identifier))))
+      parameters: (block_parameters
+        (identifier))
+      body: (body_statement
+        (identifier))))
   (call
     receiver: (identifier)
     method: (identifier)
-    arguments: (argument_list (identifier))
+    arguments: (argument_list
+      (identifier))
     block: (do_block
-      parameters: (block_parameters (identifier))
-      body: (body_statement (identifier))))
+      parameters: (block_parameters
+        (identifier))
+      body: (body_statement
+        (identifier))))
   (call
     method: (identifier)
-    arguments: (argument_list (identifier))
+    arguments: (argument_list
+      (identifier))
     block: (do_block
       parameters: (block_parameters
         (keyword_parameter
           name: (identifier)
           value: (identifier))
-        (splat_parameter name: (identifier))))))
+        (splat_parameter
+          name: (identifier))))))
 
 ===============================
 method call with block argument curly
@@ -1414,20 +2176,31 @@ foo(bar, baz) { quux }
   (call
     method: (identifier)
     block: (block
-      parameters: (block_parameters (identifier))
-      body: (block_body (identifier))))
+      parameters: (block_parameters
+        (identifier))
+      body: (block_body
+        (identifier))))
   (call
     method: (identifier)
-    arguments: (argument_list (call
-      receiver: (identifier)
-      method: (identifier)
-      block: (block
-        parameters: (block_parameters (identifier))
-        body: (block_body (binary left: (identifier) right: (integer)))))))
+    arguments: (argument_list
+      (call
+        receiver: (identifier)
+        method: (identifier)
+        block: (block
+          parameters: (block_parameters
+            (identifier))
+          body: (block_body
+            (binary
+              left: (identifier)
+              right: (integer)))))))
   (call
     method: (identifier)
-    arguments: (argument_list (identifier) (identifier))
-    block: (block body: (block_body (identifier)))))
+    arguments: (argument_list
+      (identifier)
+      (identifier))
+    block: (block
+      body: (block_body
+        (identifier)))))
 
 ===============================
 method call with block shadow arguments
@@ -1454,7 +2227,6 @@ foo { |x, y ; i, j| }
         locals: (identifier)
         locals: (identifier)))))
 
-
 ===============================
 method call with capitalized name
 ===============================
@@ -1463,7 +2235,10 @@ request.GET
 
 ---
 
-(program (call (identifier) (constant)))
+(program
+  (call
+    (identifier)
+    (constant)))
 
 ===============================
 destructured parameters
@@ -1484,17 +2259,47 @@ end
 
 (program
   (lambda
-    (lambda_parameters (identifier) (splat_parameter (identifier)) (destructured_parameter (identifier) (identifier)))
-    (block))
-  (method (identifier)
-    (method_parameters (identifier) (splat_parameter (identifier)) (destructured_parameter (identifier) (identifier))))
-  (method (identifier)
-    (method_parameters (identifier) (splat_parameter (identifier)) (destructured_parameter (identifier) (identifier))))
-  (call (identifier) (do_block
-    (block_parameters
+    (lambda_parameters
       (identifier)
-      (destructured_parameter (identifier) (identifier) (splat_parameter (identifier)) (destructured_parameter (identifier) (identifier)))
-      (splat_parameter (identifier))))))
+      (splat_parameter
+        (identifier))
+      (destructured_parameter
+        (identifier)
+        (identifier)))
+    (block))
+  (method
+    (identifier)
+    (method_parameters
+      (identifier)
+      (splat_parameter
+        (identifier))
+      (destructured_parameter
+        (identifier)
+        (identifier))))
+  (method
+    (identifier)
+    (method_parameters
+      (identifier)
+      (splat_parameter
+        (identifier))
+      (destructured_parameter
+        (identifier)
+        (identifier))))
+  (call
+    (identifier)
+    (do_block
+      (block_parameters
+        (identifier)
+        (destructured_parameter
+          (identifier)
+          (identifier)
+          (splat_parameter
+            (identifier))
+          (destructured_parameter
+            (identifier)
+            (identifier)))
+        (splat_parameter
+          (identifier))))))
 
 ==================================================
 element reference and method with array arguments
@@ -1507,9 +2312,18 @@ foo[1]
 ---
 
 (program
-  (call method: (identifier) arguments: (argument_list (array)))
-  (call method: (identifier) arguments: (argument_list (array (integer))))
-  (element_reference object: (identifier) (integer)))
+  (call
+    method: (identifier)
+    arguments: (argument_list
+      (array)))
+  (call
+    method: (identifier)
+    arguments: (argument_list
+      (array
+        (integer))))
+  (element_reference
+    object: (identifier)
+    (integer)))
 
 =====================================
 element reference on call expression
@@ -1522,21 +2336,68 @@ d.find { |x| x > 1 } [0] == 0
 ---
 
 (program
-  (element_reference (call (identifier) (argument_list (identifier))) (integer))
+  (element_reference
+    (call
+      (identifier)
+      (argument_list
+        (identifier)))
+    (integer))
   (element_reference
     (call
       (identifier)
       (identifier)
-      (block (block_parameters (identifier)) (block_body (binary (identifier) (integer)))))
+      (block
+        (block_parameters
+          (identifier))
+        (block_body
+          (binary
+            (identifier)
+            (integer)))))
     (integer))
   (binary
     (element_reference
       (call
         (identifier)
         (identifier)
-        (block (block_parameters (identifier)) (block_body (binary (identifier) (integer)))))
+        (block
+          (block_parameters
+            (identifier))
+          (block_body
+            (binary
+              (identifier)
+              (integer)))))
       (integer))
     (integer)))
+
+============================
+element reference with block
+============================
+
+foo[:bar] { |baz| baz }
+
+foo[:bar] do |baz|
+  baz
+end
+
+---
+
+(program
+  (element_reference
+    (identifier)
+    (simple_symbol)
+    (block
+      (block_parameters
+        (identifier))
+      (block_body
+        (identifier))))
+  (element_reference
+    (identifier)
+    (simple_symbol)
+    (do_block
+      (block_parameters
+        (identifier))
+      (body_statement
+        (identifier)))))
 
 ======================================
 call with array and block
@@ -1553,14 +2414,25 @@ end
 (program
   (call
     (identifier)
-    (argument_list (array (integer)))
-    (block (block_parameters (identifier)) (block_body (identifier))))
+    (argument_list
+      (array
+        (integer)))
+    (block
+      (block_parameters
+        (identifier))
+      (block_body
+        (identifier))))
   (call
     (identifier)
-    (argument_list (array (integer)))
+    (argument_list
+      (array
+        (integer)))
     (do_block
-      (body_statement (call (identifier) (argument_list (integer)))))))
-
+      (body_statement
+        (call
+          (identifier)
+          (argument_list
+            (integer)))))))
 
 ========================================================================
 call with normal and keyword argument with value that looks like a block
@@ -1571,9 +2443,29 @@ render "foo/bars/show", locals: { display_text: dt, safe_text: "hello" }
 ---
 
 (program
-  (call (identifier) (argument_list (string (string_content)) (pair (hash_key_symbol) (hash))))
-  (call (identifier) (argument_list (string (string_content)) (pair (hash_key_symbol) (hash (pair (hash_key_symbol) (identifier)) (pair (hash_key_symbol) (string (string_content)))))))
-)
+  (call
+    (identifier)
+    (argument_list
+      (string
+        (string_content))
+      (pair
+        (hash_key_symbol)
+        (hash))))
+  (call
+    (identifier)
+    (argument_list
+      (string
+        (string_content))
+      (pair
+        (hash_key_symbol)
+        (hash
+          (pair
+            (hash_key_symbol)
+            (identifier))
+          (pair
+            (hash_key_symbol)
+            (string
+              (string_content))))))))
 
 ========================================================================
 call with keyword argument on different lines
@@ -1654,7 +2546,6 @@ render "/foo/bar", params:
             value: (string
               (string_content))))))))
 
-
 ==============
 empty lambda expression
 ==============
@@ -1663,7 +2554,10 @@ lambda {}
 
 ---
 
-(program (call (identifier) (block)))
+(program
+  (call
+    (identifier)
+    (block)))
 
 ==================
 lambda expressions
@@ -1676,9 +2570,26 @@ lambda(&lambda{})
 ---
 
 (program
-  (call (identifier) (block (block_body (identifier))))
-  (call (identifier) (argument_list (block_argument (identifier))) (block (block_body (identifier))))
-  (call (identifier) (argument_list (block_argument (call (identifier) (block))))))
+  (call
+    (identifier)
+    (block
+      (block_body
+        (identifier))))
+  (call
+    (identifier)
+    (argument_list
+      (block_argument
+        (identifier)))
+    (block
+      (block_body
+        (identifier))))
+  (call
+    (identifier)
+    (argument_list
+      (block_argument
+        (call
+          (identifier)
+          (block))))))
 
 ====================
 lambda expression with an arg
@@ -1688,7 +2599,14 @@ lambda { |foo| 1 }
 
 ---
 
-(program (call (identifier) (block (block_parameters (identifier)) (block_body (integer)))))
+(program
+  (call
+    (identifier)
+    (block
+      (block_parameters
+        (identifier))
+      (block_body
+        (integer)))))
 
 ===========================
 lambda expression with multiple args
@@ -1701,7 +2619,17 @@ lambda { |a, b, c|
 
 ---
 
-(program (call (identifier) (block (block_parameters (identifier) (identifier) (identifier)) (block_body (integer) (integer)))))
+(program
+  (call
+    (identifier)
+    (block
+      (block_parameters
+        (identifier)
+        (identifier)
+        (identifier))
+      (block_body
+        (integer)
+        (integer)))))
 
 ===========================
 lambda expression with trailing comma
@@ -1713,7 +2641,15 @@ lambda { |a, b,|
 
 ---
 
-(program (call (identifier) (block (block_parameters (identifier) (identifier)) (block_body (integer)))))
+(program
+  (call
+    (identifier)
+    (block
+      (block_parameters
+        (identifier)
+        (identifier))
+      (block_body
+        (integer)))))
 
 ===========================
 lambda expression with optional arg
@@ -1725,7 +2661,17 @@ lambda { |a, b=nil|
 
 ---
 
-(program (call (identifier) (block (block_parameters (identifier) (optional_parameter (identifier) (nil))) (block_body (integer)))))
+(program
+  (call
+    (identifier)
+    (block
+      (block_parameters
+        (identifier)
+        (optional_parameter
+          (identifier)
+          (nil)))
+      (block_body
+        (integer)))))
 
 ===========================
 lambda expression with keyword arg
@@ -1737,9 +2683,17 @@ lambda { |a, b: nil|
 
 ---
 
-(program (call
-  (identifier)
-  (block (block_parameters (identifier) (keyword_parameter (identifier) (nil))) (block_body (integer)))))
+(program
+  (call
+    (identifier)
+    (block
+      (block_parameters
+        (identifier)
+        (keyword_parameter
+          (identifier)
+          (nil)))
+      (block_body
+        (integer)))))
 
 ====================
 lambda expression with do end
@@ -1751,7 +2705,14 @@ end
 
 ---
 
-(program (call (identifier) (do_block (block_parameters (identifier)) (body_statement (integer)))))
+(program
+  (call
+    (identifier)
+    (do_block
+      (block_parameters
+        (identifier))
+      (body_statement
+        (integer)))))
 
 ============================
 lambda and proc as variables
@@ -1764,9 +2725,21 @@ proc = proc {}
 ---
 
 (program
-  (assignment (identifier) (call (constant) (identifier)))
-  (assignment (identifier) (call (identifier) (block)))
-  (assignment (identifier) (call (identifier) (block))))
+  (assignment
+    (identifier)
+    (call
+      (constant)
+      (identifier)))
+  (assignment
+    (identifier)
+    (call
+      (identifier)
+      (block)))
+  (assignment
+    (identifier)
+    (call
+      (identifier)
+      (block))))
 
 ===============================
 backslash-newline as line continuation
@@ -1786,11 +2759,18 @@ foo \
 (program
   (call
     (identifier)
-    (argument_list (identifier) (identifier)))
-  (string (string_content) (escape_sequence) (string_content))
+    (argument_list
+      (identifier)
+      (identifier)))
+  (string
+    (string_content)
+    (escape_sequence)
+    (string_content))
   (call
     (identifier)
-    (argument_list (string (string_content)))))
+    (argument_list
+      (string
+        (string_content)))))
 
 ===============================
 basic division
@@ -1803,10 +2783,15 @@ x /
 ---
 
 (program
-  (binary (integer) (integer))
-  (binary (identifier) (identifier))
-  (binary (identifier) (integer))
-)
+  (binary
+    (integer)
+    (integer))
+  (binary
+    (identifier)
+    (identifier))
+  (binary
+    (identifier)
+    (integer)))
 
 ===============================
 division without spaces
@@ -1821,13 +2806,22 @@ Time.at(timestamp/1000)
 ---
 
 (program
-  (binary left: (identifier) right: (identifier))
-  (string (interpolation (identifier)))
+  (binary
+    left: (identifier)
+    right: (identifier))
+  (string
+    (interpolation
+      (identifier)))
   (call
     receiver: (constant)
     method: (identifier)
-    arguments: (argument_list (binary left: (identifier) right: (integer))))
-  (string (interpolation (identifier))))
+    arguments: (argument_list
+      (binary
+        left: (identifier)
+        right: (integer))))
+  (string
+    (interpolation
+      (identifier))))
 
 ===============================
 regex as parameter
@@ -1838,7 +2832,11 @@ foo /bar/
 ---
 
 (program
-  (call (identifier) (argument_list (regex (string_content)))))
+  (call
+    (identifier)
+    (argument_list
+      (regex
+        (string_content)))))
 
 ===============================
 regex with opening space
@@ -1849,7 +2847,10 @@ foo
 
 ---
 
-(program (identifier) (regex (string_content)))
+(program
+  (identifier)
+  (regex
+    (string_content)))
 
 ===============================
 forward slash operator as method
@@ -1860,7 +2861,13 @@ Foo / "bar"
 
 ---
 
-(program (binary (constant) (string (string_content))) (string (string_content)))
+(program
+  (binary
+    (constant)
+    (string
+      (string_content)))
+  (string
+    (string_content)))
 
 ===============================
 multiline regex
@@ -1871,4 +2878,6 @@ multiline regex
 
 ---
 
-(program (regex (string_content)))
+(program
+  (regex
+    (string_content)))
