@@ -494,6 +494,28 @@ end
 
 (program (class (constant) (body_statement (method (identifier)))))
 
+====================
+class with operators
+====================
+
+class A
+  def ==; end
+  def !=(other); end
+end
+
+---
+
+(program
+  (class
+    name: (constant)
+    body: (body_statement
+      (method
+        name: (operator))
+      (method
+        name: (operator)
+        parameters: (method_parameters
+          (identifier))))))
+
 =========================================
 class within dynamically-computed module
 =========================================
