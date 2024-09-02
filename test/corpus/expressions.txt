@@ -1864,6 +1864,18 @@ end.g h { |i|
   k
 end
 
+foo bar do |x|
+  x
+end.each &:sort
+
+foo do |x|
+  x
+end.each(&:sort)
+
+foo bar do |x|
+  x
+end.each(&:sort)
+
 ---
 
 (program
@@ -1893,7 +1905,47 @@ end
         method: (identifier)
         block: (do_block
           body: (body_statement
-            (identifier)))))))
+            (identifier))))))
+  (call
+    receiver: (call
+      method: (identifier)
+      arguments: (argument_list
+        (identifier))
+      block: (do_block
+        parameters: (block_parameters
+          (identifier))
+        body: (body_statement
+          (identifier))))
+    method: (identifier)
+    arguments: (argument_list
+      (block_argument
+        (simple_symbol))))
+  (call
+    receiver: (call
+      method: (identifier)
+      block: (do_block
+        parameters: (block_parameters
+          (identifier))
+        body: (body_statement
+          (identifier))))
+    method: (identifier)
+    arguments: (argument_list
+      (block_argument
+        (simple_symbol))))
+  (call
+    receiver: (call
+      method: (identifier)
+      arguments: (argument_list
+        (identifier))
+      block: (do_block
+        parameters: (block_parameters
+          (identifier))
+        body: (body_statement
+          (identifier))))
+    method: (identifier)
+    arguments: (argument_list
+      (block_argument
+        (simple_symbol)))))
 
 ===============================
 method calls in binary expression
