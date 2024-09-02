@@ -3,7 +3,7 @@ package tree_sitter_ruby_test
 import (
 	"testing"
 
-	tree_sitter "github.com/smacker/go-tree-sitter"
+	tree_sitter "github.com/tree-sitter/go-tree-sitter"
 	tree_sitter_ruby "github.com/tree-sitter/tree-sitter-ruby/bindings/go"
 )
 
