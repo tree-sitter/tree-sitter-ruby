@@ -4,13 +4,18 @@
 //! tree-sitter [Parser][], and then use the parser to parse some code:
 //!
 //! ```
+//! use tree_sitter::Parser;
+//!
 //! let code = r#"
 //! def hello(name)
 //!  puts "Hello, #{name}!"
 //! end
 //! "#;
-//! let mut parser = tree_sitter::Parser::new();
-//! parser.set_language(&tree_sitter_ruby::language()).expect("Error loading Ruby grammar");
+//! let mut parser = Parser::new();
+//! let language = tree_sitter_ruby::LANGUAGE;
+//! parser
+//!     .set_language(&language.into())
+//!     .expect("Error loading Ruby parser");
 //! let tree = parser.parse(code, None).unwrap();
 //! assert!(!tree.root_node().has_error());
 //! ```
@@ -20,18 +25,14 @@
 //! [Parser]: https://docs.rs/tree-sitter/*/tree_sitter/struct.Parser.html
 //! [tree-sitter]: https://tree-sitter.github.io/
 
-use tree_sitter::Language;
+use tree_sitter_language::LanguageFn;
 
 extern "C" {
-    fn tree_sitter_ruby() -> Language;
+    fn tree_sitter_ruby() -> *const ();
 }
 
-/// Get the tree-sitter [Language][] for this grammar.
-///
-/// [Language]: https://docs.rs/tree-sitter/*/tree_sitter/struct.Language.html
-pub fn language() -> Language {
-    unsafe { tree_sitter_ruby() }
-}
+/// The tree-sitter [`LanguageFn`] for this grammar.
+pub const LANGUAGE: LanguageFn = unsafe { LanguageFn::from_raw(tree_sitter_ruby) };
 
 /// The content of the [`node-types.json`][] file for this grammar.
 ///
@@ -53,7 +54,7 @@ mod tests {
     fn test_can_load_grammar() {
         let mut parser = tree_sitter::Parser::new();
         parser
-            .set_language(&super::language())
-            .expect("Error loading Ruby grammar");
+            .set_language(&super::LANGUAGE.into())
+            .expect("Error loading Ruby parser");
     }
 }
