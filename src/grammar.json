@@ -4507,6 +4507,10 @@
                       "name": "_call"
                     },
                     {
+                      "type": "SYMBOL",
+                      "name": "_chained_command_call"
+                    },
+                    {
                       "type": "FIELD",
                       "name": "method",
                       "content": {
@@ -4580,6 +4584,10 @@
                           {
                             "type": "SYMBOL",
                             "name": "_call"
+                          },
+                          {
+                            "type": "SYMBOL",
+                            "name": "_chained_command_call"
                           },
                           {
                             "type": "FIELD",
@@ -4666,6 +4674,10 @@
                           {
                             "type": "SYMBOL",
                             "name": "_call"
+                          },
+                          {
+                            "type": "SYMBOL",
+                            "name": "_chained_command_call"
                           },
                           {
                             "type": "FIELD",
@@ -4748,6 +4760,10 @@
                     "name": "_call"
                   },
                   {
+                    "type": "SYMBOL",
+                    "name": "_chained_command_call"
+                  },
+                  {
                     "type": "FIELD",
                     "name": "method",
                     "content": {
@@ -4789,6 +4805,10 @@
                   {
                     "type": "SYMBOL",
                     "name": "_call"
+                  },
+                  {
+                    "type": "SYMBOL",
+                    "name": "_chained_command_call"
                   },
                   {
                     "type": "FIELD",

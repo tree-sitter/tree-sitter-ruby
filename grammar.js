@@ -636,7 +636,7 @@ module.exports = grammar({
     //
     // Because of this distinction, a lot of rules have two variants: the
     // normal variant, which can appear anywhere that an expression is valid,
-    // and the "command" varaint, which is only valid in a more limited set of
+    // and the "command" variant, which is only valid in a more limited set of
     // positions, because it can contain "command calls".
     //
     // The `_expression` rule can appear in relatively few places, but can
@@ -777,6 +777,7 @@ module.exports = grammar({
     call: $ => {
       const receiver = choice(
         $._call,
+        $._chained_command_call,
         field('method', choice(
           $._variable, $._function_identifier,
         )),
