@@ -29,29 +29,11 @@
                   "members": [
                     {
                       "type": "PATTERN",
-                      "value": "__END__[\\r\\n]"
+                      "value": "__END__"
                     },
                     {
                       "type": "SYMBOL",
                       "name": "uninterpreted"
-                    }
-                  ]
-                },
-                {
-                  "type": "SEQ",
-                  "members": [
-                    {
-                      "type": "STRING",
-                      "value": "__END__"
-                    },
-                    {
-                      "type": "ALIAS",
-                      "content": {
-                        "type": "STRING",
-                        "value": ""
-                      },
-                      "named": true,
-                      "value": "uninterpreted"
                     }
                   ]
                 }
