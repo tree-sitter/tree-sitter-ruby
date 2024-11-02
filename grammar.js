@@ -106,8 +106,7 @@ module.exports = grammar({
       optional($._statements),
       optional(
         choice(
-          seq(/__END__[\r\n]/, $.uninterpreted),
-          seq('__END__', alias('', $.uninterpreted)),
+          seq(/__END__/, $.uninterpreted),
         ),
       ),
     ),
@@ -1240,8 +1239,7 @@ module.exports = grammar({
  *
  * @param {RuleOrLiteral} separator
  *
- * @return {ChoiceRule}
- *
+ * @returns {ChoiceRule}
  */
 function sep(rule, separator) {
   return optional(sep1(rule, separator));
@@ -1254,8 +1252,7 @@ function sep(rule, separator) {
  *
  * @param {RuleOrLiteral} separator
  *
- * @return {SeqRule}
- *
+ * @returns {SeqRule}
  */
 function sep1(rule, separator) {
   return seq(rule, repeat(seq(separator, rule)));
@@ -1266,8 +1263,7 @@ function sep1(rule, separator) {
  *
  * @param {RuleOrLiteral} rule
  *
- * @return {SeqRule}
- *
+ * @returns {SeqRule}
  */
 function commaSep1(rule) {
   return sep1(rule, ',');
@@ -1278,8 +1274,7 @@ function commaSep1(rule) {
  *
  * @param {RuleOrLiteral} rule
  *
- * @return {ChoiceRule}
- *
+ * @returns {ChoiceRule}
  */
 function commaSep(rule) {
   return optional(commaSep1(rule));
