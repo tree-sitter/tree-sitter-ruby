@@ -1,0 +1,353 @@
+=======================
+RBS method signature
+=======================
+
+#: (Integer) -> String
+def foo(x)
+  x.to_s
+end
+
+---
+
+(program
+  (rbs_type_comment)
+  (method
+    name: (identifier)
+    parameters: (method_parameters
+      (identifier))
+    body: (body_statement
+      (call
+        receiver: (identifier)
+        method: (identifier)))))
+
+============================
+RBS variable annotation
+============================
+
+x = 42 #: Integer
+
+---
+
+(program
+  (assignment
+    left: (identifier)
+    right: (integer))
+  (rbs_type_comment))
+
+============================
+RBS type assertion
+============================
+
+x = 42 #: as Integer
+
+---
+
+(program
+  (assignment
+    left: (identifier)
+    right: (integer))
+  (rbs_type_comment))
+
+============================
+Multi-line RBS signature
+============================
+
+#: (
+#|   Integer,
+#|   String
+#| ) -> Float
+def foo(x, y)
+  x + y.to_f
+end
+
+---
+
+(program
+  (rbs_type_comment)
+  (rbs_continuation_comment)
+  (rbs_continuation_comment)
+  (rbs_continuation_comment)
+  (method
+    name: (identifier)
+    parameters: (method_parameters
+      (identifier)
+      (identifier))
+    body: (body_statement
+      (binary
+        left: (identifier)
+        right: (call
+          receiver: (identifier)
+          method: (identifier))))))
+
+============================
+RBS optional type
+============================
+
+#: (Integer?) -> String?
+def maybe_convert(x)
+  x&.to_s
+end
+
+---
+
+(program
+  (rbs_type_comment)
+  (method
+    name: (identifier)
+    parameters: (method_parameters
+      (identifier))
+    body: (body_statement
+      (call
+        receiver: (identifier)
+        method: (identifier)))))
+
+============================
+RBS union type
+============================
+
+#: (Integer | String) -> bool
+def valid?(x)
+  true
+end
+
+---
+
+(program
+  (rbs_type_comment)
+  (method
+    name: (identifier)
+    parameters: (method_parameters
+      (identifier))
+    body: (body_statement
+      (true))))
+
+============================
+RBS generic type
+============================
+
+#: (Array[Integer]) -> Integer
+def sum(numbers)
+  numbers.sum
+end
+
+---
+
+(program
+  (rbs_type_comment)
+  (method
+    name: (identifier)
+    parameters: (method_parameters
+      (identifier))
+    body: (body_statement
+      (call
+        receiver: (identifier)
+        method: (identifier)))))
+
+============================
+RBS keyword parameters
+============================
+
+#: (name: String, age: Integer) -> void
+def register(name:, age:)
+  puts "#{name}: #{age}"
+end
+
+---
+
+(program
+  (rbs_type_comment)
+  (method
+    name: (identifier)
+    parameters: (method_parameters
+      (keyword_parameter
+        name: (identifier))
+      (keyword_parameter
+        name: (identifier)))
+    body: (body_statement
+      (call
+        method: (identifier)
+        arguments: (argument_list
+          (string
+            (interpolation
+              (identifier))
+            (string_content)
+            (interpolation
+              (identifier))))))))
+
+============================
+RBS instance variable annotation
+============================
+
+@name = "John" #: String
+
+---
+
+(program
+  (assignment
+    left: (instance_variable)
+    right: (string
+      (string_content)))
+  (rbs_type_comment))
+
+============================
+RBS constant annotation
+============================
+
+VERSION = "1.0.0" #: String
+
+---
+
+(program
+  (assignment
+    left: (constant)
+    right: (string
+      (string_content)))
+  (rbs_type_comment))
+
+============================
+Mixed regular and RBS comments
+============================
+
+# This is a regular comment
+#: (String) -> Integer
+def length(str)
+  # Another regular comment
+  str.length
+end
+
+---
+
+(program
+  (comment)
+  (rbs_type_comment)
+  (method
+    name: (identifier)
+    parameters: (method_parameters
+      (identifier))
+    (comment)
+    body: (body_statement
+      (call
+        receiver: (identifier)
+        method: (identifier)))))
+
+============================
+RBS comment pattern inside string literal
+============================
+
+puts "#: Hello, World"
+
+---
+
+(program
+  (call
+    method: (identifier)
+    arguments: (argument_list
+      (string
+        (string_content)))))
+
+============================
+RBS comment pattern inside heredoc
+============================
+
+puts <<TEXT
+#: This should not be a type comment
+TEXT
+
+---
+
+(program
+  (call
+    method: (identifier)
+    arguments: (argument_list
+      (heredoc_beginning)))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end)))
+
+============================
+RBS comment pattern in percent strings
+============================
+
+puts %q{#: Not a type comment}
+puts %Q{#: Also not a type comment}
+
+---
+
+(program
+  (call
+    method: (identifier)
+    arguments: (argument_list
+      (string
+        (string_content))))
+  (call
+    method: (identifier)
+    arguments: (argument_list
+      (string
+        (string_content)))))
+
+============================
+RBS comment pattern in backquoted strings
+============================
+
+puts `echo "#: Command output, not type annotation"`
+
+---
+
+(program
+  (call
+    method: (identifier)
+    arguments: (argument_list
+      (subshell
+        (string_content)))))
+
+============================
+RBS comment pattern in regular expressions
+============================
+
+puts /#: Pattern, not type annotation/.match("test")
+
+---
+
+(program
+  (call
+    method: (identifier)
+    arguments: (argument_list
+      (call
+        receiver: (regex
+          (string_content))
+        method: (identifier)
+        arguments: (argument_list
+          (string
+            (string_content)))))))
+
+============================
+RBS comment pattern in single-quoted strings
+============================
+
+puts '#: Single quoted, not type annotation'
+
+---
+
+(program
+  (call
+    method: (identifier)
+    arguments: (argument_list
+      (string
+        (string_content)))))
+
+============================
+RBS pattern in comment with RBS pattern
+============================
+
+# #: This comment contains #: pattern
+puts "test"
+
+---
+
+(program
+  (comment)
+  (call
+    method: (identifier)
+    arguments: (argument_list
+      (string
+        (string_content)))))

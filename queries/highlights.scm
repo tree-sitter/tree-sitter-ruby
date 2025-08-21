@@ -128,6 +128,10 @@
 
 (comment) @comment
 
+; RBS Type Annotations
+(rbs_type_comment) @type.annotation
+(rbs_continuation_comment) @type.annotation
+
 ; Operators
 
 [

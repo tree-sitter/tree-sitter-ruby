@@ -76,6 +76,8 @@ module.exports = grammar({
 
   extras: $ => [
     $.comment,
+    $.rbs_type_comment,
+    $.rbs_continuation_comment,
     $.heredoc_body,
     /\s/,
     /\\\r?\n/,
@@ -1067,6 +1069,17 @@ module.exports = grammar({
         /[\s*]*=end.*/,
       ),
     ))),
+
+    // Simplified RBS type annotations - just recognize the pattern
+    rbs_type_comment: _ => token(seq(
+      '#:',
+      /.*/
+    )),
+
+    rbs_continuation_comment: _ => token(seq(
+      '#|',
+      /.*/
+    )),
 
     integer: _ => /0[bB][01](_?[01])*|0[oO]?[0-7](_?[0-7])*|(0[dD])?\d(_?\d)*|0[xX][0-9a-fA-F](_?[0-9a-fA-F])*/,
     _int_or_float: $ => choice($.integer, $.float),
