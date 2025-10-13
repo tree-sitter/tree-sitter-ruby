@@ -1216,11 +1216,30 @@ module.exports = grammar({
 
     lambda: $ => seq(
       '->',
-      field('parameters', optional(choice(
-        alias($.parameters, $.lambda_parameters),
-        alias($.bare_parameters, $.lambda_parameters),
-      ))),
+      // Optional parameters: either parenthesized, bare, or absent
+      optional(
+        field(
+          'parameters',
+          alias(
+            choice(
+              $.lambda_parameters_with_parens,
+              $.bare_parameters
+            ),
+            $.lambda_parameters
+          )
+        )
+      ),
+      // Body can be a regular or "do" block
       field('body', choice($.block, $.do_block)),
+    ),
+
+
+    // Lambda parameters with optional shadow variables: (a, b; x, y)
+    lambda_parameters_with_parens: $ => seq(
+      '(',
+      seq(commaSep($._formal_parameter), optional(',')),
+      optional(seq(';', sep1(field('locals', $.identifier), ','))),
+      ')',
     ),
 
     empty_statement: _ => prec(-1, ';'),
