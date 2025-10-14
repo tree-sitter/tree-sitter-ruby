@@ -2407,7 +2407,7 @@
         "required": false,
         "types": [
           {
-            "type": "_arg",
+            "type": "_expression",
             "named": true
           },
           {
@@ -3081,7 +3081,7 @@
         "required": false,
         "types": [
           {
-            "type": "_arg",
+            "type": "_expression",
             "named": true
           },
           {

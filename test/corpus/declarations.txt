@@ -57,6 +57,62 @@ def foo() = bar rescue (print "error")
   )
 )
 
+=========================================
+"end"-less method with command calls
+=========================================
+
+def foo() = raise NotImplementedError
+def a1 = puts 1
+def a2 = return puts 1
+def c1 = raise "dead"
+def c2 = return raise "dead"
+def g2 = return nil
+def id2(x) = return x
+
+---
+
+(program
+  (method 
+    name: (identifier) 
+    parameters: (method_parameters)
+    body: (call 
+      method: (identifier) 
+      arguments: (argument_list (constant))))
+  (method 
+    name: (identifier)
+    body: (call 
+      method: (identifier) 
+      arguments: (argument_list (integer))))
+  (method 
+    name: (identifier)
+    body: (return 
+      (argument_list 
+        (call 
+          method: (identifier) 
+          arguments: (argument_list (integer))))))
+  (method 
+    name: (identifier)
+    body: (call 
+      method: (identifier) 
+      arguments: (argument_list (string (string_content)))))
+  (method 
+    name: (identifier)
+    body: (return 
+      (argument_list 
+        (call 
+          method: (identifier) 
+          arguments: (argument_list (string (string_content)))))))
+  (method 
+    name: (identifier)
+    body: (return 
+      (argument_list (nil))))
+  (method 
+    name: (identifier)
+    parameters: (method_parameters (identifier))
+    body: (return 
+      (argument_list (identifier))))
+)
+
 ===========================
 method as attribute setter
 ===========================

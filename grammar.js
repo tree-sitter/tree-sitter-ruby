@@ -37,6 +37,11 @@ const ALPHA_CHAR = /[^\x00-\x1F\s0-9:;`"'@$#.,|^&<=>+\-*/\\%?!~()\[\]{}]/;
 module.exports = grammar({
   name: 'ruby',
   inline: $ => [$._arg_rhs, $._call_operator],
+  conflicts: $ => [
+    [$._expression, $._chained_command_call],
+    [$._pattern_expr_alt, $.alternative_pattern],
+    [$._array_pattern_n, $.as_pattern, $._find_pattern_body],
+  ],
   externals: $ => [
     $._line_break,
     $._no_line_break,
@@ -159,7 +164,8 @@ module.exports = grammar({
     _method_rest: $ => seq(
       field('name', $._method_name),
       choice(
-        $._body_expr,
+        prec(2, $._body_expr),
+        // with parameters
         seq(
           field('parameters', alias($.parameters, $.method_parameters)),
           choice(
@@ -168,6 +174,7 @@ module.exports = grammar({
           ),
 
         ),
+        // without parameters but with body
         seq(
           optional(
             field('parameters', alias($.bare_parameters, $.method_parameters)),
@@ -195,15 +202,16 @@ module.exports = grammar({
       ),
     ),
 
-    _body_expr: $ =>
+    _body_expr: $ => prec.right(1,
       seq(
         '=',
         field('body',
           choice(
-            $._arg,
-            alias($.rescue_modifier_arg, $.rescue_modifier),
+            $._expression,
+            alias($.rescue_modifier_expression, $.rescue_modifier),
           )),
       ),
+    ),
 
 
     parameters: $ => seq(
@@ -436,7 +444,7 @@ module.exports = grammar({
       $._pattern_expr_basic,
     ),
 
-    alternative_pattern: $ => seq(field('alternatives', $._pattern_expr_basic), repeat1(seq('|', field('alternatives', $._pattern_expr_basic)))),
+    alternative_pattern: $ => prec.right(seq(field('alternatives', $._pattern_expr_basic), repeat1(seq('|', field('alternatives', $._pattern_expr_basic))))),
 
     _array_pattern_body: $ => choice(
       $._pattern_expr,
@@ -507,11 +515,11 @@ module.exports = grammar({
       const begin = field('begin', $._pattern_primitive);
       const end = field('end', $._pattern_primitive);
       const operator = field('operator', choice('..', '...'));
-      return choice(
+      return prec.right(choice(
         seq(begin, operator, end),
         seq(operator, end),
         seq(begin, operator),
-      );
+      ));
     },
 
     _pattern_primitive: $ => choice(
@@ -897,8 +905,7 @@ module.exports = grammar({
       const operator = field('operator', choice('..', '...'));
       return prec.right(PREC.RANGE, choice(
         seq(begin, operator, end),
-        seq(operator, end),
-        seq(begin, operator),
+        seq(operator, end)
       ));
     },
 
