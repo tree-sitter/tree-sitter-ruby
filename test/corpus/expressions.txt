@@ -563,6 +563,29 @@ a..b
     (identifier)))
 
 ===============
+begin range
+===============
+
+a..
+
+---
+
+(program
+  (range
+    begin: (identifier)))
+
+===============
+end range
+===============
+
+..b
+
+---
+
+(program
+  (range
+    end: (identifier)))
+===============
 exclusive range
 ===============
 

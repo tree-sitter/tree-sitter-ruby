@@ -905,7 +905,8 @@ module.exports = grammar({
       const operator = field('operator', choice('..', '...'));
       return prec.right(PREC.RANGE, choice(
         seq(begin, operator, end),
-        seq(operator, end)
+        seq(operator, end),
+        seq(begin, operator),
       ));
     },
 
