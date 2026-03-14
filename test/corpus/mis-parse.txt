@@ -1,0 +1,687 @@
+=================================
+no interpolation or escape sequences in single quoted heredoc
+=================================
+
+<<'EOF'
+This is \not\ an interpolation: #{foo}
+EOF
+
+<<~'EOF'
+This is \not\ an interpolation: #{foo}
+EOF
+
+<<-'EOF'
+This is \not\ an interpolation: #{foo}
+EOF
+
+---
+
+(program
+  (heredoc_beginning)
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end))
+  (heredoc_beginning)
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end))
+  (heredoc_beginning)
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end))
+)
+
+===================================
+Escaped characters in %w arrays
+===================================
+
+%W(white\  \  \ \  \ space)
+%w[/ | \\]
+%w[\n]
+%w{ | / - \\ }
+%w[; \\ \r \n]
+run(%W(find #{path} -mindepth 1 -maxdepth #{MAX_ARCHIVE_DEPTH} -type f \( -name \*.tar -o -name \*.bz2 -o -name \*.tar.gz -o -name \*.zip \) -mmin +#{mmin} -delete))
+    
+---
+(program
+  (string_array
+    (bare_string
+      (string_content)
+      (escape_sequence))
+    (bare_string
+      (escape_sequence))
+    (bare_string
+      (escape_sequence)
+      (escape_sequence))
+    (bare_string
+      (escape_sequence)
+      (string_content)))
+  (string_array
+    (bare_string
+      (string_content))
+    (bare_string
+      (string_content))
+    (bare_string
+      (string_content)))
+  (string_array
+    (bare_string
+      (string_content)))
+  (string_array
+    (bare_string
+      (string_content))
+    (bare_string
+      (string_content))
+    (bare_string
+      (string_content))
+    (bare_string
+      (string_content)))
+  (string_array
+    (bare_string
+      (string_content))
+    (bare_string
+      (string_content))
+    (bare_string
+      (string_content))
+    (bare_string
+      (string_content)))
+  (call
+    method: (identifier)
+    arguments: (argument_list
+      (string_array
+        (bare_string
+          (string_content))
+        (bare_string
+          (interpolation
+            (identifier)))
+        (bare_string
+          (string_content))
+        (bare_string
+          (string_content))
+        (bare_string
+          (string_content))
+        (bare_string
+          (interpolation
+            (constant)))
+        (bare_string
+          (string_content))
+        (bare_string
+          (string_content))
+        (bare_string
+          (escape_sequence))
+        (bare_string
+          (string_content))
+        (bare_string
+          (escape_sequence)
+          (string_content))
+        (bare_string
+          (string_content))
+        (bare_string
+          (string_content))
+        (bare_string
+          (escape_sequence)
+          (string_content))
+        (bare_string
+          (string_content))
+        (bare_string
+          (string_content))
+        (bare_string
+          (escape_sequence)
+          (string_content))
+        (bare_string
+          (string_content))
+        (bare_string
+          (string_content))
+        (bare_string
+          (escape_sequence)
+          (string_content))
+        (bare_string
+          (escape_sequence))
+        (bare_string
+          (string_content))
+        (bare_string
+          (string_content)
+          (interpolation
+            (identifier)))
+        (bare_string
+          (string_content))))))
+
+===================================
+Escape sequences have precedence over interpolation
+===================================
+
+/\c#{str}/
+
+---
+
+(program
+  (regex
+    (escape_sequence)
+    (string_content))
+)
+
+==========================
+Command call vs parenthesised argument list
+==========================
+
+foo 1 do end.bar(1)
+foo 1 do end.bar (1)
+---
+
+(program
+  (call
+    receiver: (call
+      method: (identifier)
+      arguments: (argument_list
+        (integer))
+      block: (do_block))
+    method: (identifier)
+    arguments: (argument_list
+      (integer)))
+  (call
+    receiver: (call
+      method: (identifier)
+      arguments: (argument_list
+        (integer))
+      block: (do_block))
+    method: (identifier)
+    arguments: (argument_list
+      (parenthesized_statements
+        (integer)))))
+
+============================
+A special variable is not a method name
+============================
+
+foo -1
+@foo -1
+@@foo -1
+$foo -1
+
+---
+
+(program
+  (call
+    method: (identifier)
+    arguments: (argument_list
+      (unary
+        operand: (integer))))
+  (binary
+    left: (instance_variable)
+    right: (integer))
+  (binary
+    left: (class_variable)
+    right: (integer))
+  (binary
+    left: (global_variable)
+    right: (integer)))
+
+
+====================
+unary operator / return; return is not allowed as left-operand
+====================
+
+return +1
+return +""
+return + ""
+return+""
+"" + return
+
+---
+
+(program
+  (return
+    (argument_list
+      (unary
+        operand: (string))))
+  (return
+    (argument_list
+      (unary
+        operand: (string))))
+  (return
+    (argument_list
+      (unary
+        operand: (string))))
+  (return
+    (argument_list
+      (unary
+        operand: (string))))
+  (binary
+    left: (string)
+    right: (return)))
+
+=======================
+special variable interpolation
+=======================
+
+"#@type/total"
+
+"#@foo"
+"#@@foo"
+"#$foo"
+"#$%"
+
+---
+
+(program
+  (string
+    (interpolation
+      (instance_variable))
+    (string_content))
+  (string
+    (interpolation
+      (instance_variable)))
+  (string
+    (interpolation
+      (class_variable)))
+  (string
+    (interpolation
+      (global_variable)))
+  (string (string_content))
+)
+
+===============================
+!= operator as method
+===============================
+
+foo!= "bar"
+foo != "bar"
+foo.!= "bar"
+
+---
+
+(program
+  (binary
+    left: (identifier)
+    right: (string
+      (string_content)))
+  (binary
+    left: (identifier)
+    right: (string
+      (string_content)))
+  (call
+    receiver: (identifier)
+    method: (operator)
+    arguments: (argument_list
+      (string
+        (string_content)))))
+
+=====================
+no comment in heredoc
+=====================
+
+<<EOF
+#{foo}##{bar}
+EOF
+
+---
+
+(program
+  (heredoc_beginning)
+  (heredoc_body
+    (heredoc_content)
+    (interpolation
+      (identifier))
+    (heredoc_content)
+    (interpolation
+      (identifier))
+    (heredoc_content)
+    (heredoc_end)))
+
+======================
+%-string vs binary %-operator
+======================
+
+%(1)
+%"foo"
+%%foo%
+1%3
+"foo"%"bar"
+"foo"%(bar)
+"foo" % "bar"
+
+---
+
+(program
+  (string
+    (string_content))
+  (string
+    (string_content))
+  (string
+    (string_content))
+  (binary
+    left: (integer)
+    right: (integer))
+  (binary
+    left: (string
+      (string_content))
+    right: (string
+      (string_content)))
+  (binary
+    left: (string
+      (string_content))
+    right: (parenthesized_statements
+      (identifier)))
+  (binary
+    left: (string
+      (string_content))
+    right: (string
+      (string_content))))
+
+
+============================
+variables are not functions
+============================
+
+opts [:start_with]||1
+opts[:increment_by]||1
+options = []
+options [:start_with]||1 
+options[:increment_by]||1 
+
+---
+
+(program
+  (call
+    method: (identifier)
+    arguments: (argument_list
+      (binary
+        left: (array
+          (simple_symbol))
+        right: (integer))))
+  (binary
+    left: (element_reference
+      object: (identifier)
+      (simple_symbol))
+    right: (integer))
+  (assignment
+    left: (identifier)
+    right: (array))
+  (binary
+    left: (element_reference
+      object: (identifier)
+      (simple_symbol))
+    right: (integer))
+  (binary
+    left: (element_reference
+      object: (identifier)
+      (simple_symbol))
+    right: (integer)))
+
+===========================
+Setter method with uppercase name
+===========================
+
+def Name=(arg)
+  @@Name = arg
+end
+self.Name=("foo")
+
+---
+
+(program
+  (method
+    name: (setter
+      name: (identifier))
+    parameters: (method_parameters
+      (identifier))
+    (assignment
+      left: (class_variable)
+      right: (identifier)))
+  (assignment
+    left: (call
+      receiver: (self)
+      method: (constant))
+    right: (parenthesized_statements
+      (string
+        (string_content)))))
+
+===============
+def !=
+===============
+
+def !=(other)
+  !(self == other)
+end
+  
+---
+
+(program
+  (method
+    name: (operator)
+    parameters: (method_parameters
+      (identifier))
+    (unary
+      operand: (parenthesized_statements
+        (binary
+          left: (self)
+          right: (identifier))))))
+
+===========================
+precedence of call vs unary
+===========================
+
+not (foo).empty?
+! (foo).empty?
+
+foo (+ 1.second), 1.second
+foo Bar, + 1.second
+
+---
+
+(program
+  (unary
+    operand: (call
+      receiver: (parenthesized_statements
+        (identifier))
+      method: (identifier)))
+  (unary
+    operand: (call
+      receiver: (parenthesized_statements
+        (identifier))
+      method: (identifier)))
+  (call
+    method: (identifier)
+    arguments: (argument_list
+      (parenthesized_statements
+        (unary
+          operand: (call
+            receiver: (integer)
+            method: (identifier))))
+      (call
+        receiver: (integer)
+        method: (identifier))))
+  (call
+    method: (identifier)
+    arguments: (argument_list
+      (constant)
+      (unary
+        operand: (call
+          receiver: (integer)
+          method: (identifier))))))
+          
+===================
+call vs binary +
+===================
+foo +big
+
+---
+
+(program
+  (call
+    method: (identifier)
+    arguments: (argument_list
+      (unary
+        operand: (identifier)))))
+
+===============================
+block argument vs & operator
+===============================
+
+!x & 2
+!x &2
+!x&2
+info.attr&0x8
+
+---
+
+(program
+  (binary
+    left: (unary
+      operand: (identifier))
+    right: (integer))
+  (unary
+    operand: (call
+      method: (identifier)
+      arguments: (argument_list
+        (block_argument
+          (integer)))))
+  (binary
+    left: (unary
+      operand: (identifier))
+    right: (integer))
+  (binary
+    left: (call
+      receiver: (identifier)
+      method: (identifier))
+    right: (integer)))
+
+===============================
+heredoc vs << operator
+===============================
+
+$*<<a
+x<<a
+$* <<a
+x <<a
+
+---
+
+(program
+  (binary
+    left: (global_variable)
+    right: (identifier))
+  (binary
+    left: (identifier)
+    right: (identifier))
+  (binary
+    left: (global_variable)
+    right: (identifier))
+  (call
+    method: (identifier)
+    arguments: (argument_list
+      (heredoc_beginning)))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end)))
+
+====================================
+singleton method on nil
+====================================    
+
+def nil.empty?
+  true
+end
+
+---
+
+(program
+  (singleton_method
+    object: (nil)
+    name: (identifier)
+    (true)))
+
+====================================
+line continuation / escape sequences
+====================================
+
+"\3\
+\4\
+"
+
+---
+
+(program
+  (string
+    (escape_sequence)
+    (escape_sequence)
+    (escape_sequence)
+    (escape_sequence)))
+
+=============================
+nested heredoc
+=============================
+
+  def test_nested_dedent_heredoc
+    bug = '[ruby-core:80977] [Bug #13536]'
+    str = <<~'E'
+    <<~"D"
+    #{
+    <<~"B"
+    this must be a valid ruby
+    B
+    }
+    D
+    E
+    assert_equal(str, Ripper.tokenize(str).join(""), bug)
+
+    str = <<~'E'
+    <<~"D"
+    #{
+    <<~"B"
+      this must be a valid ruby
+    B
+    }
+    D
+    E
+    assert_equal(str, Ripper.tokenize(str).join(""), bug)
+  end
+
+---
+
+(program
+  (method
+    name: (identifier)
+    (assignment
+      left: (identifier)
+      right: (string
+        (string_content)))
+    (assignment
+      left: (identifier)
+      right: (heredoc_beginning))
+    (heredoc_body
+      (heredoc_content)
+      (heredoc_end))
+    (call
+      method: (identifier)
+      arguments: (argument_list
+        (identifier)
+        (call
+          receiver: (call
+            receiver: (constant)
+            method: (identifier)
+            arguments: (argument_list
+              (identifier)))
+          method: (identifier)
+          arguments: (argument_list
+            (string)))
+        (identifier)))
+    (assignment
+      left: (identifier)
+      right: (heredoc_beginning))
+    (heredoc_body
+      (heredoc_content)
+      (heredoc_end))
+    (call
+      method: (identifier)
+      arguments: (argument_list
+        (identifier)
+        (call
+          receiver: (call
+            receiver: (constant)
+            method: (identifier)
+            arguments: (argument_list
+              (identifier)))
+          method: (identifier)
+          arguments: (argument_list
+            (string)))
+        (identifier)))))
