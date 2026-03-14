@@ -3883,7 +3883,8 @@
   },
   {
     "type": "comment",
-    "named": true
+    "named": true,
+    "extra": true
   },
   {
     "type": "def",
@@ -4000,6 +4001,16 @@
   {
     "type": "r",
     "named": false
+  },
+  {
+    "type": "rbs_continuation_comment",
+    "named": true,
+    "extra": true
+  },
+  {
+    "type": "rbs_type_comment",
+    "named": true,
+    "extra": true
   },
   {
     "type": "redo",
