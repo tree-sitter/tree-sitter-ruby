@@ -33,8 +33,8 @@
   "yield"
 ] @keyword
 
-((identifier) @keyword
- (#match? @keyword "^(private|protected|public)$"))
+((identifier) @function.builtin
+ (#match? @function.builtin "^(private|protected|public)$"))
 
 (constant) @constructor
 
