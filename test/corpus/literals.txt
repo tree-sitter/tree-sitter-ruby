@@ -2096,6 +2096,35 @@ regular expression with interpolation
   (regex
     (string_content)))
 
+==========================================
+regular expression with character classes
+==========================================
+
+/\d+/
+/\w+/
+/[[:alpha:]]/
+/[[[:alpha:]]\d]+/
+/[[[:alpha:]]\d]+/.match("foo")
+
+---
+
+(program
+  (regex
+    (string_content))
+  (regex
+    (string_content))
+  (regex
+    (string_content))
+  (regex
+    (string_content))
+  (call
+    receiver: (regex
+      (string_content))
+    method: (identifier)
+    arguments: (argument_list
+      (string
+        (string_content)))))
+
 =======================================================
 percent r regular expression with unbalanced delimiters
 =======================================================
