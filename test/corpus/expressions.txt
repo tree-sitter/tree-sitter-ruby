@@ -1704,6 +1704,13 @@ foo(&)
 foo(&, 1)
 foo &;
 foo 1, &;
+foo 1, & ;
+foo(1, &
+)
+foo(&->{})
+foo(& -> {})
+foo( &lambda {})
+foo( & lambda {})
 
 ---
 
@@ -1752,7 +1759,43 @@ foo 1, &;
     (identifier)
     (argument_list
       (integer)
-      (block_argument))))
+      (block_argument)))
+  (call
+    (identifier)
+    (argument_list
+      (integer)
+      (block_argument)))
+  (call
+    (identifier)
+    (argument_list
+      (integer)
+      (block_argument)))
+  (call
+    (identifier)
+    (argument_list
+      (block_argument
+        (lambda
+          (block)))))
+  (call
+    (identifier)
+    (argument_list
+      (block_argument
+        (lambda
+          (block)))))
+  (call
+    (identifier)
+    (argument_list
+      (block_argument
+        (call
+          (identifier)
+          (block)))))
+  (call
+    (identifier)
+    (argument_list
+      (block_argument
+        (call
+          (identifier)
+          (block))))))
 
 ===============================
 method call with splat argument

@@ -5866,7 +5866,12 @@
                 "type": "FIELD",
                 "name": "operator",
                 "content": {
-                  "type": "STRING",
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "_bitwise_and"
+                  },
+                  "named": false,
                   "value": "&"
                 }
               },
@@ -8309,6 +8314,10 @@
     },
     {
       "type": "SYMBOL",
+      "name": "_bitwise_and"
+    },
+    {
+      "type": "SYMBOL",
       "name": "_singleton_class_left_angle_left_langle"
     },
     {
@@ -8360,5 +8369,6 @@
     "_pattern_expr_basic",
     "_pattern_primitive",
     "_pattern_constant"
-  ]
+  ],
+  "reserved": {}
 }
