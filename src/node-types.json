@@ -2293,7 +2293,18 @@
   {
     "type": "lambda_parameters",
     "named": true,
-    "fields": {},
+    "fields": {
+      "locals": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      }
+    },
     "children": {
       "multiple": true,
       "required": false,
@@ -2395,7 +2406,7 @@
         "required": false,
         "types": [
           {
-            "type": "_arg",
+            "type": "_expression",
             "named": true
           },
           {
@@ -3073,7 +3084,7 @@
         "required": false,
         "types": [
           {
-            "type": "_arg",
+            "type": "_expression",
             "named": true
           },
           {

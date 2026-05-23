@@ -563,6 +563,29 @@ a..b
     (identifier)))
 
 ===============
+begin range
+===============
+
+a..
+
+---
+
+(program
+  (range
+    begin: (identifier)))
+
+===============
+end range
+===============
+
+..b
+
+---
+
+(program
+  (range
+    end: (identifier)))
+===============
 exclusive range
 ===============
 
@@ -2713,6 +2736,64 @@ end
         (identifier))
       (body_statement
         (integer)))))
+
+===============================
+lambda with shadow variables
+===============================
+
+a = 42
+->(;a) {
+  a = 1
+}.()
+
+---
+
+(program
+  (assignment
+    left: (identifier)
+    right: (integer))
+  (call
+    receiver: (lambda
+      parameters: (lambda_parameters
+        locals: (identifier))
+      body: (block
+        body: (block_body
+          (assignment
+            left: (identifier)
+            right: (integer)))))
+    arguments: (argument_list)))
+
+===============================
+lambda with shadow variables 2
+===============================
+
+def use(_) = nil
+a = 42
+-> {
+  use a
+}.()
+
+---
+
+(program
+  (method
+    name: (identifier)
+    parameters: (method_parameters
+      (identifier))
+    body: (nil))
+  (assignment
+    left: (identifier)
+    right: (integer))
+  (call
+    receiver: (lambda
+      body: (block
+        (comment)
+        body: (block_body
+          (call
+            method: (identifier)
+            arguments: (argument_list
+              (identifier))))))
+    arguments: (argument_list)))
 
 ============================
 lambda and proc as variables

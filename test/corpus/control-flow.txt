@@ -561,6 +561,110 @@ return
 
 (program (return))
 
+========================================
+return with invalid syntax (parentheses with multiple values)
+========================================
+
+def f; return (1,2); end
+
+---
+
+(program
+  (method
+    name: (identifier)
+    body: (body_statement
+      (return
+        (argument_list
+          (parenthesized_statements
+            (ERROR (integer))
+            (integer)))))))
+
+========================================
+return with invalid syntax (parentheses with space-separated values)
+========================================
+
+def f; return (1 2); end
+
+---
+
+(program
+  (method
+    name: (identifier)
+    body: (body_statement
+      (return
+        (argument_list
+          (parenthesized_statements
+            (integer)
+            (ERROR (integer))))))))
+
+========================================
+return with invalid syntax (space-separated values without comma)
+========================================
+
+def f; return 1 2; end
+
+---
+
+(program
+  (method
+    name: (identifier )
+    body: (body_statement
+      (return
+        (argument_list
+          (integer )))
+      (ERROR
+        (integer )))))
+
+========================================
+return with valid syntax (comma-separated values)
+========================================
+
+def f; return 1, 2 ; end
+
+---
+
+(program
+  (method
+    name: (identifier)
+    body: (body_statement
+      (return
+        (argument_list
+          (integer)
+          (integer))))))
+
+========================================
+return with valid syntax (single value)
+========================================
+
+def f; return 1; end
+
+---
+
+(program
+  (method
+    name: (identifier)
+    body: (body_statement
+      (return
+        (argument_list
+          (integer))))))
+
+========================================
+return with valid syntax (single value in parentheses)
+========================================
+
+def f;return (1);end
+
+---
+
+(program
+  (method
+    name: (identifier)
+    body: (body_statement
+      (return
+        (argument_list
+          (parenthesized_statements
+            (integer)))))))
+
 ====
 case
 ====
