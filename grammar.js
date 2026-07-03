@@ -300,7 +300,7 @@ module.exports = grammar({
     yield_command: $ => prec.left(seq('yield', alias($.command_argument_list, $.argument_list))),
     break_command: $ => prec.left(seq('break', alias($.command_argument_list, $.argument_list))),
     next_command: $ => prec.left(seq('next', alias($.command_argument_list, $.argument_list))),
-    return: $ => prec.left(seq('return', optional($.argument_list))),
+    return: $ => prec.left(seq('return', optional(alias($._return_argument_list, $.argument_list)))),
     yield: $ => prec.left(seq('yield', optional($.argument_list))),
     break: $ => prec.left(seq('break', optional($.argument_list))),
     next: $ => prec.left(seq('next', optional($.argument_list))),
@@ -1229,6 +1229,13 @@ module.exports = grammar({
       $._line_break,
       ';',
     ),
+
+    _return_argument_list: $ => seq(
+      token.immediate('('),
+      optional($._arg),
+      ')',
+    ),
+
   },
 });
 
