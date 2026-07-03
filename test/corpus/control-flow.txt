@@ -551,6 +551,40 @@ return foo
 
 (program (return (argument_list (identifier))))
 
+================================
+return with parenthesized values
+================================
+
+return(1)
+return()
+
+---
+
+(program
+  (return
+    (argument_list
+      (integer)))
+  (return
+    (argument_list)))
+
+===============================================
+return with parenthesized multiple values
+===============================================
+
+def f; return(1,2); end
+
+---
+
+(program
+  (method
+    (identifier)
+    (body_statement
+      (return
+        (argument_list
+          (integer)
+          (ERROR
+            (integer)))))))
+
 ====================
 return without value
 ====================

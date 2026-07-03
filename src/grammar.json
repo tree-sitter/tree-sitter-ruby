@@ -1218,8 +1218,13 @@
             "type": "CHOICE",
             "members": [
               {
-                "type": "SYMBOL",
-                "name": "argument_list"
+                "type": "ALIAS",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "_return_argument_list"
+                },
+                "named": true,
+                "value": "argument_list"
               },
               {
                 "type": "BLANK"
@@ -8194,6 +8199,34 @@
         {
           "type": "STRING",
           "value": ";"
+        }
+      ]
+    },
+    "_return_argument_list": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "IMMEDIATE_TOKEN",
+          "content": {
+            "type": "STRING",
+            "value": "("
+          }
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_arg"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": ")"
         }
       ]
     }
