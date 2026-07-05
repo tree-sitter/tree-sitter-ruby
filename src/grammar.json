@@ -1019,7 +1019,7 @@
           "type": "ALIAS",
           "content": {
             "type": "SYMBOL",
-            "name": "_singleton_class_left_angle_left_langle"
+            "name": "_singleton_class_left_angle_left_angle"
           },
           "named": false,
           "value": "<<"
@@ -8309,7 +8309,7 @@
     },
     {
       "type": "SYMBOL",
-      "name": "_singleton_class_left_angle_left_langle"
+      "name": "_singleton_class_left_angle_left_angle"
     },
     {
       "type": "SYMBOL",
