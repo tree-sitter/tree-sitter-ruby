@@ -70,6 +70,7 @@ module.exports = grammar({
     $._constant_suffix,
     $._hash_splat_star_star,
     $._binary_star_star,
+    $._modulo_assignment,
     $._element_reference_bracket,
     $._short_interpolation,
   ],
@@ -873,13 +874,13 @@ module.exports = grammar({
 
     operator_assignment: $ => prec.right(PREC.ASSIGN, seq(
       field('left', $._lhs),
-      field('operator', choice('+=', '-=', '*=', '**=', '/=', '||=', '|=', '&&=', '&=', '%=', '>>=', '<<=', '^=')),
+      field('operator', choice('+=', '-=', '*=', '**=', '/=', '||=', '|=', '&&=', '&=', alias($._modulo_assignment, '%='), '>>=', '<<=', '^=')),
       field('right', $._arg_rhs),
     )),
 
     command_operator_assignment: $ => prec.right(PREC.ASSIGN, seq(
       field('left', $._lhs),
-      field('operator', choice('+=', '-=', '*=', '**=', '/=', '||=', '|=', '&&=', '&=', '%=', '>>=', '<<=', '^=')),
+      field('operator', choice('+=', '-=', '*=', '**=', '/=', '||=', '|=', '&&=', '&=', alias($._modulo_assignment, '%='), '>>=', '<<=', '^=')),
       field('right', choice($._expression, alias($.rescue_modifier_expression, $.rescue_modifier))),
     )),
 

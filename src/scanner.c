@@ -38,6 +38,7 @@ typedef enum {
     CONSTANT_SUFFIX,
     HASH_SPLAT_STAR_STAR,
     BINARY_STAR_STAR,
+    MODULO_ASSIGNMENT,
     ELEMENT_REFERENCE_BRACKET,
     SHORT_INTERPOLATION,
 
@@ -565,11 +566,7 @@ static inline bool scan_open_delimiter(Scanner *scanner, TSLexer *lexer, Literal
                 case ']':
                 case '}':
                 case '>':
-                // TODO: Implement %= as external rule and re-enable = as a valid
-                // unbalanced delimiter. That will be necessary due to ambiguity
-                // between &= assignment operator and %=...= as string
-                // content delimiter.
-                // case '=':
+                case '=':
                 case '+':
                 case '-':
                 case '~':
@@ -993,6 +990,18 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
                         }
                 }
 
+                return false;
+            }
+            break;
+
+        case '%':
+            if (valid_symbols[MODULO_ASSIGNMENT]) {
+                advance(lexer);
+                if (lexer->lookahead == '=') {
+                    advance(lexer);
+                    lexer->result_symbol = MODULO_ASSIGNMENT;
+                    return true;
+                }
                 return false;
             }
             break;
