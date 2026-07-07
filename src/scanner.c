@@ -87,6 +87,24 @@ static inline void reset(Scanner *scanner) {
     array_delete(&scanner->open_heredocs);
 }
 
+static inline bool can_read(unsigned size, unsigned length, unsigned bytes) {
+    return size <= length && bytes <= length - size;
+}
+
+static inline bool is_valid_literal_type(TokenType type) {
+    switch (type) {
+        case STRING_START:
+        case SYMBOL_START:
+        case SUBSHELL_START:
+        case REGEX_START:
+        case STRING_ARRAY_START:
+        case SYMBOL_ARRAY_START:
+            return true;
+        default:
+            return false;
+    }
+}
+
 static inline unsigned serialize(Scanner *scanner, char *buffer) {
     unsigned size = 0;
 
@@ -133,26 +151,51 @@ static inline void deserialize(Scanner *scanner, const char *buffer, unsigned le
 
     uint8_t literal_depth = buffer[size++];
     for (unsigned j = 0; j < literal_depth; j++) {
+        if (!can_read(size, length, 5)) {
+            reset(scanner);
+            return;
+        }
+
         Literal literal = {0};
-        literal.type = (TokenType)(buffer[size++]);
+        literal.type = (TokenType)(uint8_t)buffer[size++];
         literal.open_delimiter = (unsigned char)buffer[size++];
         literal.close_delimiter = (unsigned char)buffer[size++];
         literal.nesting_depth = (unsigned char)buffer[size++];
         literal.allows_interpolation = buffer[size++];
+        if (!is_valid_literal_type(literal.type) || literal.nesting_depth == 0) {
+            reset(scanner);
+            return;
+        }
         array_push(&scanner->literal_stack, literal);
+    }
+
+    if (!can_read(size, length, 1)) {
+        reset(scanner);
+        return;
     }
 
     uint8_t open_heredoc_count = buffer[size++];
     for (unsigned j = 0; j < open_heredoc_count; j++) {
+        if (!can_read(size, length, 3 + sizeof(uint32_t))) {
+            reset(scanner);
+            return;
+        }
+
         Heredoc heredoc = {0};
         heredoc.end_word_indentation_allowed = buffer[size++];
         heredoc.allows_interpolation = buffer[size++];
         heredoc.started = buffer[size++];
 
-        heredoc.word = (String)array_new();
         uint32_t word_length;
         memcpy(&word_length, &buffer[size], sizeof(uint32_t));
         size += sizeof(uint32_t);
+
+        if (word_length == 0 || !can_read(size, length, word_length)) {
+            reset(scanner);
+            return;
+        }
+
+        heredoc.word = (String)array_new();
         array_reserve(&heredoc.word, word_length);
         memcpy(heredoc.word.contents, &buffer[size], word_length);
         heredoc.word.size = word_length;
@@ -160,7 +203,9 @@ static inline void deserialize(Scanner *scanner, const char *buffer, unsigned le
         array_push(&scanner->open_heredocs, heredoc);
     }
 
-    assert(size == length);
+    if (size != length) {
+        reset(scanner);
+    }
 }
 
 static inline bool scan_whitespace(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols) {
