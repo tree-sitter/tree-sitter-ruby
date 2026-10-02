@@ -40,6 +40,7 @@ typedef enum {
     BINARY_STAR_STAR,
     ELEMENT_REFERENCE_BRACKET,
     SHORT_INTERPOLATION,
+    LINE_COMMENT,
 
     NONE
 } TokenType;
@@ -860,6 +861,21 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
     }
 
     switch (lexer->lookahead) {
+        case '#':
+            if (valid_symbols[LINE_COMMENT]) {
+                advance(lexer);
+                while (!lexer->eof(lexer) && lexer->lookahead != '\n') {
+                    if (lexer->is_at_included_range_start(lexer)) {
+                        lexer->mark_end(lexer);
+                        lexer->result_symbol = LINE_COMMENT;
+                        return true;
+                    }
+                    advance(lexer);
+                }
+                return false;
+            }
+            break;
+
         case '&':
             if (valid_symbols[BLOCK_AMPERSAND]) {
                 advance(lexer);
