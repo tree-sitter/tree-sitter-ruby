@@ -62,6 +62,10 @@
         "named": true
       },
       {
+        "type": "method",
+        "named": true
+      },
+      {
         "type": "next",
         "named": true
       },
@@ -71,6 +75,10 @@
       },
       {
         "type": "return",
+        "named": true
+      },
+      {
+        "type": "singleton_method",
         "named": true
       },
       {

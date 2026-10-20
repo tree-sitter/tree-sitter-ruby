@@ -37,11 +37,6 @@ const ALPHA_CHAR = /[^\x00-\x1F\s0-9:;`"'@$#.,|^&<=>+\-*/\\%?!~()\[\]{}]/;
 module.exports = grammar({
   name: 'ruby',
   inline: $ => [$._arg_rhs, $._call_operator],
-  conflicts: $ => [
-    [$._expression, $._chained_command_call],
-    [$._pattern_expr_alt, $.alternative_pattern],
-    [$._array_pattern_n, $.as_pattern, $._find_pattern_body],
-  ],
   externals: $ => [
     $._line_break,
     $._no_line_break,
@@ -169,7 +164,7 @@ module.exports = grammar({
     _method_rest: $ => seq(
       field('name', $._method_name),
       choice(
-        prec(2, $._body_expr),
+        $._body_expr,
         // with parameters
         seq(
           field('parameters', alias($.parameters, $.method_parameters)),
@@ -207,16 +202,39 @@ module.exports = grammar({
       ),
     ),
 
-    _body_expr: $ => prec.right(1,
+    _body_expr: $ => prec(1,
       seq(
         '=',
         field('body',
           choice(
-            $._expression,
-            alias($.rescue_modifier_expression, $.rescue_modifier),
+            $._arg,
+            alias($.rescue_modifier_arg, $.rescue_modifier),
           )),
       ),
     ),
+
+    // `def foo = bar baz`: like parse.y's `endless_command`, a command body is only
+    // allowed where a command is, so these live in `_expression`, not `_primary`.
+    command_method: $ => seq('def', $._command_method_rest),
+
+    command_singleton_method: $ => seq(
+      'def',
+      seq(
+        choice(
+          field('object', $._variable),
+          seq('(', field('object', $._arg), ')'),
+        ),
+        choice('.', '::'),
+      ),
+      $._command_method_rest,
+    ),
+
+    _command_method_rest: $ => prec(1, seq(
+      field('name', $._method_name),
+      optional(field('parameters', alias($.parameters, $.method_parameters))),
+      '=',
+      field('body', choice($._expression, alias($.rescue_modifier_expression, $.rescue_modifier))),
+    )),
 
 
     parameters: $ => seq(
@@ -449,7 +467,7 @@ module.exports = grammar({
       $._pattern_expr_basic,
     ),
 
-    alternative_pattern: $ => prec.right(seq(field('alternatives', $._pattern_expr_basic), repeat1(seq('|', field('alternatives', $._pattern_expr_basic))))),
+    alternative_pattern: $ => seq(field('alternatives', $._pattern_expr_basic), repeat1(seq('|', field('alternatives', $._pattern_expr_basic)))),
 
     _array_pattern_body: $ => choice(
       $._pattern_expr,
@@ -520,11 +538,11 @@ module.exports = grammar({
       const begin = field('begin', $._pattern_primitive);
       const end = field('end', $._pattern_primitive);
       const operator = field('operator', choice('..', '...'));
-      return prec.right(choice(
+      return choice(
         seq(begin, operator, end),
         seq(operator, end),
         seq(begin, operator),
-      ));
+      );
     },
 
     _pattern_primitive: $ => choice(
@@ -667,6 +685,8 @@ module.exports = grammar({
       alias($.yield_command, $.yield),
       alias($.break_command, $.break),
       alias($.next_command, $.next),
+      alias($.command_method, $.method),
+      alias($.command_singleton_method, $.singleton_method),
       $.match_pattern,
       $.test_pattern,
       $._arg,
