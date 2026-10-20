@@ -32,6 +32,23 @@ symbol
   (simple_symbol))
 
 ======
+symbol with multi-byte characters
+======
+
+:言
+:你
+:일
+:@言
+
+---
+
+(program
+  (simple_symbol)
+  (simple_symbol)
+  (simple_symbol)
+  (simple_symbol))
+
+======
 symbol operators
 ======
 
