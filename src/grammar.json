@@ -7122,26 +7122,34 @@
                     "members": [
                       {
                         "type": "PATTERN",
-                        "value": "[^=]"
+                        "value": "[^=\\n].*\\n"
                       },
                       {
                         "type": "PATTERN",
-                        "value": "=[^e]"
+                        "value": "\\n"
                       },
                       {
                         "type": "PATTERN",
-                        "value": "=e[^n]"
+                        "value": "=([^e\\n].*)?\\n"
                       },
                       {
                         "type": "PATTERN",
-                        "value": "=en[^d]"
+                        "value": "=e([^n\\n].*)?\\n"
+                      },
+                      {
+                        "type": "PATTERN",
+                        "value": "=en([^d\\n].*)?\\n"
+                      },
+                      {
+                        "type": "PATTERN",
+                        "value": "=end[^\\s].*\\n"
                       }
                     ]
                   }
                 },
                 {
                   "type": "PATTERN",
-                  "value": "[\\s*]*=end.*"
+                  "value": "=end([ \\t\\r\\f\\v].*)?"
                 }
               ]
             }

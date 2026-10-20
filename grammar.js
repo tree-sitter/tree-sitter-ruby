@@ -1066,13 +1066,16 @@ module.exports = grammar({
       seq('#', /.*/),
       seq(
         /=begin.*\r?\n/,
+        // Body lines: anything but a line starting with `=end` + whitespace/EOL
         repeat(choice(
-          /[^=]/,
-          /=[^e]/,
-          /=e[^n]/,
-          /=en[^d]/,
+          /[^=\n].*\n/,
+          /\n/,
+          /=([^e\n].*)?\n/,
+          /=e([^n\n].*)?\n/,
+          /=en([^d\n].*)?\n/,
+          /=end[^\s].*\n/,
         )),
-        /[\s*]*=end.*/,
+        /=end([ \t\r\f\v].*)?/,
       ),
     ))),
 

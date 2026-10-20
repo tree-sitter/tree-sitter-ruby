@@ -94,6 +94,22 @@ multi-line block comments with almost end
 (program (comment))
 
 =========================
+block comment with =end not at line start
+=========================
+
+=begin
+hello
+world =end
+  =end
+=endx
+=end
+foo
+
+---
+
+(program (comment) (identifier))
+
+=========================
 block comment without newline after end
 =========================
 
