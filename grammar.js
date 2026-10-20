@@ -1278,7 +1278,7 @@ module.exports = grammar({
     // Lambda parameters with optional shadow variables: (a, b; x, y)
     lambda_parameters_with_parens: $ => seq(
       '(',
-      seq(commaSep($._formal_parameter), optional(',')),
+      commaSep($._formal_parameter),
       optional(seq(';', sep1(field('locals', $.identifier), ','))),
       ')',
     ),
