@@ -625,6 +625,25 @@ a...b
     (identifier)
     (identifier)))
 
+=========================
+range ending with a regex
+=========================
+
+(//..//)
+a.../ b/
+
+---
+
+(program
+  (parenthesized_statements
+    (range
+      begin: (regex)
+      end: (regex)))
+  (range
+    begin: (identifier)
+    end: (regex
+      (string_content))))
+
 ==========
 boolean or
 ==========

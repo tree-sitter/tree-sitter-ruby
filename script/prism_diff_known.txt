@@ -8,6 +8,5 @@ language/fixtures/utf16-le-nobom.rb
 # Known grammar bugs
 core/proc/parameters_spec.rb       # -> x: { }
 language/lambda_spec.rb            # -> a=a() { a }
-core/range/reverse_each_spec.rb    # (//..//)
 language/string_spec.rb            # %=str=
 core/proc/ruby2_keywords_spec.rb   # -> *a, b: { } (same bug as parameters_spec)
