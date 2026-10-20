@@ -1490,6 +1490,50 @@ un-terminated heredocs
     (heredoc_end)))
 
 ========================================
+nested heredocs
+========================================
+
+puts <<HERE
+  hello #{<<HERE}
+  world
+HERE
+HERE
+x = <<~A
+  #{
+    <<~B
+      b
+    B
+  }
+A
+
+---
+
+(program
+  (call
+    (identifier)
+    (argument_list (heredoc_beginning)))
+  (heredoc_body
+    (heredoc_content)
+    (interpolation (heredoc_beginning))
+    (heredoc_body
+      (heredoc_content)
+      (heredoc_end))
+    (heredoc_content)
+    (heredoc_end))
+  (assignment
+    (identifier)
+    (heredoc_beginning))
+  (heredoc_body
+    (heredoc_content)
+    (interpolation
+      (heredoc_beginning)
+      (heredoc_body
+        (heredoc_content)
+        (heredoc_end)))
+    (heredoc_content)
+    (heredoc_end)))
+
+========================================
 left shift without spaces is not a heredoc
 ========================================
 
