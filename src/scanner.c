@@ -1046,6 +1046,10 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
         literal.nesting_depth = 1;
 
         if (lexer->lookahead == '<') {
+            // After an operand `<<` is a shift, unless it starts a command argument (`foo <<EOS`)
+            if (valid_symbols[BINARY_STAR] && (!scanner->has_leading_whitespace || !valid_symbols[SPLAT_STAR])) {
+                return false;
+            }
             advance(lexer);
             if (lexer->lookahead != '<') {
                 return false;

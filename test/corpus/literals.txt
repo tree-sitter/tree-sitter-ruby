@@ -1489,6 +1489,40 @@ un-terminated heredocs
     (heredoc_content)
     (heredoc_end)))
 
+========================================
+left shift without spaces is not a heredoc
+========================================
+
+"test"<<"ruby"
+"test" <<"ruby"
+foo<<"a"
+a.b<<C
+foo <<EOS
+x
+EOS
+
+---
+
+(program
+  (binary
+    (string (string_content))
+    (string (string_content)))
+  (binary
+    (string (string_content))
+    (string (string_content)))
+  (binary
+    (identifier)
+    (string (string_content)))
+  (binary
+    (call (identifier) (identifier))
+    (constant))
+  (call
+    (identifier)
+    (argument_list (heredoc_beginning)))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end)))
+
 =================================
 no interpolation or escape sequences in single quoted heredoc
 =================================
