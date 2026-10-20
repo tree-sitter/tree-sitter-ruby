@@ -49,6 +49,25 @@ symbol with multi-byte characters
   (simple_symbol))
 
 ======
+multi-byte names in variables and short interpolation
+======
+
+$é = 1
+"#$é #@ŀ #ŀa #Ĥ!"
+
+---
+
+(program
+  (assignment
+    (global_variable)
+    (integer))
+  (string
+    (interpolation (global_variable))
+    (string_content)
+    (interpolation (instance_variable))
+    (string_content)))
+
+======
 symbol operators
 ======
 
