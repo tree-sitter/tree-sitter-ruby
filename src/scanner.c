@@ -40,6 +40,7 @@ typedef enum {
     BINARY_STAR_STAR,
     ELEMENT_REFERENCE_BRACKET,
     SHORT_INTERPOLATION,
+    LAMBDA_BRACE,
     COMMENT,
     UNINTERPRETED,
 
@@ -1107,6 +1108,16 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
                 }
 
                 return false;
+            }
+            break;
+
+        case '{':
+            // Valid only where a lambda body can start, which is the meaning `{` has there in Ruby. Not during
+            // error recovery (every symbol valid, STRING_CONTENT included)
+            if (valid_symbols[LAMBDA_BRACE] && !valid_symbols[STRING_CONTENT]) {
+                advance(lexer);
+                lexer->result_symbol = LAMBDA_BRACE;
+                return true;
             }
             break;
 

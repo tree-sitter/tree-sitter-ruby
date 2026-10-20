@@ -2932,6 +2932,71 @@ lambda parameters reject a trailing comma
       (ERROR))
     (block)))
 
+=================================================================
+lambda body brace after bare parameters with a default or keyword
+=================================================================
+
+-> x: { }.parameters
+-> *a, b: { }
+-> a=a() { a }.call
+-> a=b.c { a }
+-> a=b(c { 1 }) { a }
+
+---
+
+(program
+  (call
+    receiver: (lambda
+      parameters: (lambda_parameters
+        (keyword_parameter
+          name: (identifier)))
+      body: (block))
+    method: (identifier))
+  (lambda
+    parameters: (lambda_parameters
+      (splat_parameter
+        name: (identifier))
+      (keyword_parameter
+        name: (identifier)))
+    body: (block))
+  (call
+    receiver: (lambda
+      parameters: (lambda_parameters
+        (optional_parameter
+          name: (identifier)
+          value: (call
+            method: (identifier)
+            arguments: (argument_list))))
+      body: (block
+        body: (block_body
+          (identifier))))
+    method: (identifier))
+  (lambda
+    parameters: (lambda_parameters
+      (optional_parameter
+        name: (identifier)
+        value: (call
+          receiver: (identifier)
+          method: (identifier))))
+    body: (block
+      body: (block_body
+        (identifier))))
+  (lambda
+    parameters: (lambda_parameters
+      (optional_parameter
+        name: (identifier)
+        value: (call
+          method: (identifier)
+          arguments: (argument_list
+            (call
+              method: (identifier)
+              block: (block
+                body: (block_body
+                  (integer))))))))
+    body: (block
+      body: (block_body
+        (identifier)))))
+
 ============================
 lambda and proc as variables
 ============================

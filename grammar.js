@@ -73,6 +73,7 @@ module.exports = grammar({
     $._binary_star_star,
     $._element_reference_bracket,
     $._short_interpolation,
+    $._lambda_brace,
 
     // Lexed by the scanner so that it stops at included range boundaries (ERB tags)
     $.comment,
@@ -1276,7 +1277,16 @@ module.exports = grammar({
         ),
       ),
       // Body can be a regular or "do" block
-      field('body', choice($.block, $.do_block)),
+      field('body', choice(alias($._lambda_block, $.block), $.do_block)),
+    ),
+
+    // Its `{` is a scanner token, like parse.y's tLAMBEG: after bare parameters it opens the body even
+    // where a parameter default could take a block or start a hash (`-> a=b() { }`, `-> x: { }`)
+    _lambda_block: $ => seq(
+      alias($._lambda_brace, '{'),
+      field('parameters', optional($.block_parameters)),
+      optional(field('body', $.block_body)),
+      '}',
     ),
 
 
