@@ -33,9 +33,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Set up tree-sitter
-        uses: tree-sitter/setup-action/cli@v1
+        uses: tree-sitter/setup-action/cli@v2
         with:
-          # CLI v0.27 output breaks setup-action's config step
+          # Must be the CLI that generated src/parser.c (checked by parser-test-action)
           tree-sitter-ref: v0.26.11
       - name: Set up examples
         run: |
@@ -43,6 +43,7 @@ jobs:
       - name: Run tests
         uses: tree-sitter/parser-test-action@v2
         with:
+          abi-version: 14
           test-rust: true
           test-node: true
           test-python: true
