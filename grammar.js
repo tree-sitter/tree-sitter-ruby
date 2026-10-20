@@ -907,7 +907,8 @@ module.exports = grammar({
       return prec.right(PREC.RANGE, choice(
         seq(begin, operator, end),
         seq(operator, end),
-        seq(begin, operator),
+        // '_no_line_break' never matches; it tells the scanner that the end may follow on the next line
+        seq(begin, operator, optional($._no_line_break)),
       ));
     },
 

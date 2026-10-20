@@ -574,6 +574,33 @@ a..
   (range
     begin: (identifier)))
 
+=====================================
+begin range continued on the next line
+=====================================
+
+r = 0..
+r = 1..2
+x = (1..
+)
+
+---
+
+(program
+  (assignment
+    left: (identifier)
+    right: (range
+      begin: (integer)
+      end: (assignment
+        left: (identifier)
+        right: (range
+          begin: (integer)
+          end: (integer)))))
+  (assignment
+    left: (identifier)
+    right: (parenthesized_statements
+      (range
+        begin: (integer)))))
+
 ===============
 end range
 ===============
