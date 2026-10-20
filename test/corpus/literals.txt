@@ -1707,6 +1707,38 @@ MSG
     (heredoc_end)))
 
 ========================================
+heredoc as the end of a range
+========================================
+
+x = (1..<<A)
+a
+A
+y = 1...<<~B
+  b
+  B
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (parenthesized_statements
+      (range
+        (integer)
+        (heredoc_beginning))))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end))
+  (assignment
+    (identifier)
+    (range
+      (integer)
+      (heredoc_beginning)))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end)))
+
+========================================
 left shift without spaces is not a heredoc
 ========================================
 

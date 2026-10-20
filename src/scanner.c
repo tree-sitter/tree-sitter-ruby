@@ -1201,8 +1201,10 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
         literal.nesting_depth = 1;
 
         if (lexer->lookahead == '<') {
-            // After an operand `<<` is a shift, unless it starts a command argument (`foo <<EOS`)
-            if (valid_symbols[BINARY_STAR] && (!scanner->has_leading_whitespace || !valid_symbols[SPLAT_STAR])) {
+            // After an operand `<<` is a shift, unless it starts a command argument (`foo <<EOS`) or follows `..`
+            // (NO_LINE_BREAK, see `binary_operator_valid`): Ruby reads a heredoc in `1..<<EOS`
+            if (valid_symbols[BINARY_STAR] && (!valid_symbols[NO_LINE_BREAK] || valid_symbols[STRING_CONTENT]) &&
+                (!scanner->has_leading_whitespace || !valid_symbols[SPLAT_STAR])) {
                 return false;
             }
             advance(lexer);
