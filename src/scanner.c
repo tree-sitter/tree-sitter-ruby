@@ -30,6 +30,7 @@ typedef enum {
     SPLAT_STAR,
     UNARY_MINUS,
     UNARY_MINUS_NUM,
+    UNARY_PLUS,
     BINARY_MINUS,
     BINARY_STAR,
     SINGLETON_CLASS_LEFT_ANGLE_LEFT_ANGLE,
@@ -931,6 +932,18 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
                 }
                 if (valid_symbols[SPLAT_STAR]) {
                     lexer->result_symbol = SPLAT_STAR;
+                    return true;
+                }
+                return false;
+            }
+            break;
+
+        case '+':
+            // `foo +x` is a command argument, like `foo -x`; otherwise `+` is left to the internal lexer
+            if (valid_symbols[UNARY_PLUS] && valid_symbols[BINARY_STAR] && scanner->has_leading_whitespace) {
+                advance(lexer);
+                if (lexer->lookahead != '=' && lexer->lookahead != '@' && !iswspace(lexer->lookahead)) {
+                    lexer->result_symbol = UNARY_PLUS;
                     return true;
                 }
                 return false;

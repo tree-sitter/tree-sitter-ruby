@@ -67,6 +67,7 @@ module.exports = grammar({
     $._splat_star,
     $._unary_minus,
     $._unary_minus_num,
+    $._unary_plus,
     $._binary_minus,
     $._binary_star,
     $._singleton_class_left_angle_left_langle,
@@ -945,7 +946,7 @@ module.exports = grammar({
       const operators = [
         [prec, PREC.DEFINED, 'defined?'],
         [prec.right, PREC.NOT, 'not'],
-        [prec.right, PREC.UNARY_MINUS, choice(alias($._unary_minus, '-'), alias($._binary_minus, '-'), '+')],
+        [prec.right, PREC.UNARY_MINUS, choice(alias($._unary_minus, '-'), alias($._binary_minus, '-'), '+', alias($._unary_plus, '+'))],
         [prec.right, PREC.COMPLEMENT, choice('!', '~')],
       ];
       // @ts-ignore
@@ -960,7 +961,7 @@ module.exports = grammar({
       const operators = [
         [prec, PREC.DEFINED, 'defined?'],
         [prec.right, PREC.NOT, 'not'],
-        [prec.right, PREC.UNARY_MINUS, choice(alias($._unary_minus, '-'), '+')],
+        [prec.right, PREC.UNARY_MINUS, choice(alias($._unary_minus, '-'), '+', alias($._unary_plus, '+'))],
         [prec.right, PREC.COMPLEMENT, choice('!', '~')],
       ];
       // @ts-ignore
@@ -977,7 +978,7 @@ module.exports = grammar({
     )),
 
     unary_literal: $ => prec.right(PREC.UNARY_MINUS, seq(
-      field('operator', choice(alias($._unary_minus_num, '-'), '+')),
+      field('operator', choice(alias($._unary_minus_num, '-'), '+', alias($._unary_plus, '+'))),
       field('operand', $._simple_numeric),
     )),
 

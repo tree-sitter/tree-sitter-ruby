@@ -6246,6 +6246,15 @@
                     {
                       "type": "STRING",
                       "value": "+"
+                    },
+                    {
+                      "type": "ALIAS",
+                      "content": {
+                        "type": "SYMBOL",
+                        "name": "_unary_plus"
+                      },
+                      "named": false,
+                      "value": "+"
                     }
                   ]
                 }
@@ -6374,6 +6383,15 @@
                     {
                       "type": "STRING",
                       "value": "+"
+                    },
+                    {
+                      "type": "ALIAS",
+                      "content": {
+                        "type": "SYMBOL",
+                        "name": "_unary_plus"
+                      },
+                      "named": false,
+                      "value": "+"
                     }
                   ]
                 }
@@ -6482,6 +6500,15 @@
                 },
                 {
                   "type": "STRING",
+                  "value": "+"
+                },
+                {
+                  "type": "ALIAS",
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "_unary_plus"
+                  },
+                  "named": false,
                   "value": "+"
                 }
               ]
@@ -8427,6 +8454,10 @@
     {
       "type": "SYMBOL",
       "name": "_unary_minus_num"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_unary_plus"
     },
     {
       "type": "SYMBOL",

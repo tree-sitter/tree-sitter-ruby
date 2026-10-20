@@ -867,6 +867,43 @@ foo(-a, bar)
         (identifier))
       (identifier))))
 
+==========
+unary plus
+==========
+
++a
+foo +a, bar
+foo +1
+foo + a
+foo+a
+foo += 1
+
+---
+
+(program
+  (unary
+    (identifier))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (identifier))
+      (identifier)))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer))))
+  (binary
+    (identifier)
+    (identifier))
+  (binary
+    (identifier)
+    (identifier))
+  (operator_assignment
+    (identifier)
+    (integer)))
+
 ===========
 binary minus
 ===========
