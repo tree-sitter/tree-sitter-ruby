@@ -43,6 +43,7 @@ typedef enum {
     LAMBDA_BRACE,
     COMMENT,
     UNINTERPRETED,
+    OPERAND_NEXT,
 
     NONE
 } TokenType;
@@ -439,9 +440,11 @@ static inline bool scan_symbol_identifier(TSLexer *lexer) {
 
 static inline bool scan_open_delimiter(Scanner *scanner, TSLexer *lexer, Literal *literal, const bool *valid_symbols) {
     // After `..` and `...` (NO_LINE_BREAK, see `range`) binary operators are valid only because the range may be
-    // endless: Ruby reads an operand there. STRING_CONTENT is valid along with STRING_START only in error recovery.
+    // endless, after `return`, `break` and `next` (OPERAND_NEXT) because they may be bare: Ruby reads an operand
+    // there. STRING_CONTENT is valid along with STRING_START only in error recovery.
     const bool binary_operator_valid =
-        valid_symbols[FORWARD_SLASH] && (!valid_symbols[NO_LINE_BREAK] || valid_symbols[STRING_CONTENT]);
+        valid_symbols[FORWARD_SLASH] &&
+        (!(valid_symbols[NO_LINE_BREAK] || valid_symbols[OPERAND_NEXT]) || valid_symbols[STRING_CONTENT]);
 
     switch (lexer->lookahead) {
         case '"':

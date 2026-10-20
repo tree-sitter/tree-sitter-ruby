@@ -81,6 +81,8 @@ module.exports = grammar({
     $.comment,
     // Never produced by the scanner; tells it that `__END__` was seen
     $.uninterpreted,
+    // Never produced by the scanner; tells it that Ruby reads an operand next, not a binary operator
+    $._operand_next,
   ],
 
   extras: $ => [
@@ -331,10 +333,11 @@ module.exports = grammar({
       'end',
     ),
 
-    return_command: $ => prec.left(seq('return', alias($.command_argument_list, $.argument_list))),
+    // '_operand_next' never matches: `return %=a=` and `next / a/` take an argument, as in Ruby
+    return_command: $ => prec.left(seq('return', choice(alias($.command_argument_list, $.argument_list), $._operand_next))),
     yield_command: $ => prec.left(seq('yield', alias($.command_argument_list, $.argument_list))),
-    break_command: $ => prec.left(seq('break', alias($.command_argument_list, $.argument_list))),
-    next_command: $ => prec.left(seq('next', alias($.command_argument_list, $.argument_list))),
+    break_command: $ => prec.left(seq('break', choice(alias($.command_argument_list, $.argument_list), $._operand_next))),
+    next_command: $ => prec.left(seq('next', choice(alias($.command_argument_list, $.argument_list), $._operand_next))),
     return: $ => prec.left('return'),
     yield: $ => prec.left(seq('yield', optional($.argument_list))),
     break: $ => prec.left(seq('break', optional($.argument_list))),

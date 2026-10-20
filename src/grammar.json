@@ -1273,13 +1273,22 @@
             "value": "return"
           },
           {
-            "type": "ALIAS",
-            "content": {
-              "type": "SYMBOL",
-              "name": "command_argument_list"
-            },
-            "named": true,
-            "value": "argument_list"
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "ALIAS",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "command_argument_list"
+                },
+                "named": true,
+                "value": "argument_list"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "_operand_next"
+              }
+            ]
           }
         ]
       }
@@ -1317,13 +1326,22 @@
             "value": "break"
           },
           {
-            "type": "ALIAS",
-            "content": {
-              "type": "SYMBOL",
-              "name": "command_argument_list"
-            },
-            "named": true,
-            "value": "argument_list"
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "ALIAS",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "command_argument_list"
+                },
+                "named": true,
+                "value": "argument_list"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "_operand_next"
+              }
+            ]
           }
         ]
       }
@@ -1339,13 +1357,22 @@
             "value": "next"
           },
           {
-            "type": "ALIAS",
-            "content": {
-              "type": "SYMBOL",
-              "name": "command_argument_list"
-            },
-            "named": true,
-            "value": "argument_list"
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "ALIAS",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "command_argument_list"
+                },
+                "named": true,
+                "value": "argument_list"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "_operand_next"
+              }
+            ]
           }
         ]
       }
@@ -8740,6 +8767,10 @@
     {
       "type": "SYMBOL",
       "name": "uninterpreted"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_operand_next"
     }
   ],
   "inline": [

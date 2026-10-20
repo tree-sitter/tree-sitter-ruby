@@ -701,6 +701,41 @@ def f;return (1);end
           (parenthesized_statements
             (integer)))))))
 
+==========================================================
+return, break and next with a percent string or regex value
+==========================================================
+
+def f
+  return %=a=
+end
+loop do
+  break %=a=
+  next / a/
+end
+
+---
+
+(program
+  (method
+    name: (identifier)
+    body: (body_statement
+      (return
+        (argument_list
+          (string
+            (string_content))))))
+  (call
+    method: (identifier)
+    block: (do_block
+      body: (body_statement
+        (break
+          (argument_list
+            (string
+              (string_content))))
+        (next
+          (argument_list
+            (regex
+              (string_content))))))))
+
 ====
 case
 ====
