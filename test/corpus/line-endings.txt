@@ -21,3 +21,19 @@ CRLF multiline comments
 ---
 
 (program (comment))
+
+=============
+CRLF heredocs
+=============
+
+x = <<~EOS
+  hi
+EOS
+foo
+
+---
+
+(program
+  (assignment (identifier) (heredoc_beginning))
+  (heredoc_body (heredoc_content) (heredoc_end))
+  (identifier))
