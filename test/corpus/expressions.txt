@@ -1777,6 +1777,40 @@ foo 1, &;
       (integer)
       (block_argument))))
 
+==========================================
+method call with block argument and space
+==========================================
+
+bar x, &
+foo(a, &
+)
+boo( & lambda {})
+foo & bar
+
+---
+
+(program
+  (call
+    (identifier)
+    (argument_list
+      (identifier)
+      (block_argument)))
+  (call
+    (identifier)
+    (argument_list
+      (identifier)
+      (block_argument)))
+  (call
+    (identifier)
+    (argument_list
+      (block_argument
+        (call
+          (identifier)
+          (block)))))
+  (binary
+    (identifier)
+    (identifier)))
+
 ===============================
 method call with splat argument
 ===============================

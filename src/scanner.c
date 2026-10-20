@@ -864,7 +864,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
             if (valid_symbols[BLOCK_AMPERSAND]) {
                 advance(lexer);
                 if (lexer->lookahead != '&' && lexer->lookahead != '.' && lexer->lookahead != '=' &&
-                    !iswspace(lexer->lookahead)) {
+                    (!iswspace(lexer->lookahead) || !valid_symbols[BINARY_STAR])) {
                     lexer->result_symbol = BLOCK_AMPERSAND;
                     return true;
                 }
