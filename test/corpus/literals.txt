@@ -1553,6 +1553,35 @@ A
     (heredoc_end)))
 
 ========================================
+heredoc end word right after an interpolation
+========================================
+
+x = <<EOS
+#{y}EOS
+#{<<B}EOS
+b
+B
+EOS
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (heredoc_beginning))
+  (heredoc_body
+    (heredoc_content)
+    (interpolation (identifier))
+    (heredoc_content)
+    (interpolation (heredoc_beginning))
+    (heredoc_content)
+    (heredoc_body
+      (heredoc_content)
+      (heredoc_end))
+    (heredoc_content)
+    (heredoc_end)))
+
+========================================
 heredoc with a plain hash before an interpolation
 ========================================
 
