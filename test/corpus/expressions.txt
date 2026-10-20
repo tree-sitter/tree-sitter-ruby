@@ -832,6 +832,38 @@ a << b
     (identifier)
     (identifier)))
 
+===============================================
+operators after variables that are not methods
+===============================================
+
+@a <<"x"
+x
+@@b *c
+$d -1
+self [1]
+super *e
+
+---
+
+(program
+  (binary
+    (instance_variable)
+    (string (string_content)))
+  (identifier)
+  (binary
+    (class_variable)
+    (identifier))
+  (binary
+    (global_variable)
+    (integer))
+  (element_reference
+    (self)
+    (integer))
+  (call
+    (super)
+    (argument_list
+      (splat_argument (identifier)))))
+
 ========
 additive
 ========

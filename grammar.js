@@ -786,7 +786,7 @@ module.exports = grammar({
         $._call,
         $._chained_command_call,
         field('method', choice(
-          $._variable,
+          $._operation,
           $._function_identifier,
         )),
       ),
@@ -796,7 +796,7 @@ module.exports = grammar({
     command_call_with_block: $ => {
       const receiver = choice(
         $._call,
-        field('method', choice($._variable, $._function_identifier)),
+        field('method', choice($._operation, $._function_identifier)),
       );
       const args = field('arguments', alias($.command_argument_list, $.argument_list));
       const block = field('block', $.block);
@@ -817,7 +817,7 @@ module.exports = grammar({
       const receiver = choice(
         $._call,
         field('method', choice(
-          $._variable, $._function_identifier,
+          $._operation, $._function_identifier,
         )),
       );
 
@@ -1061,10 +1061,17 @@ module.exports = grammar({
       alias($._call, $.call),
     )),
 
-    _variable: $ => prec.right(choice(
+    // Left: `a ..b` and `a if b` continue the expression, they do not start a command argument
+    _variable: $ => prec.left(choice(
       $.self,
-      $.super,
       $._nonlocal_variable,
+      $._operation,
+    )),
+
+    // The variables that are also method names, as in `foo x` or `super x`: `@a <<x` and `self *x` are binary
+    // operations, as in Ruby
+    _operation: $ => prec.right(choice(
+      $.super,
       $.identifier,
       $.constant,
     )),

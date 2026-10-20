@@ -4442,7 +4442,7 @@
                 "members": [
                   {
                     "type": "SYMBOL",
-                    "name": "_variable"
+                    "name": "_operation"
                   },
                   {
                     "type": "SYMBOL",
@@ -4489,7 +4489,7 @@
                     "members": [
                       {
                         "type": "SYMBOL",
-                        "name": "_variable"
+                        "name": "_operation"
                       },
                       {
                         "type": "SYMBOL",
@@ -4550,7 +4550,7 @@
                     "members": [
                       {
                         "type": "SYMBOL",
-                        "name": "_variable"
+                        "name": "_operation"
                       },
                       {
                         "type": "SYMBOL",
@@ -4670,7 +4670,7 @@
                         "members": [
                           {
                             "type": "SYMBOL",
-                            "name": "_variable"
+                            "name": "_operation"
                           },
                           {
                             "type": "SYMBOL",
@@ -4745,7 +4745,7 @@
                               "members": [
                                 {
                                   "type": "SYMBOL",
-                                  "name": "_variable"
+                                  "name": "_operation"
                                 },
                                 {
                                   "type": "SYMBOL",
@@ -4831,7 +4831,7 @@
                               "members": [
                                 {
                                   "type": "SYMBOL",
-                                  "name": "_variable"
+                                  "name": "_operation"
                                 },
                                 {
                                   "type": "SYMBOL",
@@ -4911,7 +4911,7 @@
                       "members": [
                         {
                           "type": "SYMBOL",
-                          "name": "_variable"
+                          "name": "_operation"
                         },
                         {
                           "type": "SYMBOL",
@@ -4954,7 +4954,7 @@
                       "members": [
                         {
                           "type": "SYMBOL",
-                          "name": "_variable"
+                          "name": "_operation"
                         },
                         {
                           "type": "SYMBOL",
@@ -7023,7 +7023,7 @@
       }
     },
     "_variable": {
-      "type": "PREC_RIGHT",
+      "type": "PREC_LEFT",
       "value": 0,
       "content": {
         "type": "CHOICE",
@@ -7034,11 +7034,24 @@
           },
           {
             "type": "SYMBOL",
-            "name": "super"
+            "name": "_nonlocal_variable"
           },
           {
             "type": "SYMBOL",
-            "name": "_nonlocal_variable"
+            "name": "_operation"
+          }
+        ]
+      }
+    },
+    "_operation": {
+      "type": "PREC_RIGHT",
+      "value": 0,
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "SYMBOL",
+            "name": "super"
           },
           {
             "type": "SYMBOL",
