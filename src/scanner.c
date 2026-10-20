@@ -41,6 +41,8 @@ typedef enum {
     BINARY_STAR_STAR,
     ELEMENT_REFERENCE_BRACKET,
     SHORT_INTERPOLATION,
+    COMMENT,
+    UNINTERPRETED,
 
     NONE
 } TokenType;
@@ -164,6 +166,18 @@ static inline void deserialize(Scanner *scanner, const char *buffer, unsigned le
     assert(size == length);
 }
 
+// A `#` comment ends at a newline, or at the end of an included range (e.g. an ERB tag)
+static inline bool scan_comment(TSLexer *lexer) {
+    advance(lexer);
+    while (lexer->lookahead != '\n' && !lexer->eof(lexer) && !lexer->is_at_included_range_start(lexer)) {
+        advance(lexer);
+    }
+    // At the start of an included range, this marks the end of the previous one
+    lexer->mark_end(lexer);
+    lexer->result_symbol = COMMENT;
+    return true;
+}
+
 static inline bool scan_whitespace(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols,
                                    bool *rescue_may_end_line) {
     bool heredoc_body_start_is_valid = scanner->open_heredocs.size > 0 && !scanner->open_heredocs.contents[0].started &&
@@ -219,6 +233,10 @@ static inline bool scan_whitespace(Scanner *scanner, TSLexer *lexer, const bool 
                 }
                 break;
             default:
+                // After a newline the token already starts before it, so leave such comments to the lexer
+                if (lexer->lookahead == '#' && !crossed_newline && valid_symbols[COMMENT] && !valid_symbols[UNINTERPRETED]) {
+                    return scan_comment(lexer);
+                }
                 if (crossed_newline) {
                     if (lexer->lookahead != '.' && lexer->lookahead != '&' && lexer->lookahead != '#') {
                         lexer->result_symbol = LINE_BREAK;

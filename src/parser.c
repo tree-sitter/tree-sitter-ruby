@@ -20,7 +20,7 @@
 #define SYMBOL_COUNT 349
 #define ALIAS_COUNT 3
 #define TOKEN_COUNT 158
-#define EXTERNAL_TOKEN_COUNT 31
+#define EXTERNAL_TOKEN_COUNT 33
 #define FIELD_COUNT 32
 #define MAX_ALIAS_SEQUENCE_LENGTH 8
 #define MAX_RESERVED_WORD_SET_SIZE 0
@@ -31182,7 +31182,7 @@ static const TSLexMode ts_lex_modes[STATE_COUNT] = {
   [11535] = {.lex_state = 188, .external_lex_state = 51},
   [11536] = {.lex_state = 60, .external_lex_state = 51},
   [11537] = {.lex_state = 191, .external_lex_state = 51},
-  [11538] = {.lex_state = 233, .external_lex_state = 51},
+  [11538] = {.lex_state = 233, .external_lex_state = 58},
   [11539] = {.lex_state = 60, .external_lex_state = 51},
   [11540] = {.lex_state = 49, .external_lex_state = 51},
   [11541] = {.lex_state = 60, .external_lex_state = 51},
@@ -31439,7 +31439,7 @@ static const TSLexMode ts_lex_modes[STATE_COUNT] = {
   [11792] = {.lex_state = 191, .external_lex_state = 51},
   [11793] = {.lex_state = 191, .external_lex_state = 51},
   [11794] = {.lex_state = 49, .external_lex_state = 51},
-  [11795] = {.lex_state = 233, .external_lex_state = 51},
+  [11795] = {.lex_state = 233, .external_lex_state = 58},
   [11796] = {.lex_state = 60, .external_lex_state = 51},
   [11797] = {.lex_state = 191, .external_lex_state = 51},
   [11798] = {.lex_state = 191, .external_lex_state = 51},
@@ -1020865,6 +1020865,8 @@ enum ts_external_scanner_symbol_identifiers {
   ts_external_token__binary_star_star = 28,
   ts_external_token__element_reference_bracket = 29,
   ts_external_token__short_interpolation = 30,
+  ts_external_token_comment = 31,
+  ts_external_token_uninterpreted = 32,
 };
 
 static const TSSymbol ts_external_scanner_symbol_map[EXTERNAL_TOKEN_COUNT] = {
@@ -1020899,9 +1020901,11 @@ static const TSSymbol ts_external_scanner_symbol_map[EXTERNAL_TOKEN_COUNT] = {
   [ts_external_token__binary_star_star] = sym__binary_star_star,
   [ts_external_token__element_reference_bracket] = sym__element_reference_bracket,
   [ts_external_token__short_interpolation] = sym__short_interpolation,
+  [ts_external_token_comment] = sym_comment,
+  [ts_external_token_uninterpreted] = sym_uninterpreted,
 };
 
-static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
+static const bool ts_external_scanner_states[59][EXTERNAL_TOKEN_COUNT] = {
   [1] = {
     [ts_external_token__line_break] = true,
     [ts_external_token__no_line_break] = true,
@@ -1020934,6 +1020938,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__binary_star_star] = true,
     [ts_external_token__element_reference_bracket] = true,
     [ts_external_token__short_interpolation] = true,
+    [ts_external_token_comment] = true,
   },
   [2] = {
     [ts_external_token_simple_symbol] = true,
@@ -1020951,6 +1020956,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__binary_minus] = true,
     [ts_external_token__identifier_suffix] = true,
     [ts_external_token__constant_suffix] = true,
+    [ts_external_token_comment] = true,
   },
   [3] = {
     [ts_external_token__line_break] = true,
@@ -1020977,6 +1020983,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__hash_splat_star_star] = true,
     [ts_external_token__binary_star_star] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [4] = {
     [ts_external_token_simple_symbol] = true,
@@ -1021002,6 +1021009,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__hash_splat_star_star] = true,
     [ts_external_token__binary_star_star] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [5] = {
     [ts_external_token_simple_symbol] = true,
@@ -1021023,6 +1021031,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__identifier_suffix] = true,
     [ts_external_token__constant_suffix] = true,
     [ts_external_token__hash_splat_star_star] = true,
+    [ts_external_token_comment] = true,
   },
   [6] = {
     [ts_external_token__line_break] = true,
@@ -1021042,6 +1021051,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__identifier_suffix] = true,
     [ts_external_token__constant_suffix] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [7] = {
     [ts_external_token__line_break] = true,
@@ -1021060,6 +1021070,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__binary_minus] = true,
     [ts_external_token__identifier_suffix] = true,
     [ts_external_token__constant_suffix] = true,
+    [ts_external_token_comment] = true,
   },
   [8] = {
     [ts_external_token__line_break] = true,
@@ -1021083,6 +1021094,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__constant_suffix] = true,
     [ts_external_token__binary_star_star] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [9] = {
     [ts_external_token__line_break] = true,
@@ -1021105,6 +1021117,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__constant_suffix] = true,
     [ts_external_token__binary_star_star] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [10] = {
     [ts_external_token__line_break] = true,
@@ -1021127,6 +1021140,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__identifier_suffix] = true,
     [ts_external_token__constant_suffix] = true,
     [ts_external_token__hash_splat_star_star] = true,
+    [ts_external_token_comment] = true,
   },
   [11] = {
     [ts_external_token_simple_symbol] = true,
@@ -1021146,6 +1021160,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__identifier_suffix] = true,
     [ts_external_token__constant_suffix] = true,
     [ts_external_token__hash_splat_star_star] = true,
+    [ts_external_token_comment] = true,
   },
   [12] = {
     [ts_external_token__line_break] = true,
@@ -1021168,6 +1021183,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__identifier_suffix] = true,
     [ts_external_token__constant_suffix] = true,
     [ts_external_token__binary_star_star] = true,
+    [ts_external_token_comment] = true,
   },
   [13] = {
     [ts_external_token__line_break] = true,
@@ -1021189,6 +1021205,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__identifier_suffix] = true,
     [ts_external_token__constant_suffix] = true,
     [ts_external_token__binary_star_star] = true,
+    [ts_external_token_comment] = true,
   },
   [14] = {
     [ts_external_token__no_line_break] = true,
@@ -1021211,6 +1021228,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__constant_suffix] = true,
     [ts_external_token__binary_star_star] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [15] = {
     [ts_external_token_simple_symbol] = true,
@@ -1021232,6 +1021250,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__constant_suffix] = true,
     [ts_external_token__binary_star_star] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [16] = {
     [ts_external_token_simple_symbol] = true,
@@ -1021254,6 +1021273,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__constant_suffix] = true,
     [ts_external_token__hash_splat_star_star] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [17] = {
     [ts_external_token__no_line_break] = true,
@@ -1021275,6 +1021295,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__identifier_suffix] = true,
     [ts_external_token__constant_suffix] = true,
     [ts_external_token__binary_star_star] = true,
+    [ts_external_token_comment] = true,
   },
   [18] = {
     [ts_external_token_simple_symbol] = true,
@@ -1021295,6 +1021316,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__identifier_suffix] = true,
     [ts_external_token__constant_suffix] = true,
     [ts_external_token__binary_star_star] = true,
+    [ts_external_token_comment] = true,
   },
   [19] = {
     [ts_external_token__line_break] = true,
@@ -1021316,6 +1021338,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__constant_suffix] = true,
     [ts_external_token__binary_star_star] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [20] = {
     [ts_external_token__no_line_break] = true,
@@ -1021334,6 +1021357,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__binary_minus] = true,
     [ts_external_token__identifier_suffix] = true,
     [ts_external_token__constant_suffix] = true,
+    [ts_external_token_comment] = true,
   },
   [21] = {
     [ts_external_token_simple_symbol] = true,
@@ -1021354,6 +1021378,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__constant_suffix] = true,
     [ts_external_token__binary_star_star] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [22] = {
     [ts_external_token_simple_symbol] = true,
@@ -1021372,6 +1021397,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__binary_minus] = true,
     [ts_external_token__identifier_suffix] = true,
     [ts_external_token__constant_suffix] = true,
+    [ts_external_token_comment] = true,
   },
   [23] = {
     [ts_external_token__line_break] = true,
@@ -1021391,6 +1021417,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__binary_minus] = true,
     [ts_external_token__identifier_suffix] = true,
     [ts_external_token__constant_suffix] = true,
+    [ts_external_token_comment] = true,
   },
   [24] = {
     [ts_external_token__line_break] = true,
@@ -1021410,6 +1021437,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__binary_minus] = true,
     [ts_external_token__identifier_suffix] = true,
     [ts_external_token__constant_suffix] = true,
+    [ts_external_token_comment] = true,
   },
   [25] = {
     [ts_external_token__no_line_break] = true,
@@ -1021429,6 +1021457,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__identifier_suffix] = true,
     [ts_external_token__constant_suffix] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [26] = {
     [ts_external_token_simple_symbol] = true,
@@ -1021447,6 +1021476,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__identifier_suffix] = true,
     [ts_external_token__constant_suffix] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [27] = {
     [ts_external_token__line_break] = true,
@@ -1021463,6 +1021493,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__unary_plus] = true,
     [ts_external_token__identifier_suffix] = true,
     [ts_external_token__constant_suffix] = true,
+    [ts_external_token_comment] = true,
   },
   [28] = {
     [ts_external_token__line_break] = true,
@@ -1021482,6 +1021513,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__binary_star] = true,
     [ts_external_token__binary_star_star] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [29] = {
     [ts_external_token_simple_symbol] = true,
@@ -1021498,6 +1021530,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__identifier_suffix] = true,
     [ts_external_token__constant_suffix] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [30] = {
     [ts_external_token_simple_symbol] = true,
@@ -1021513,6 +1021546,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__unary_plus] = true,
     [ts_external_token__identifier_suffix] = true,
     [ts_external_token__constant_suffix] = true,
+    [ts_external_token_comment] = true,
   },
   [31] = {
     [ts_external_token_simple_symbol] = true,
@@ -1021531,6 +1021565,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__binary_star] = true,
     [ts_external_token__binary_star_star] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [32] = {
     [ts_external_token_simple_symbol] = true,
@@ -1021547,6 +1021582,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__singleton_class_left_angle_left_langle] = true,
     [ts_external_token__identifier_suffix] = true,
     [ts_external_token__constant_suffix] = true,
+    [ts_external_token_comment] = true,
   },
   [33] = {
     [ts_external_token__line_break] = true,
@@ -1021561,6 +1021597,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token_heredoc_beginning] = true,
     [ts_external_token__unary_minus_num] = true,
     [ts_external_token__unary_plus] = true,
+    [ts_external_token_comment] = true,
   },
   [34] = {
     [ts_external_token_simple_symbol] = true,
@@ -1021575,6 +1021612,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__unary_minus_num] = true,
     [ts_external_token__unary_plus] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [35] = {
     [ts_external_token_simple_symbol] = true,
@@ -1021588,6 +1021626,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token_heredoc_beginning] = true,
     [ts_external_token__unary_minus_num] = true,
     [ts_external_token__unary_plus] = true,
+    [ts_external_token_comment] = true,
   },
   [36] = {
     [ts_external_token__line_break] = true,
@@ -1021597,6 +1021636,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__binary_star] = true,
     [ts_external_token__binary_star_star] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [37] = {
     [ts_external_token__line_break] = true,
@@ -1021609,6 +1021649,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__constant_suffix] = true,
     [ts_external_token__binary_star_star] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [38] = {
     [ts_external_token__heredoc_body_start] = true,
@@ -1021617,6 +1021658,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__binary_star] = true,
     [ts_external_token__binary_star_star] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [39] = {
     [ts_external_token__line_break] = true,
@@ -1021627,6 +1021669,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__binary_star] = true,
     [ts_external_token__binary_star_star] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [40] = {
     [ts_external_token__string_start] = true,
@@ -1021638,6 +1021681,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__constant_suffix] = true,
     [ts_external_token__binary_star_star] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [41] = {
     [ts_external_token_simple_symbol] = true,
@@ -1021646,6 +1021690,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token_SLASH] = true,
     [ts_external_token__identifier_suffix] = true,
     [ts_external_token__constant_suffix] = true,
+    [ts_external_token_comment] = true,
   },
   [42] = {
     [ts_external_token__line_break] = true,
@@ -1021654,6 +1021699,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__binary_minus] = true,
     [ts_external_token__binary_star] = true,
     [ts_external_token__binary_star_star] = true,
+    [ts_external_token_comment] = true,
   },
   [43] = {
     [ts_external_token__string_start] = true,
@@ -1021663,12 +1021709,14 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__binary_star] = true,
     [ts_external_token__binary_star_star] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [44] = {
     [ts_external_token__heredoc_body_start] = true,
     [ts_external_token_SLASH] = true,
     [ts_external_token__identifier_suffix] = true,
     [ts_external_token__constant_suffix] = true,
+    [ts_external_token_comment] = true,
   },
   [45] = {
     [ts_external_token__heredoc_body_start] = true,
@@ -1021676,6 +1021724,7 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__binary_minus] = true,
     [ts_external_token__binary_star] = true,
     [ts_external_token__binary_star_star] = true,
+    [ts_external_token_comment] = true,
   },
   [46] = {
     [ts_external_token__line_break] = true,
@@ -1021683,15 +1021732,18 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__heredoc_body_start] = true,
     [ts_external_token__identifier_suffix] = true,
     [ts_external_token__constant_suffix] = true,
+    [ts_external_token_comment] = true,
   },
   [47] = {
     [ts_external_token__line_break] = true,
     [ts_external_token__heredoc_body_start] = true,
+    [ts_external_token_comment] = true,
   },
   [48] = {
     [ts_external_token__line_break] = true,
     [ts_external_token__heredoc_body_start] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [49] = {
     [ts_external_token__string_start] = true,
@@ -1021699,45 +1021751,59 @@ static const bool ts_external_scanner_states[58][EXTERNAL_TOKEN_COUNT] = {
     [ts_external_token__identifier_suffix] = true,
     [ts_external_token__constant_suffix] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [50] = {
     [ts_external_token__string_start] = true,
     [ts_external_token__heredoc_body_start] = true,
     [ts_external_token__identifier_suffix] = true,
     [ts_external_token__constant_suffix] = true,
+    [ts_external_token_comment] = true,
   },
   [51] = {
     [ts_external_token__heredoc_body_start] = true,
+    [ts_external_token_comment] = true,
   },
   [52] = {
     [ts_external_token__heredoc_body_start] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [53] = {
     [ts_external_token__heredoc_body_start] = true,
     [ts_external_token_string_content] = true,
     [ts_external_token__string_end] = true,
     [ts_external_token__short_interpolation] = true,
+    [ts_external_token_comment] = true,
   },
   [54] = {
     [ts_external_token__string_start] = true,
     [ts_external_token__heredoc_body_start] = true,
     [ts_external_token__element_reference_bracket] = true,
+    [ts_external_token_comment] = true,
   },
   [55] = {
     [ts_external_token__heredoc_body_start] = true,
     [ts_external_token_heredoc_content] = true,
     [ts_external_token_heredoc_end] = true,
     [ts_external_token__short_interpolation] = true,
+    [ts_external_token_comment] = true,
   },
   [56] = {
     [ts_external_token__heredoc_body_start] = true,
     [ts_external_token_string_content] = true,
     [ts_external_token__short_interpolation] = true,
+    [ts_external_token_comment] = true,
   },
   [57] = {
     [ts_external_token__heredoc_body_start] = true,
     [ts_external_token__string_end] = true,
+    [ts_external_token_comment] = true,
+  },
+  [58] = {
+    [ts_external_token__heredoc_body_start] = true,
+    [ts_external_token_comment] = true,
+    [ts_external_token_uninterpreted] = true,
   },
 };
 

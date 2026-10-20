@@ -8510,6 +8510,14 @@
     {
       "type": "SYMBOL",
       "name": "_short_interpolation"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "comment"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "uninterpreted"
     }
   ],
   "inline": [

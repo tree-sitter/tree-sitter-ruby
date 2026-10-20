@@ -78,6 +78,11 @@ module.exports = grammar({
     $._binary_star_star,
     $._element_reference_bracket,
     $._short_interpolation,
+
+    // Lexed by the scanner so that it stops at included range boundaries (ERB tags)
+    $.comment,
+    // Never produced by the scanner; tells it that `__END__` was seen
+    $.uninterpreted,
   ],
 
   extras: $ => [
