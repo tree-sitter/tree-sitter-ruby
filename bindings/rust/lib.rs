@@ -61,23 +61,26 @@ mod tests {
     #[test]
     fn test_comment_stops_at_included_range_end() {
         // Like ERB: only the code between `<%` and `%>` is Ruby
-        let source = "<% x = 1 # note %>\n<% y = 2 %>\n";
-        let range = |start_byte, end_byte, row, start_column, end_column| tree_sitter::Range {
+        let range = |start_byte, end_byte, (start_row, start_column), (end_row, end_column)| tree_sitter::Range {
             start_byte,
             end_byte,
-            start_point: tree_sitter::Point::new(row, start_column),
-            end_point: tree_sitter::Point::new(row, end_column),
+            start_point: tree_sitter::Point::new(start_row, start_column),
+            end_point: tree_sitter::Point::new(end_row, end_column),
         };
+        let cases = [
+            ("<% x = 1 # note %>\n<% y = 2 %>\n", [range(2, 16, (0, 2), (0, 16)), range(21, 28, (1, 2), (1, 9))]),
+            ("<% foo\n  # note %>text<% bar %>\n", [range(2, 16, (0, 2), (1, 9)), range(24, 29, (1, 17), (1, 22))]),
+        ];
         let mut parser = tree_sitter::Parser::new();
         parser.set_language(&super::LANGUAGE.into()).unwrap();
-        parser
-            .set_included_ranges(&[range(2, 16, 0, 2, 16), range(21, 28, 1, 2, 9)])
-            .unwrap();
-        let tree = parser.parse(source, None).unwrap();
-        let root = tree.root_node();
-        assert!(!root.has_error(), "{}", root.to_sexp());
-        let comment = root.named_child(1).unwrap();
-        assert_eq!(comment.kind(), "comment");
-        assert_eq!(comment.end_byte(), 16);
+        for (source, ranges) in cases {
+            parser.set_included_ranges(&ranges).unwrap();
+            let tree = parser.parse(source, None).unwrap();
+            let root = tree.root_node();
+            assert!(!root.has_error(), "{}", root.to_sexp());
+            let comment = root.named_child(1).unwrap();
+            assert_eq!(comment.kind(), "comment", "{}", root.to_sexp());
+            assert_eq!(comment.end_byte(), ranges[0].end_byte, "{}", root.to_sexp());
+        }
     }
 }

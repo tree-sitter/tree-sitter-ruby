@@ -237,8 +237,11 @@ static inline bool scan_whitespace(Scanner *scanner, TSLexer *lexer, const bool 
                 }
                 break;
             default:
-                // After a newline the token already starts before it, so leave such comments to the lexer
-                if (lexer->lookahead == '#' && !crossed_newline && valid_symbols[COMMENT] && !valid_symbols[UNINTERPRETED]) {
+                // Not after `__END__` (only there is UNINTERPRETED valid without STRING_START). After a newline the
+                // token starts at the `#` only if indentation was skipped, so leave column-0 comments to the lexer
+                if (lexer->lookahead == '#' && valid_symbols[COMMENT] &&
+                    (!valid_symbols[UNINTERPRETED] || valid_symbols[STRING_START]) &&
+                    (!crossed_newline || lexer->get_column(lexer) > 0)) {
                     return scan_comment(lexer);
                 }
                 if (crossed_newline) {
