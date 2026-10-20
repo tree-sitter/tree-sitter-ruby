@@ -45,20 +45,40 @@
 ; Module definitions
 
 (
+  (comment)* @doc
+  .
   (module
     name: [
       (constant) @name
       (scope_resolution
         name: (_) @name)
     ]) @definition.module
+  (#strip! @doc "^#\\s*")
+  (#select-adjacent! @doc @definition.module)
 )
+
+; Constant definitions
+
+(assignment
+  left: [
+    (constant) @name
+    (scope_resolution
+      name: (constant) @name)
+  ]) @definition.constant
 
 ; Calls
 
-(call method: (identifier) @name) @reference.call
+(
+  (call method: (identifier) @name) @reference.call
+  (#not-match? @name "^(lambda|load|require|require_relative)$")
+)
 
 (
-  [(identifier) (constant)] @name @reference.call
+  (identifier) @name @reference.call
   (#is-not? local)
   (#not-match? @name "^(lambda|load|require|require_relative|__FILE__|__LINE__)$")
 )
+
+(call method: (constant) @name) @reference.call ; `Integer("1")`
+
+(constant) @name @reference.class
