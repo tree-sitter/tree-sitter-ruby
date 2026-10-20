@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        **Before** reporting an issue, make sure to search [existing issues](https://github.com/tree-sitter/tree-sitter-c/issues). Usage questions such as ***"How do I...?"*** either belong in [Discussions](https://github.com/tree-sitter/tree-sitter/discussions) upstream or in our [Discord server](https://discord.gg/w7nTvsVJhm) and will be closed.
+        **Before** reporting an issue, make sure to search [existing issues](https://github.com/tree-sitter/tree-sitter-ruby/issues). Usage questions such as ***"How do I...?"*** either belong in [Discussions](https://github.com/tree-sitter/tree-sitter/discussions) upstream or in our [Discord server](https://discord.gg/w7nTvsVJhm) and will be closed.
         If your issue is related to a bug in your editor-experience because your editor *leverages* tree-sitter and this parser, then it is likely your issue does *NOT* belong here and belongs in the relevant editor's repository.
   - type: checkboxes
     attributes:
@@ -15,7 +15,7 @@ body:
       options:
         - label: I have read all the [tree-sitter docs](https://tree-sitter.github.io/tree-sitter/using-parsers) if it relates to using the parser
           required: false
-        - label: I have searched the existing issues of tree-sitter-c
+        - label: I have searched the existing issues of tree-sitter-ruby
           required: true
   - type: input
     attributes:
@@ -54,6 +54,6 @@ body:
         void foo() {
           // Code that fails to parse, or causes an error
         }
-      render: C
+      render: ruby
     validations:
       required: false
