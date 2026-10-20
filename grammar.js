@@ -877,11 +877,16 @@ module.exports = grammar({
     ),
 
     block: $ => prec(PREC.CURLY_BLOCK, seq(
-      '{',
+      $._block_open,
       field('parameters', optional($.block_parameters)),
       optional(field('body', $.block_body)),
       '}',
     )),
+
+    // Where both a block and a hash argument can start (`foo {`, `x.y {`), the `{` would
+    // otherwise be shared until a later conflict picks the hash. Reducing the brace on its
+    // own forces the choice right after it, and the precedence makes it a block, as in Ruby.
+    _block_open: _ => prec(PREC.CURLY_BLOCK, '{'),
 
     _arg_rhs: $ => choice($._arg, alias($.rescue_modifier_arg, $.rescue_modifier)),
     assignment: $ => prec.right(PREC.ASSIGN, choice(

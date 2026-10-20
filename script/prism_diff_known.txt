@@ -10,5 +10,4 @@ core/proc/parameters_spec.rb       # -> x: { }
 language/lambda_spec.rb            # -> a=a() { a }
 core/range/reverse_each_spec.rb    # (//..//)
 language/string_spec.rb            # %=str=
-language/pattern_matching_spec.rb  # 1.times { [0, 1] => [a, b] }
 core/proc/ruby2_keywords_spec.rb   # -> *a, b: { } (same bug as parameters_spec)

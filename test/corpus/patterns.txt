@@ -370,6 +370,41 @@ return x => 6 | 7
 
 )
 
+===========================================
+rightward patterns in a brace block, hashes
+===========================================
+
+1.times {
+  [0, 1] => [a, b]
+}
+foo { a => b }
+x.y { k => v }.z
+foo a { k => v }
+
+foo({a => b})
+foo a => b
+foo(a, {b => c})
+puts x, {a: 1}
+foo a: {}
+foo **{a => 1}
+
+-----------------
+
+(program
+  (call (integer) (identifier)
+    (block (block_body (match_pattern (array (integer) (integer)) (array_pattern (identifier) (identifier))))))
+  (call (identifier) (block (block_body (match_pattern (identifier) (identifier)))))
+  (call (call (identifier) (identifier) (block (block_body (match_pattern (identifier) (identifier))))) (identifier))
+  (call (identifier) (argument_list (call (identifier) (block (block_body (match_pattern (identifier) (identifier)))))))
+
+  (call (identifier) (argument_list (hash (pair (identifier) (identifier)))))
+  (call (identifier) (argument_list (pair (identifier) (identifier))))
+  (call (identifier) (argument_list (identifier) (hash (pair (identifier) (identifier)))))
+  (call (identifier) (argument_list (identifier) (hash (pair (hash_key_symbol) (integer)))))
+  (call (identifier) (argument_list (pair (hash_key_symbol) (hash))))
+  (call (identifier) (argument_list (hash_splat_argument (hash (pair (identifier) (integer))))))
+)
+
 =====================================
 one-line patterns: incorrectly parsed
 =====================================
