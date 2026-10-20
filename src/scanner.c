@@ -495,8 +495,8 @@ static inline bool scan_open_delimiter(Scanner *scanner, TSLexer *lexer, Literal
 
         case '%':
             advance(lexer);
-            // Like Ruby, read `%=` as the operator assignment wherever a binary operator may follow
-            if (lexer->lookahead == '=' && binary_operator_valid) {
+            // Like Ruby, read `%=` and `%` followed by whitespace as operators wherever a binary operator may follow
+            if ((lexer->lookahead == '=' || is_space(lexer->lookahead)) && binary_operator_valid) {
                 return false;
             }
 
@@ -616,14 +616,6 @@ static inline bool scan_open_delimiter(Scanner *scanner, TSLexer *lexer, Literal
                 case '\n':
                 case ' ':
                 case '\t':
-                    // If the `/` operator is valid, then so is the `%` operator, which means
-                    // that a `%` followed by whitespace should be considered an operator,
-                    // not a percent string.
-                    if (valid_symbols[FORWARD_SLASH]) {
-                        return false;
-                    }
-                    break;
-
                 case '|':
                 case '!':
                 case '#':

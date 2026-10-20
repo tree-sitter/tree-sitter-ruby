@@ -991,6 +991,48 @@ foo("%s '%s' " %
           (identifier))))))
 
 ========================================
+percent strings delimited by whitespace
+========================================
+
+[% a ]
+x = % b .size
+y = (1..% c )
+foo %q d , 1
+foo(%
+e
+)
+p % f
+
+---
+
+(program
+  (array
+    (string (string_content)))
+  (assignment
+    (identifier)
+    (call
+      (string (string_content))
+      (identifier)))
+  (assignment
+    (identifier)
+    (parenthesized_statements
+      (range
+        (integer)
+        (string (string_content)))))
+  (call
+    (identifier)
+    (argument_list
+      (string (string_content))
+      (integer)))
+  (call
+    (identifier)
+    (argument_list
+      (string (string_content))))
+  (binary
+    (identifier)
+    (identifier)))
+
+========================================
 Single character string literals
 ========================================
 
