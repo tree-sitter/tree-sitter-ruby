@@ -9,6 +9,7 @@ on:
       - test/**
       - bindings/**
       - binding.gyp
+      - script/**
       - queries/**
       - tree-sitter.json
       - package.json
@@ -24,6 +25,7 @@ on:
       - test/**
       - bindings/**
       - binding.gyp
+      - script/**
       - queries/**
       - tree-sitter.json
       - package.json
@@ -79,3 +81,25 @@ jobs:
             !examples/ruby_spec/language/fixtures/utf16-be-nobom.rb
             !examples/ruby_spec/language/fixtures/utf16-le-nobom.rb
             !examples/ruby_spec/language/lambda_spec.rb
+
+  prism:
+    name: Compare with Prism
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Set up tree-sitter
+        uses: tree-sitter/setup-action/cli@v2
+        with:
+          tree-sitter-ref: v0.27.1
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "4.0"
+      - name: Set up ruby/spec
+        # pinned: a new spec file must not break unrelated changes; bump it on purpose
+        run: |
+          git clone https://github.com/ruby/spec examples/ruby_spec --filter=blob:none --quiet
+          git -C examples/ruby_spec checkout --quiet 0816047460cc5c4ca23d09794b48e8638a7047cc
+      - name: Compare with Prism
+        run: ruby script/prism_diff.rb --known script/prism_diff_known.txt examples/ruby_spec

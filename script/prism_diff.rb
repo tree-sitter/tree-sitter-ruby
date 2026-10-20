@@ -6,9 +6,10 @@
 # whose start position differs: the node vocabularies differ, so only kinds with a clear 1:1 mapping
 # are compared, by (line, byte column).
 #
-# usage: ruby script/prism_diff.rb [--verbose] FILE_OR_DIR...
+# usage: ruby script/prism_diff.rb [--verbose] [--known LIST] FILE_OR_DIR...
 #   TREE_SITTER=<cli> (default: tree-sitter) is run as `<cli> parse -p <repo root> --paths <list>`.
-#   Exits 1 if any difference is found.
+#   LIST holds path suffixes (one per line, `#` comments) of files expected to differ.
+#   Exits 1 on a difference outside LIST, or when a listed file agrees again (so the list only shrinks).
 
 require "prism"
 require "tempfile"
@@ -111,11 +112,18 @@ def tree_sitter_positions(tree)
 end
 
 verbose = ARGV.delete("--verbose")
+known = []
+if (i = ARGV.index("--known"))
+  known = File.readlines(ARGV.delete_at(i + 1), chomp: true).map { _1.sub(/#.*/, "").strip }.reject(&:empty?)
+  ARGV.delete_at(i)
+end
+known_file = ->(file) { known.any? { file.end_with?("/#{_1}") } }
 files = ARGV.flat_map { |path| File.directory?(path) ? Dir.glob("#{path}/**/*.rb").sort : [path] }
-abort "usage: ruby script/prism_diff.rb [--verbose] FILE_OR_DIR..." if files.empty?
+abort "usage: ruby script/prism_diff.rb [--verbose] [--known LIST] FILE_OR_DIR..." if files.empty?
 
 counts = Hash.new(0)
 failures = 0
+fixed = []
 files.zip(tree_sitter_trees(files)).each do |file, tree|
   result = Prism.parse_file(file)
   next counts[:prism_errors] += 1 unless result.errors.empty? # invalid Ruby: nothing to compare against
@@ -124,21 +132,29 @@ files.zip(tree_sitter_trees(files)).each do |file, tree|
   error = tree[/\((ERROR|MISSING)[^\[]*\[(\d+), (\d+)\]/]
   problems << "tree-sitter #{$1} at #{$2.to_i + 1}:#{$3}" if error
   expected, actual = prism_positions(result), tree_sitter_positions(tree)
+  kinds = Hash.new(0)
   (expected.keys | actual.keys).each do |key|
     diff = expected[key] - actual[key]
     next if diff.zero?
 
     group, row, column = key
-    counts[group] += diff.abs
+    kinds[group] += diff.abs
     problems << "#{group} at #{row + 1}:#{column}: Prism #{expected[key]}, tree-sitter #{actual[key]}"
   end
-  next counts[:clean] += 1 if problems.empty?
+  if problems.empty?
+    fixed << file if known_file[file]
+    next counts[:clean] += 1
+  end
+  next counts[:known] += 1 if known_file[file]
 
   failures += 1
+  counts.merge!(kinds) { |_, a, b| a + b }
   counts[:tree_sitter_errors] += 1 if error
   puts "#{file}\n  #{(verbose ? problems : problems.first(3)).join("\n  ")}"
 end
 
-puts "\n#{files.size} files: #{counts[:clean]} agree, #{failures} differ, #{counts[:prism_errors]} rejected by Prism (skipped)"
-puts "differences by kind: #{counts.except(:clean, :prism_errors).sort_by { -_2 }.to_h}" if failures.positive?
-exit(failures.zero? ? 0 : 1)
+puts "\n#{files.size} files: #{counts[:clean]} agree, #{failures} differ, #{counts[:known]} known differences, " \
+     "#{counts[:prism_errors]} rejected by Prism (skipped)"
+puts "differences by kind: #{counts.except(:clean, :known, :prism_errors).sort_by { -_2 }.to_h}" if failures.positive?
+puts "now agree, remove from the known list:\n  #{fixed.join("\n  ")}" unless fixed.empty?
+exit(failures.zero? && fixed.empty? ? 0 : 1)
