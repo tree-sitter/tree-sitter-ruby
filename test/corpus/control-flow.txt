@@ -397,6 +397,9 @@ end
 foo key:
   bar!
 
+foo key:
+  rescueé
+
 ---
 
 (program
@@ -410,7 +413,13 @@ foo key:
     (argument_list
       (pair
         (hash_key_symbol)
-        (call (identifier))))))
+        (call (identifier)))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (identifier)))))
 
 ===========================
 begin with rescue with args

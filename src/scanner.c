@@ -1091,19 +1091,19 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
          (iswalpha(lexer->lookahead) || lexer->lookahead == '_')) ||
         (valid_symbols[CONSTANT_SUFFIX] && iswupper(lexer->lookahead))) {
         TokenType validIdentifierSymbol = iswupper(lexer->lookahead) ? CONSTANT_SUFFIX : IDENTIFIER_SUFFIX;
-        const char *rescue = "rescue";
+        static const char RESCUE[] = "rescue";
         uint32_t length = 0;
         lexer->mark_end(lexer);
         while (iswalnum(lexer->lookahead) || lexer->lookahead == '_') {
-            if (length >= strlen(rescue) || lexer->lookahead != rescue[length]) {
+            if (length >= sizeof(RESCUE) - 1 || lexer->lookahead != RESCUE[length]) {
                 rescue_may_end_line = false;
             }
             advance(lexer);
             length++;
         }
 
-        if (rescue_may_end_line && length == strlen(rescue) && lexer->lookahead != '?' && lexer->lookahead != '!' &&
-            lexer->lookahead != ':') {
+        if (rescue_may_end_line && length == sizeof(RESCUE) - 1 && !is_iden_char(lexer->lookahead) &&
+            lexer->lookahead != '?' && lexer->lookahead != '!' && lexer->lookahead != ':') {
             // Zero-width line break before `rescue`
             lexer->result_symbol = LINE_BREAK;
             return true;
