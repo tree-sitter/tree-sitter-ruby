@@ -36,7 +36,7 @@ jobs:
         uses: tree-sitter/setup-action/cli@v2
         with:
           # Must be the CLI that generated src/parser.c (checked by parser-test-action)
-          tree-sitter-ref: v0.26.11
+          tree-sitter-ref: v0.27.1
       - name: Set up examples
         run: |
           git clone https://github.com/ruby/spec examples/ruby_spec --single-branch --depth=1 --filter=blob:none

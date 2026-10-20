@@ -97,7 +97,6 @@ module.exports = grammar({
   supertypes: $ => [
     $._statement,
     $._arg,
-    $._call_operator,
     $._method_name,
     $._expression,
     $._variable,
