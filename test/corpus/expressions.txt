@@ -3059,3 +3059,27 @@ multiline regex
 (program
   (regex
     (string_content)))
+
+===============================
+regex with backslash sequences
+===============================
+
+/[[:alpha:]]\d+\/x/
+%r{a\}b}
+/\#{x}/
+/a#{b}\w/i
+
+---
+
+(program
+  (regex
+    (string_content))
+  (regex
+    (string_content))
+  (regex
+    (string_content))
+  (regex
+    (string_content)
+    (interpolation
+      (identifier))
+    (string_content)))

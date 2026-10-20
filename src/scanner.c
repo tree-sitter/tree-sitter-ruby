@@ -819,7 +819,8 @@ static inline bool scan_literal_content(Scanner *scanner, TSLexer *lexer) {
                 return true;
             }
         } else if (lexer->lookahead == '\\') {
-            if (literal->allows_interpolation) {
+            // In a regex, `\d`, `\/`, ... belong to the pattern, not to escape sequences
+            if (literal->allows_interpolation && literal->type != REGEX_START) {
                 if (has_content) {
                     lexer->mark_end(lexer);
                     lexer->result_symbol = STRING_CONTENT;
