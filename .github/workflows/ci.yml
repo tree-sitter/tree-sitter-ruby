@@ -9,6 +9,14 @@ on:
       - test/**
       - bindings/**
       - binding.gyp
+      - queries/**
+      - tree-sitter.json
+      - package.json
+      - Cargo.toml
+      - pyproject.toml
+      - setup.py
+      - go.mod
+      - Package.swift
   pull_request:
     paths:
       - grammar.js
@@ -16,6 +24,14 @@ on:
       - test/**
       - bindings/**
       - binding.gyp
+      - queries/**
+      - tree-sitter.json
+      - package.json
+      - Cargo.toml
+      - pyproject.toml
+      - setup.py
+      - go.mod
+      - Package.swift
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
@@ -31,7 +47,7 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-14]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up tree-sitter
         uses: tree-sitter/setup-action/cli@v2
         with:
@@ -41,7 +57,7 @@ jobs:
         run: |
           git clone https://github.com/ruby/spec examples/ruby_spec --single-branch --depth=1 --filter=blob:none
       - name: Run tests
-        uses: tree-sitter/parser-test-action@v2
+        uses: tree-sitter/parser-test-action@v3
         with:
           abi-version: 14
           test-rust: true

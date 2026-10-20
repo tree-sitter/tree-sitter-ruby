@@ -4,16 +4,20 @@ on:
   push:
     branches: [master]
     paths:
-      - src/scanner.c
+      - grammar.js
+      - src/**
   pull_request:
     paths:
-      - src/scanner.c
+      - grammar.js
+      - src/**
 
 jobs:
   fuzz:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Run fuzzer
         uses: tree-sitter/fuzz-action@v4
+        with:
+          corpus: test/highlight
