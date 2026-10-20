@@ -190,11 +190,15 @@ static inline void deserialize(Scanner *scanner, const char *buffer, unsigned le
 }
 
 // A `#` comment ends at a newline, or at the end of an included range (e.g. an ERB tag)
-static inline bool scan_comment(TSLexer *lexer) {
+static inline void advance_comment(TSLexer *lexer) {
     advance(lexer);
     while (lexer->lookahead != '\n' && !lexer->eof(lexer) && !lexer->is_at_included_range_start(lexer)) {
         advance(lexer);
     }
+}
+
+static inline bool scan_comment(TSLexer *lexer) {
+    advance_comment(lexer);
     // At the start of an included range, this marks the end of the previous one
     lexer->mark_end(lexer);
     lexer->result_symbol = COMMENT;
@@ -256,12 +260,21 @@ static inline bool scan_whitespace(Scanner *scanner, TSLexer *lexer, const bool 
                 }
                 break;
             default:
-                // Not after `__END__` (only there is UNINTERPRETED valid without STRING_START). After a newline the
-                // token starts at the `#` only if indentation was skipped, so leave column-0 comments to the lexer
+                // Not after `__END__` (only there is UNINTERPRETED valid without STRING_START)
                 if (lexer->lookahead == '#' && valid_symbols[COMMENT] &&
-                    (!valid_symbols[UNINTERPRETED] || valid_symbols[STRING_START]) &&
-                    (!crossed_newline || lexer->get_column(lexer) > 0)) {
-                    return scan_comment(lexer);
+                    (!valid_symbols[UNINTERPRETED] || valid_symbols[STRING_START])) {
+                    // After a newline the token starts at the `#` only if indentation was skipped
+                    if (!crossed_newline || lexer->get_column(lexer) > 0) {
+                        return scan_comment(lexer);
+                    }
+                    // So leave a column-0 comment to the lexer, whose `#.*` would not stop at the end of an included
+                    // range: there emit the (zero-width) line break first, and the comment is scanned after it
+                    advance_comment(lexer);
+                    if (!lexer->is_at_included_range_start(lexer)) {
+                        return false;
+                    }
+                    lexer->result_symbol = LINE_BREAK;
+                    return true;
                 }
                 if (crossed_newline) {
                     if (lexer->lookahead != '.' && lexer->lookahead != '&' && lexer->lookahead != '#') {

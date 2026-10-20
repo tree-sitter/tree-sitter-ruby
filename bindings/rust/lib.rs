@@ -73,6 +73,7 @@ mod tests {
         let cases = [
             ("<% x = 1 # note %>\n<% y = 2 %>\n", [range(2, 16, (0, 2), (0, 16)), range(21, 28, (1, 2), (1, 9))]),
             ("<% foo\n  # note %>text<% bar %>\n", [range(2, 16, (0, 2), (1, 9)), range(24, 29, (1, 17), (1, 22))]),
+            ("<% foo\n# note %>text<% bar %>\n", [range(2, 14, (0, 2), (1, 7)), range(22, 27, (1, 15), (1, 20))]),
         ];
         let mut parser = tree_sitter::Parser::new();
         parser.set_language(&super::LANGUAGE.into()).unwrap();
