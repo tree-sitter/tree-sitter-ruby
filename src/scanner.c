@@ -766,6 +766,9 @@ static inline bool scan_heredoc_content(Scanner *scanner, TSLexer *lexer, const 
                 if (scan_short_interpolation(lexer, has_content, HEREDOC_CONTENT)) {
                     return true;
                 }
+                // A plain `#` is content
+                has_content = true;
+                lexer->mark_end(lexer);
             } else if (lexer->lookahead == '\r' || lexer->lookahead == '\n') {
                 // A nested heredoc body starts at the end of the line that opened it
                 if (current > 0 && valid_symbols[HEREDOC_BODY_START]) {
