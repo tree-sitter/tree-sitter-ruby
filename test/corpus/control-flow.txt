@@ -385,6 +385,33 @@ end
   (begin (rescue (then)))
   (begin (rescue (then (identifier)))))
 
+==============================================
+begin with rescue after hash shorthand argument
+==============================================
+
+begin
+  foo key:
+rescue => e
+end
+
+foo key:
+  bar!
+
+---
+
+(program
+  (begin
+    (call
+      (identifier)
+      (argument_list (pair (hash_key_symbol))))
+    (rescue (exception_variable (identifier))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (call (identifier))))))
+
 ===========================
 begin with rescue with args
 ===========================

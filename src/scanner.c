@@ -164,7 +164,8 @@ static inline void deserialize(Scanner *scanner, const char *buffer, unsigned le
     assert(size == length);
 }
 
-static inline bool scan_whitespace(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols) {
+static inline bool scan_whitespace(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols,
+                                   bool *rescue_may_end_line) {
     bool heredoc_body_start_is_valid = scanner->open_heredocs.size > 0 && !scanner->open_heredocs.contents[0].started &&
                                        valid_symbols[HEREDOC_BODY_START];
     bool crossed_newline = false;
@@ -200,6 +201,9 @@ static inline bool scan_whitespace(Scanner *scanner, TSLexer *lexer, const bool 
                     advance(lexer);
                     crossed_newline = true;
                 } else {
+                    // After a hash shorthand (`foo key:`) the value may follow on the next line, unless that
+                    // line is a `rescue` clause
+                    *rescue_may_end_line = valid_symbols[NO_LINE_BREAK] && valid_symbols[LINE_BREAK];
                     skip(scanner, lexer);
                 }
                 break;
@@ -853,7 +857,8 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
 
     // Whitespace
     lexer->result_symbol = NONE;
-    if (!scan_whitespace(scanner, lexer, valid_symbols)) {
+    bool rescue_may_end_line = false;
+    if (!scan_whitespace(scanner, lexer, valid_symbols, &rescue_may_end_line)) {
         return false;
     }
     if (lexer->result_symbol != NONE) {
@@ -1031,8 +1036,22 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
          (iswalpha(lexer->lookahead) || lexer->lookahead == '_')) ||
         (valid_symbols[CONSTANT_SUFFIX] && iswupper(lexer->lookahead))) {
         TokenType validIdentifierSymbol = iswupper(lexer->lookahead) ? CONSTANT_SUFFIX : IDENTIFIER_SUFFIX;
+        const char *rescue = "rescue";
+        uint32_t length = 0;
+        lexer->mark_end(lexer);
         while (iswalnum(lexer->lookahead) || lexer->lookahead == '_') {
+            if (length >= strlen(rescue) || lexer->lookahead != rescue[length]) {
+                rescue_may_end_line = false;
+            }
             advance(lexer);
+            length++;
+        }
+
+        if (rescue_may_end_line && length == strlen(rescue) && lexer->lookahead != '?' && lexer->lookahead != '!' &&
+            lexer->lookahead != ':') {
+            // Zero-width line break before `rescue`
+            lexer->result_symbol = LINE_BREAK;
+            return true;
         }
 
         if (valid_symbols[HASH_KEY_SYMBOL] && lexer->lookahead == ':') {
@@ -1044,6 +1063,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
             }
         } else if (valid_symbols[validIdentifierSymbol] && lexer->lookahead == '!') {
             advance(lexer);
+            lexer->mark_end(lexer);
             if (lexer->lookahead != '=') {
                 lexer->result_symbol = validIdentifierSymbol;
                 return true;
