@@ -73,7 +73,7 @@ typedef struct {
     Array(Heredoc) open_heredocs;
 } Scanner;
 
-const char NON_IDENTIFIER_CHARS[] = {
+static const char NON_IDENTIFIER_CHARS[] = {
     '\0', '\n', '\r', '\t', ' ', ':', ';', '`',  '"', '\'', '@', '$', '#', '.', ',', '|', '^', '&',
     '<',  '=',  '>',  '+',  '-', '*', '/', '\\', '%', '?',  '!', '~', '(', ')', '[', ']', '{', '}',
 };
@@ -438,6 +438,26 @@ static inline bool scan_symbol_identifier(TSLexer *lexer) {
     return true;
 }
 
+typedef struct {
+    char letter;
+    // `%s` is valid only where a simple symbol (`:foo`) is
+    TokenType valid_symbol;
+    TokenType type;
+    bool allows_interpolation;
+} PercentLiteral;
+
+static const PercentLiteral PERCENT_LITERALS[] = {
+    {'s', SIMPLE_SYMBOL, SYMBOL_START, false},
+    {'r', REGEX_START, REGEX_START, true},
+    {'x', SUBSHELL_START, SUBSHELL_START, true},
+    {'q', STRING_START, STRING_START, false},
+    {'Q', STRING_START, STRING_START, true},
+    {'w', STRING_ARRAY_START, STRING_ARRAY_START, false},
+    {'W', STRING_ARRAY_START, STRING_ARRAY_START, true},
+    {'i', SYMBOL_ARRAY_START, SYMBOL_ARRAY_START, false},
+    {'I', SYMBOL_ARRAY_START, SYMBOL_ARRAY_START, true},
+};
+
 static inline bool scan_open_delimiter(Scanner *scanner, TSLexer *lexer, Literal *literal, const bool *valid_symbols) {
     // After `..` and `...` (NO_LINE_BREAK, see `range`) binary operators are valid only because the range may be
     // endless, after `return`, `break` and `next` (OPERAND_NEXT) because they may be bare: Ruby reads an operand
@@ -500,95 +520,20 @@ static inline bool scan_open_delimiter(Scanner *scanner, TSLexer *lexer, Literal
                 return false;
             }
 
-            switch (lexer->lookahead) {
-                case 's':
-                    if (!valid_symbols[SIMPLE_SYMBOL]) {
-                        return false;
-                    }
-                    literal->type = SYMBOL_START;
-                    literal->allows_interpolation = false;
-                    advance(lexer);
-                    break;
-
-                case 'r':
-                    if (!valid_symbols[REGEX_START]) {
-                        return false;
-                    }
-                    literal->type = REGEX_START;
-                    literal->allows_interpolation = true;
-                    advance(lexer);
-                    break;
-
-                case 'x':
-                    if (!valid_symbols[SUBSHELL_START]) {
-                        return false;
-                    }
-                    literal->type = SUBSHELL_START;
-                    literal->allows_interpolation = true;
-                    advance(lexer);
-                    break;
-
-                case 'q':
-                    if (!valid_symbols[STRING_START]) {
-                        return false;
-                    }
-                    literal->type = STRING_START;
-                    literal->allows_interpolation = false;
-                    advance(lexer);
-                    break;
-
-                case 'Q':
-                    if (!valid_symbols[STRING_START]) {
-                        return false;
-                    }
-                    literal->type = STRING_START;
-                    literal->allows_interpolation = true;
-                    advance(lexer);
-                    break;
-
-                case 'w':
-                    if (!valid_symbols[STRING_ARRAY_START]) {
-                        return false;
-                    }
-                    literal->type = STRING_ARRAY_START;
-                    literal->allows_interpolation = false;
-                    advance(lexer);
-                    break;
-
-                case 'i':
-                    if (!valid_symbols[SYMBOL_ARRAY_START]) {
-                        return false;
-                    }
-                    literal->type = SYMBOL_ARRAY_START;
-                    literal->allows_interpolation = false;
-                    advance(lexer);
-                    break;
-
-                case 'W':
-                    if (!valid_symbols[STRING_ARRAY_START]) {
-                        return false;
-                    }
-                    literal->type = STRING_ARRAY_START;
-                    literal->allows_interpolation = true;
-                    advance(lexer);
-                    break;
-
-                case 'I':
-                    if (!valid_symbols[SYMBOL_ARRAY_START]) {
-                        return false;
-                    }
-                    literal->type = SYMBOL_ARRAY_START;
-                    literal->allows_interpolation = true;
-                    advance(lexer);
-                    break;
-
-                default:
-                    if (!valid_symbols[STRING_START]) {
-                        return false;
-                    }
-                    literal->type = STRING_START;
-                    literal->allows_interpolation = true;
-                    break;
+            // Without a letter (`%(...)`) it is an interpolating string
+            PercentLiteral percent = {0, STRING_START, STRING_START, true};
+            for (size_t i = 0; i < sizeof(PERCENT_LITERALS) / sizeof(PERCENT_LITERALS[0]); i++) {
+                if (lexer->lookahead == PERCENT_LITERALS[i].letter) {
+                    percent = PERCENT_LITERALS[i];
+                }
+            }
+            if (!valid_symbols[percent.valid_symbol]) {
+                return false;
+            }
+            literal->type = percent.type;
+            literal->allows_interpolation = percent.allows_interpolation;
+            if (percent.letter) {
+                advance(lexer);
             }
 
             switch (lexer->lookahead) {
@@ -946,6 +891,31 @@ static inline bool scan_literal_content(Scanner *scanner, TSLexer *lexer, const 
     }
 }
 
+// After `*` or `**`: `foo *args` is a splat, `a*b` and `a * b` are binary
+static inline bool scan_star_operator(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols, TokenType binary,
+                                      TokenType splat) {
+    if (lexer->lookahead == '=') {
+        return false;
+    }
+    if (valid_symbols[binary] && !scanner->has_leading_whitespace) {
+        lexer->result_symbol = binary;
+        return true;
+    }
+    if (valid_symbols[splat] && !is_space(lexer->lookahead)) {
+        lexer->result_symbol = splat;
+        return true;
+    }
+    if (valid_symbols[binary]) {
+        lexer->result_symbol = binary;
+        return true;
+    }
+    if (valid_symbols[splat]) {
+        lexer->result_symbol = splat;
+        return true;
+    }
+    return false;
+}
+
 static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols) {
     scanner->has_leading_whitespace = false;
 
@@ -998,52 +968,14 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
             if (valid_symbols[SPLAT_STAR] || valid_symbols[BINARY_STAR] || valid_symbols[HASH_SPLAT_STAR_STAR] ||
                 valid_symbols[BINARY_STAR_STAR]) {
                 advance(lexer);
-                if (lexer->lookahead == '=') {
+                if (lexer->lookahead != '*') {
+                    return scan_star_operator(scanner, lexer, valid_symbols, BINARY_STAR, SPLAT_STAR);
+                }
+                if (!valid_symbols[HASH_SPLAT_STAR_STAR] && !valid_symbols[BINARY_STAR_STAR]) {
                     return false;
                 }
-                if (lexer->lookahead == '*') {
-                    if (valid_symbols[HASH_SPLAT_STAR_STAR] || valid_symbols[BINARY_STAR_STAR]) {
-                        advance(lexer);
-                        if (lexer->lookahead == '=') {
-                            return false;
-                        }
-                        if (valid_symbols[BINARY_STAR_STAR] && !scanner->has_leading_whitespace) {
-                            lexer->result_symbol = BINARY_STAR_STAR;
-                            return true;
-                        }
-                        if (valid_symbols[HASH_SPLAT_STAR_STAR] && !is_space(lexer->lookahead)) {
-                            lexer->result_symbol = HASH_SPLAT_STAR_STAR;
-                            return true;
-                        }
-                        if (valid_symbols[BINARY_STAR_STAR]) {
-                            lexer->result_symbol = BINARY_STAR_STAR;
-                            return true;
-                        }
-                        if (valid_symbols[HASH_SPLAT_STAR_STAR]) {
-                            lexer->result_symbol = HASH_SPLAT_STAR_STAR;
-                            return true;
-                        }
-                        return false;
-                    }
-                    return false;
-                }
-                if (valid_symbols[BINARY_STAR] && !scanner->has_leading_whitespace) {
-                    lexer->result_symbol = BINARY_STAR;
-                    return true;
-                }
-                if (valid_symbols[SPLAT_STAR] && !is_space(lexer->lookahead)) {
-                    lexer->result_symbol = SPLAT_STAR;
-                    return true;
-                }
-                if (valid_symbols[BINARY_STAR]) {
-                    lexer->result_symbol = BINARY_STAR;
-                    return true;
-                }
-                if (valid_symbols[SPLAT_STAR]) {
-                    lexer->result_symbol = SPLAT_STAR;
-                    return true;
-                }
-                return false;
+                advance(lexer);
+                return scan_star_operator(scanner, lexer, valid_symbols, BINARY_STAR_STAR, HASH_SPLAT_STAR_STAR);
             }
             break;
 
@@ -1091,19 +1023,10 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
 
                 switch (lexer->lookahead) {
                     case '"':
-                        advance(lexer);
-                        literal.open_delimiter = '"';
-                        literal.close_delimiter = '"';
-                        literal.allows_interpolation = true;
-                        array_push(&scanner->literal_stack, literal);
-                        lexer->result_symbol = SYMBOL_START;
-                        return true;
-
                     case '\'':
+                        literal.open_delimiter = literal.close_delimiter = lexer->lookahead;
+                        literal.allows_interpolation = lexer->lookahead == '"';
                         advance(lexer);
-                        literal.open_delimiter = '\'';
-                        literal.close_delimiter = '\'';
-                        literal.allows_interpolation = false;
                         array_push(&scanner->literal_stack, literal);
                         lexer->result_symbol = SYMBOL_START;
                         return true;
@@ -1145,7 +1068,8 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
             break;
     }
 
-    // Open delimiters for literals
+    // Hash keys (`key:`), method names ending in `!` (`foo!`, `Foo!`), and the line break before a `rescue` that
+    // follows a hash shorthand
     if (((valid_symbols[HASH_KEY_SYMBOL] || valid_symbols[IDENTIFIER_SUFFIX]) &&
          (is_iden_char(lexer->lookahead) && !is_digit(lexer->lookahead))) ||
         (valid_symbols[CONSTANT_SUFFIX] && is_upper(lexer->lookahead))) {
@@ -1233,7 +1157,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
     return false;
 }
 
-void *tree_sitter_ruby_external_scanner_create() {
+void *tree_sitter_ruby_external_scanner_create(void) {
     Scanner *scanner = (Scanner *)ts_calloc(1, sizeof(Scanner));
     return scanner;
 }
@@ -1255,10 +1179,6 @@ void tree_sitter_ruby_external_scanner_deserialize(void *payload, const char *bu
 
 void tree_sitter_ruby_external_scanner_destroy(void *payload) {
     Scanner *scanner = (Scanner *)payload;
-    for (uint32_t i = 0; i < scanner->open_heredocs.size; i++) {
-        array_delete(&array_get(&scanner->open_heredocs, i)->word);
-    }
-    array_delete(&scanner->open_heredocs);
-    array_delete(&scanner->literal_stack);
+    reset(scanner);
     ts_free(scanner);
 }
