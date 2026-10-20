@@ -984,7 +984,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
             // `foo +x` is a command argument, like `foo -x`; otherwise `+` is left to the internal lexer
             if (valid_symbols[UNARY_PLUS] && valid_symbols[BINARY_STAR] && scanner->has_leading_whitespace) {
                 advance(lexer);
-                if (lexer->lookahead != '=' && lexer->lookahead != '@' && !iswspace(lexer->lookahead)) {
+                if (lexer->lookahead != '=' && !iswspace(lexer->lookahead)) {
                     lexer->result_symbol = UNARY_PLUS;
                     return true;
                 }

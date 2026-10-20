@@ -901,6 +901,7 @@ unary plus
 +a
 foo +a, bar
 foo +1
+foo +@a
 foo + a
 foo+a
 foo += 1
@@ -921,6 +922,11 @@ foo += 1
     (argument_list
       (unary
         (integer))))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (instance_variable))))
   (binary
     (identifier)
     (identifier))
