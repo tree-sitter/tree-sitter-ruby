@@ -838,6 +838,35 @@ percent string with unbalanced delimiters
   (string
     (string_content)))
 
+=====================================
+percent string with equals delimiters
+=====================================
+
+%=a #{b}=.size
+[%=a=, %w=b c=]
+x %=2
+
+---
+
+(program
+  (call
+    receiver: (string
+      (string_content)
+      (interpolation
+        (identifier)))
+    method: (identifier))
+  (array
+    (string
+      (string_content))
+    (string_array
+      (bare_string
+        (string_content))
+      (bare_string
+        (string_content))))
+  (operator_assignment
+    left: (identifier)
+    right: (integer)))
+
 =========================================
 percent string with balanced delimiters
 =========================================

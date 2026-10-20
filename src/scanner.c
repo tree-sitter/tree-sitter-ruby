@@ -478,6 +478,10 @@ static inline bool scan_open_delimiter(Scanner *scanner, TSLexer *lexer, Literal
 
         case '%':
             advance(lexer);
+            // Like Ruby, read `%=` as the operator assignment wherever a binary operator may follow
+            if (lexer->lookahead == '=' && binary_operator_valid) {
+                return false;
+            }
 
             switch (lexer->lookahead) {
                 case 's':
@@ -618,11 +622,7 @@ static inline bool scan_open_delimiter(Scanner *scanner, TSLexer *lexer, Literal
                 case ']':
                 case '}':
                 case '>':
-                // TODO: Implement %= as external rule and re-enable = as a valid
-                // unbalanced delimiter. That will be necessary due to ambiguity
-                // between &= assignment operator and %=...= as string
-                // content delimiter.
-                // case '=':
+                case '=':
                 case '+':
                 case '-':
                 case '~':
