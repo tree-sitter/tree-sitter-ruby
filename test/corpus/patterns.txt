@@ -406,6 +406,22 @@ foo **{a => 1}
 )
 
 =====================================
+one-line patterns: the value is an arg
+=====================================
+
+x = y in Integer
+x += 1 => y
+!x in true
+
+-----------------
+
+(program
+  (test_pattern (assignment (identifier) (identifier)) (constant))
+  (match_pattern (operator_assignment (identifier) (integer)) (identifier))
+  (test_pattern (unary (identifier)) (true))
+)
+
+=====================================
 one-line patterns: incorrectly parsed
 =====================================
 foo x in 5 # FIXME: should be parsed as `(foo x) in 5` instead of `foo (x in 5)`

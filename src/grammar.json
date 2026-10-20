@@ -482,7 +482,7 @@
     },
     "_body_expr": {
       "type": "PREC",
-      "value": 1,
+      "value": 7,
       "content": {
         "type": "SEQ",
         "members": [
@@ -3859,7 +3859,7 @@
     },
     "match_pattern": {
       "type": "PREC",
-      "value": 100,
+      "value": 6,
       "content": {
         "type": "SEQ",
         "members": [
@@ -3888,7 +3888,7 @@
     },
     "test_pattern": {
       "type": "PREC",
-      "value": 100,
+      "value": 6,
       "content": {
         "type": "SEQ",
         "members": [

@@ -109,8 +109,48 @@ def id2(x) = return x
   (method 
     name: (identifier)
     parameters: (method_parameters (identifier))
-    body: (return 
+    body: (return
       (argument_list (identifier))))
+)
+
+======================================================
+"end"-less method followed by a pattern or a modifier
+======================================================
+
+def ok? = x in Integer
+def self.f(a) = a => b
+def f = x ? y : z in Integer
+def f = a and b
+def f = x rescue y
+def f = x if y
+
+---
+
+(program
+  (test_pattern
+    value: (method name: (identifier) body: (identifier))
+    pattern: (constant))
+  (match_pattern
+    value: (singleton_method
+      object: (self)
+      name: (identifier)
+      parameters: (method_parameters (identifier))
+      body: (identifier))
+    pattern: (identifier))
+  (test_pattern
+    value: (method
+      name: (identifier)
+      body: (conditional condition: (identifier) consequence: (identifier) alternative: (identifier)))
+    pattern: (constant))
+  (binary
+    left: (method name: (identifier) body: (identifier))
+    right: (identifier))
+  (method
+    name: (identifier)
+    body: (rescue_modifier body: (identifier) handler: (identifier)))
+  (if_modifier
+    body: (method name: (identifier) body: (identifier))
+    condition: (identifier))
 )
 
 ===========================

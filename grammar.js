@@ -9,6 +9,8 @@ const PREC = {
   AND: -2,
   OR: -2,
   NOT: 5,
+  // `arg in pat`, `arg => pat`: below every `arg` operator (`a = b in c` is `(a = b) in c`), above `not`
+  MATCH: 6,
   DEFINED: 10,
   ALIAS: 11,
   ASSIGN: 15,
@@ -203,7 +205,8 @@ module.exports = grammar({
       ),
     ),
 
-    _body_expr: $ => prec(1,
+    // Above MATCH: `def f = x in pat` matches the whole def, as in Ruby.
+    _body_expr: $ => prec(PREC.MATCH + 1,
       seq(
         '=',
         field('body',
@@ -693,9 +696,9 @@ module.exports = grammar({
       $._arg,
     ),
 
-    match_pattern: $ => prec(100, seq(field('value', $._arg), '=>', field('pattern', $._pattern_top_expr_body))),
+    match_pattern: $ => prec(PREC.MATCH, seq(field('value', $._arg), '=>', field('pattern', $._pattern_top_expr_body))),
 
-    test_pattern: $ => prec(100, seq(field('value', $._arg), 'in', field('pattern', $._pattern_top_expr_body))),
+    test_pattern: $ => prec(PREC.MATCH, seq(field('value', $._arg), 'in', field('pattern', $._pattern_top_expr_body))),
 
     _arg: $ => choice(
       alias($._unary_minus_pow, $.unary),
