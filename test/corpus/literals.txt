@@ -1553,6 +1553,33 @@ A
     (heredoc_end)))
 
 ========================================
+heredoc opened inside a multi-line string
+========================================
+
+x = "a #{<<~EOS} b
+  body
+EOS
+c"
+y = 1
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (string
+      (string_content)
+      (interpolation (heredoc_beginning))
+      (string_content)
+      (heredoc_body
+        (heredoc_content)
+        (heredoc_end))
+      (string_content)))
+  (assignment
+    (identifier)
+    (integer)))
+
+========================================
 heredoc with a multi-byte end word
 ========================================
 

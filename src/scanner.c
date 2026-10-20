@@ -841,7 +841,7 @@ static inline bool scan_heredoc_content(Scanner *scanner, TSLexer *lexer, const 
     }
 }
 
-static inline bool scan_literal_content(Scanner *scanner, TSLexer *lexer) {
+static inline bool scan_literal_content(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols) {
     Literal *literal = array_back(&scanner->literal_stack);
     bool has_content = false;
     bool stop_on_space = literal->type == SYMBOL_ARRAY_START || literal->type == STRING_ARRAY_START;
@@ -905,6 +905,17 @@ static inline bool scan_literal_content(Scanner *scanner, TSLexer *lexer) {
             advance(lexer);
             advance(lexer);
 
+        } else if (lexer->lookahead == '\n' && scanner->open_heredocs.size > 0 &&
+                   !array_get(&scanner->open_heredocs, 0)->started && valid_symbols[HEREDOC_BODY_START]) {
+            // A heredoc opened in an interpolation starts its body at the end of this line
+            lexer->mark_end(lexer);
+            if (has_content) {
+                lexer->result_symbol = STRING_CONTENT;
+            } else {
+                array_get(&scanner->open_heredocs, 0)->started = true;
+                lexer->result_symbol = HEREDOC_BODY_START;
+            }
+            return true;
         } else if (lexer->eof(lexer)) {
             advance(lexer);
             lexer->mark_end(lexer);
@@ -923,7 +934,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
     // Contents of literals, which match any character except for some close delimiter
     if (!valid_symbols[STRING_START]) {
         if ((valid_symbols[STRING_CONTENT] || valid_symbols[STRING_END]) && scanner->literal_stack.size > 0) {
-            return scan_literal_content(scanner, lexer);
+            return scan_literal_content(scanner, lexer, valid_symbols);
         }
         if ((valid_symbols[HEREDOC_CONTENT] || valid_symbols[HEREDOC_BODY_END]) && scanner->open_heredocs.size > 0) {
             return scan_heredoc_content(scanner, lexer, valid_symbols);
