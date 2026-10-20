@@ -1553,6 +1553,33 @@ A
     (heredoc_end)))
 
 ========================================
+heredoc with a multi-byte end word
+========================================
+
+x = <<~"É"
+  a
+É
+y = <<~"Ł"
+A
+Ł
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (heredoc_beginning))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end))
+  (assignment
+    (identifier)
+    (heredoc_beginning))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end)))
+
+========================================
 heredoc end word right after an interpolation
 ========================================
 

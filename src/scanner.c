@@ -3,7 +3,6 @@
 #include "tree_sitter/parser.h"
 
 #include <string.h>
-#include <wctype.h>
 
 typedef enum {
     LINE_BREAK,
@@ -76,6 +75,21 @@ const char NON_IDENTIFIER_CHARS[] = {
     '\0', '\n', '\r', '\t', ' ', ':', ';', '`',  '"', '\'', '@', '$', '#', '.', ',', '|', '^', '&',
     '<',  '=',  '>',  '+',  '-', '*', '/', '\\', '%', '?',  '!', '~', '(', ')', '[', ']', '{', '}',
 };
+
+// ASCII only, like Ruby: the isw* functions depend on the host process locale
+static inline bool is_space(int32_t c) { return c == ' ' || (c >= '\t' && c <= '\r'); }
+static inline bool is_upper(int32_t c) { return c >= 'A' && c <= 'Z'; }
+static inline bool is_lower(int32_t c) { return c >= 'a' && c <= 'z'; }
+static inline bool is_digit(int32_t c) { return c >= '0' && c <= '9'; }
+
+// Heredoc end words are kept as UTF-8, so a codepoint is never cut to its low byte
+static inline uint32_t encode_utf8(int32_t c, char *out) {
+    if (c < 0x80) { out[0] = (char)c; return 1; }
+    uint32_t n = c < 0x800 ? 2 : c < 0x10000 ? 3 : 4;
+    out[0] = (char)((0xF00 >> n) | (c >> (6 * (n - 1))));
+    for (uint32_t i = 1; i < n; i++) out[i] = (char)(0x80 | ((c >> (6 * (n - 1 - i))) & 0x3F));
+    return n;
+}
 
 static inline void skip(Scanner *scanner, TSLexer *lexer) {
     scanner->has_leading_whitespace = true;
@@ -230,7 +244,7 @@ static inline bool scan_whitespace(Scanner *scanner, TSLexer *lexer, const bool 
                 if (lexer->lookahead == '\r') {
                     skip(scanner, lexer);
                 }
-                if (iswspace(lexer->lookahead)) {
+                if (is_space(lexer->lookahead)) {
                     skip(scanner, lexer);
                 } else {
                     return false;
@@ -638,18 +652,18 @@ static inline void scan_heredoc_word(TSLexer *lexer, Heredoc *heredoc) {
             quote = lexer->lookahead;
             advance(lexer);
             while (lexer->lookahead != quote && !lexer->eof(lexer)) {
-                array_push(&word, lexer->lookahead);
+                { char utf8[4]; array_extend(&word, encode_utf8(lexer->lookahead, utf8), utf8); }
                 advance(lexer);
             }
             advance(lexer);
             break;
 
         default:
-            if (iswalnum(lexer->lookahead) || lexer->lookahead == '_') {
-                array_push(&word, lexer->lookahead);
+            if (is_iden_char(lexer->lookahead)) {
+                { char utf8[4]; array_extend(&word, encode_utf8(lexer->lookahead, utf8), utf8); }
                 advance(lexer);
-                while (iswalnum(lexer->lookahead) || lexer->lookahead == '_') {
-                    array_push(&word, lexer->lookahead);
+                while (is_iden_char(lexer->lookahead)) {
+                    { char utf8[4]; array_extend(&word, encode_utf8(lexer->lookahead, utf8), utf8); }
                     advance(lexer);
                 }
             }
@@ -677,9 +691,9 @@ static inline bool scan_short_interpolation(TSLexer *lexer, const bool has_conte
             } else {
                 if (lexer->lookahead == '-') {
                     advance(lexer);
-                    is_short_interpolation = lexer->lookahead >= 0x80 || iswalpha(lexer->lookahead) || lexer->lookahead == '_';
+                    is_short_interpolation = is_iden_char(lexer->lookahead) && !is_digit(lexer->lookahead);
                 } else {
-                    is_short_interpolation = lexer->lookahead >= 0x80 || iswalnum(lexer->lookahead) || lexer->lookahead == '_';
+                    is_short_interpolation = is_iden_char(lexer->lookahead);
                 }
             }
         }
@@ -687,7 +701,7 @@ static inline bool scan_short_interpolation(TSLexer *lexer, const bool has_conte
             if (lexer->lookahead == '@') {
                 advance(lexer);
             }
-            is_short_interpolation = is_iden_char(lexer->lookahead) && !iswdigit(lexer->lookahead);
+            is_short_interpolation = is_iden_char(lexer->lookahead) && !is_digit(lexer->lookahead);
         }
 
         if (is_short_interpolation) {
@@ -753,9 +767,12 @@ static inline bool scan_heredoc_content(Scanner *scanner, TSLexer *lexer, const 
             return true;
         }
 
-        if (lexer->lookahead == *array_get(&heredoc->word, position_in_word) && look_for_heredoc_end) {
+        char utf8[4];
+        uint32_t utf8_length = encode_utf8(lexer->lookahead, utf8);
+        if (look_for_heredoc_end && position_in_word + utf8_length <= heredoc->word.size &&
+            memcmp(&heredoc->word.contents[position_in_word], utf8, utf8_length) == 0) {
             advance(lexer);
-            position_in_word++;
+            position_in_word += utf8_length;
         } else {
             position_in_word = 0;
             look_for_heredoc_end = false;
@@ -830,7 +847,7 @@ static inline bool scan_literal_content(Scanner *scanner, TSLexer *lexer) {
     bool stop_on_space = literal->type == SYMBOL_ARRAY_START || literal->type == STRING_ARRAY_START;
 
     for (;;) {
-        if (stop_on_space && iswspace(lexer->lookahead)) {
+        if (stop_on_space && is_space(lexer->lookahead)) {
             if (has_content) {
                 lexer->mark_end(lexer);
                 lexer->result_symbol = STRING_CONTENT;
@@ -846,7 +863,7 @@ static inline bool scan_literal_content(Scanner *scanner, TSLexer *lexer) {
                 } else {
                     advance(lexer);
                     if (literal->type == REGEX_START) {
-                        while (iswlower(lexer->lookahead)) {
+                        while (is_lower(lexer->lookahead)) {
                             advance(lexer);
                         }
                     }
@@ -928,7 +945,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
             if (valid_symbols[BLOCK_AMPERSAND]) {
                 advance(lexer);
                 if (lexer->lookahead != '&' && lexer->lookahead != '.' && lexer->lookahead != '=' &&
-                    (!iswspace(lexer->lookahead) || !valid_symbols[BINARY_STAR])) {
+                    (!is_space(lexer->lookahead) || !valid_symbols[BINARY_STAR])) {
                     lexer->result_symbol = BLOCK_AMPERSAND;
                     return true;
                 }
@@ -965,7 +982,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
                             lexer->result_symbol = BINARY_STAR_STAR;
                             return true;
                         }
-                        if (valid_symbols[HASH_SPLAT_STAR_STAR] && !iswspace(lexer->lookahead)) {
+                        if (valid_symbols[HASH_SPLAT_STAR_STAR] && !is_space(lexer->lookahead)) {
                             lexer->result_symbol = HASH_SPLAT_STAR_STAR;
                             return true;
                         }
@@ -985,7 +1002,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
                     lexer->result_symbol = BINARY_STAR;
                     return true;
                 }
-                if (valid_symbols[SPLAT_STAR] && !iswspace(lexer->lookahead)) {
+                if (valid_symbols[SPLAT_STAR] && !is_space(lexer->lookahead)) {
                     lexer->result_symbol = SPLAT_STAR;
                     return true;
                 }
@@ -1005,7 +1022,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
             // `foo +x` is a command argument, like `foo -x`; otherwise `+` is left to the internal lexer
             if (valid_symbols[UNARY_PLUS] && valid_symbols[BINARY_STAR] && scanner->has_leading_whitespace) {
                 advance(lexer);
-                if (lexer->lookahead != '=' && !iswspace(lexer->lookahead)) {
+                if (lexer->lookahead != '=' && !is_space(lexer->lookahead)) {
                     lexer->result_symbol = UNARY_PLUS;
                     return true;
                 }
@@ -1019,11 +1036,11 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
                 if (lexer->lookahead != '=' && lexer->lookahead != '>') {
                     if (valid_symbols[UNARY_MINUS_NUM] &&
                         (!valid_symbols[BINARY_STAR] || scanner->has_leading_whitespace) &&
-                        iswdigit(lexer->lookahead)) {
+                        is_digit(lexer->lookahead)) {
                         lexer->result_symbol = UNARY_MINUS_NUM;
                         return true;
                     }
-                    if (valid_symbols[UNARY_MINUS] && scanner->has_leading_whitespace && !iswspace(lexer->lookahead)) {
+                    if (valid_symbols[UNARY_MINUS] && scanner->has_leading_whitespace && !is_space(lexer->lookahead)) {
                         lexer->result_symbol = UNARY_MINUS;
                     } else if (valid_symbols[BINARY_MINUS]) {
                         lexer->result_symbol = BINARY_MINUS;
@@ -1091,13 +1108,13 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
 
     // Open delimiters for literals
     if (((valid_symbols[HASH_KEY_SYMBOL] || valid_symbols[IDENTIFIER_SUFFIX]) &&
-         (iswalpha(lexer->lookahead) || lexer->lookahead == '_')) ||
-        (valid_symbols[CONSTANT_SUFFIX] && iswupper(lexer->lookahead))) {
-        TokenType validIdentifierSymbol = iswupper(lexer->lookahead) ? CONSTANT_SUFFIX : IDENTIFIER_SUFFIX;
+         (is_iden_char(lexer->lookahead) && !is_digit(lexer->lookahead))) ||
+        (valid_symbols[CONSTANT_SUFFIX] && is_upper(lexer->lookahead))) {
+        TokenType validIdentifierSymbol = is_upper(lexer->lookahead) ? CONSTANT_SUFFIX : IDENTIFIER_SUFFIX;
         static const char RESCUE[] = "rescue";
         uint32_t length = 0;
         lexer->mark_end(lexer);
-        while (iswalnum(lexer->lookahead) || lexer->lookahead == '_') {
+        while (is_iden_char(lexer->lookahead)) {
             if (length >= sizeof(RESCUE) - 1 || lexer->lookahead != RESCUE[length]) {
                 rescue_may_end_line = false;
             }
