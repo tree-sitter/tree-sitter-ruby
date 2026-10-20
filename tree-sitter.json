@@ -1,4 +1,5 @@
 {
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
   "grammars": [
     {
       "name": "ruby",
@@ -6,12 +7,23 @@
       "scope": "source.ruby",
       "path": ".",
       "file-types": [
-        "rb"
+        "rb",
+        "rake",
+        "gemspec",
+        "ru",
+        "podspec",
+        "Gemfile",
+        "Rakefile",
+        "Guardfile",
+        "Podfile",
+        "Vagrantfile",
+        "Brewfile"
       ],
+      "first-line-regex": "^#!.*\\bruby\\b",
       "highlights": "queries/highlights.scm",
       "injections": "queries/injections.scm",
       "tags": "queries/tags.scm",
-      "injection-regex": "ruby"
+      "injection-regex": "^(ruby|rb)$"
     }
   ],
   "metadata": {
@@ -42,6 +54,8 @@
     "node": true,
     "python": true,
     "rust": true,
-    "swift": true
+    "swift": true,
+    "java": false,
+    "zig": false
   }
 }
