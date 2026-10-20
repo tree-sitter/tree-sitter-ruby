@@ -1245,11 +1245,11 @@ module.exports = grammar({
           alias(
             choice(
               $.lambda_parameters_with_parens,
-              $.bare_parameters
+              $.bare_parameters,
             ),
-            $.lambda_parameters
-          )
-        )
+            $.lambda_parameters,
+          ),
+        ),
       ),
       // Body can be a regular or "do" block
       field('body', choice($.block, $.do_block)),
