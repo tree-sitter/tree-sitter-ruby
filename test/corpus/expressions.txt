@@ -2787,7 +2787,6 @@ a = 42
   (call
     receiver: (lambda
       body: (block
-        (comment)
         body: (block_body
           (call
             method: (identifier)
