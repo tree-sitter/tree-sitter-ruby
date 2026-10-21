@@ -9,6 +9,8 @@ const PREC = {
   AND: -2,
   OR: -2,
   NOT: 5,
+  // `arg in pat`, `arg => pat`: below every `arg` operator (`a = b in c` is `(a = b) in c`), above `not`
+  MATCH: 6,
   DEFINED: 10,
   ALIAS: 11,
   ASSIGN: 15,
@@ -62,6 +64,7 @@ module.exports = grammar({
     $._splat_star,
     $._unary_minus,
     $._unary_minus_num,
+    $._unary_plus,
     $._binary_minus,
     $._binary_star,
     $._singleton_class_left_angle_left_langle,
@@ -72,6 +75,14 @@ module.exports = grammar({
     $._binary_star_star,
     $._element_reference_bracket,
     $._short_interpolation,
+    $._lambda_brace,
+
+    // Lexed by the scanner so that it stops at included range boundaries (ERB tags)
+    $.comment,
+    // Never produced by the scanner; tells it that `__END__` was seen
+    $.uninterpreted,
+    // Never produced by the scanner; tells it that Ruby reads an operand next, not a binary operator
+    $._operand_next,
   ],
 
   extras: $ => [
@@ -86,7 +97,6 @@ module.exports = grammar({
   supertypes: $ => [
     $._statement,
     $._arg,
-    $._call_operator,
     $._method_name,
     $._expression,
     $._variable,
@@ -160,6 +170,7 @@ module.exports = grammar({
       field('name', $._method_name),
       choice(
         $._body_expr,
+        // with parameters
         seq(
           field('parameters', alias($.parameters, $.method_parameters)),
           choice(
@@ -168,6 +179,7 @@ module.exports = grammar({
           ),
 
         ),
+        // without parameters but with body
         seq(
           optional(
             field('parameters', alias($.bare_parameters, $.method_parameters)),
@@ -195,7 +207,8 @@ module.exports = grammar({
       ),
     ),
 
-    _body_expr: $ =>
+    // Above MATCH: `def f = x in pat` matches the whole def, as in Ruby.
+    _body_expr: $ => prec(PREC.MATCH + 1,
       seq(
         '=',
         field('body',
@@ -204,6 +217,30 @@ module.exports = grammar({
             alias($.rescue_modifier_arg, $.rescue_modifier),
           )),
       ),
+    ),
+
+    // `def foo = bar baz`: like parse.y's `endless_command`, a command body is only
+    // allowed where a command is, so these live in `_expression`, not `_primary`.
+    command_method: $ => seq('def', $._command_method_rest),
+
+    command_singleton_method: $ => seq(
+      'def',
+      seq(
+        choice(
+          field('object', $._variable),
+          seq('(', field('object', $._arg), ')'),
+        ),
+        choice('.', '::'),
+      ),
+      $._command_method_rest,
+    ),
+
+    _command_method_rest: $ => prec(1, seq(
+      field('name', $._method_name),
+      optional(field('parameters', alias($.parameters, $.method_parameters))),
+      '=',
+      field('body', choice($._expression, alias($.rescue_modifier_expression, $.rescue_modifier))),
+    )),
 
 
     parameters: $ => seq(
@@ -296,11 +333,12 @@ module.exports = grammar({
       'end',
     ),
 
-    return_command: $ => prec.left(seq('return', alias($.command_argument_list, $.argument_list))),
+    // '_operand_next' never matches: `return %=a=` and `next / a/` take an argument, as in Ruby
+    return_command: $ => prec.left(seq('return', choice(alias($.command_argument_list, $.argument_list), $._operand_next))),
     yield_command: $ => prec.left(seq('yield', alias($.command_argument_list, $.argument_list))),
-    break_command: $ => prec.left(seq('break', alias($.command_argument_list, $.argument_list))),
-    next_command: $ => prec.left(seq('next', alias($.command_argument_list, $.argument_list))),
-    return: $ => prec.left(seq('return', optional($.argument_list))),
+    break_command: $ => prec.left(seq('break', choice(alias($.command_argument_list, $.argument_list), $._operand_next))),
+    next_command: $ => prec.left(seq('next', choice(alias($.command_argument_list, $.argument_list), $._operand_next))),
+    return: $ => prec.left('return'),
     yield: $ => prec.left(seq('yield', optional($.argument_list))),
     break: $ => prec.left(seq('break', optional($.argument_list))),
     next: $ => prec.left(seq('next', optional($.argument_list))),
@@ -654,14 +692,16 @@ module.exports = grammar({
       alias($.yield_command, $.yield),
       alias($.break_command, $.break),
       alias($.next_command, $.next),
+      alias($.command_method, $.method),
+      alias($.command_singleton_method, $.singleton_method),
       $.match_pattern,
       $.test_pattern,
       $._arg,
     ),
 
-    match_pattern: $ => prec(100, seq(field('value', $._arg), '=>', field('pattern', $._pattern_top_expr_body))),
+    match_pattern: $ => prec(PREC.MATCH, seq(field('value', $._arg), '=>', field('pattern', $._pattern_top_expr_body))),
 
-    test_pattern: $ => prec(100, seq(field('value', $._arg), 'in', field('pattern', $._pattern_top_expr_body))),
+    test_pattern: $ => prec(PREC.MATCH, seq(field('value', $._arg), 'in', field('pattern', $._pattern_top_expr_body))),
 
     _arg: $ => choice(
       alias($._unary_minus_pow, $.unary),
@@ -746,7 +786,7 @@ module.exports = grammar({
         $._call,
         $._chained_command_call,
         field('method', choice(
-          $._variable,
+          $._operation,
           $._function_identifier,
         )),
       ),
@@ -756,7 +796,7 @@ module.exports = grammar({
     command_call_with_block: $ => {
       const receiver = choice(
         $._call,
-        field('method', choice($._variable, $._function_identifier)),
+        field('method', choice($._operation, $._function_identifier)),
       );
       const args = field('arguments', alias($.command_argument_list, $.argument_list));
       const block = field('block', $.block);
@@ -777,7 +817,7 @@ module.exports = grammar({
       const receiver = choice(
         $._call,
         field('method', choice(
-          $._variable, $._function_identifier,
+          $._operation, $._function_identifier,
         )),
       );
 
@@ -844,11 +884,16 @@ module.exports = grammar({
     ),
 
     block: $ => prec(PREC.CURLY_BLOCK, seq(
-      '{',
+      $._block_open,
       field('parameters', optional($.block_parameters)),
       optional(field('body', $.block_body)),
       '}',
     )),
+
+    // Where both a block and a hash argument can start (`foo {`, `x.y {`), the `{` would
+    // otherwise be shared until a later conflict picks the hash. Reducing the brace on its
+    // own forces the choice right after it, and the precedence makes it a block, as in Ruby.
+    _block_open: _ => prec(PREC.CURLY_BLOCK, '{'),
 
     _arg_rhs: $ => choice($._arg, alias($.rescue_modifier_arg, $.rescue_modifier)),
     assignment: $ => prec.right(PREC.ASSIGN, choice(
@@ -898,7 +943,8 @@ module.exports = grammar({
       return prec.right(PREC.RANGE, choice(
         seq(begin, operator, end),
         seq(operator, end),
-        seq(begin, operator),
+        // '_no_line_break' never matches; it tells the scanner that the end may follow on the next line
+        seq(begin, operator, optional($._no_line_break)),
       ));
     },
 
@@ -937,7 +983,7 @@ module.exports = grammar({
       const operators = [
         [prec, PREC.DEFINED, 'defined?'],
         [prec.right, PREC.NOT, 'not'],
-        [prec.right, PREC.UNARY_MINUS, choice(alias($._unary_minus, '-'), alias($._binary_minus, '-'), '+')],
+        [prec.right, PREC.UNARY_MINUS, choice(alias($._unary_minus, '-'), alias($._binary_minus, '-'), '+', alias($._unary_plus, '+'))],
         [prec.right, PREC.COMPLEMENT, choice('!', '~')],
       ];
       // @ts-ignore
@@ -952,7 +998,7 @@ module.exports = grammar({
       const operators = [
         [prec, PREC.DEFINED, 'defined?'],
         [prec.right, PREC.NOT, 'not'],
-        [prec.right, PREC.UNARY_MINUS, choice(alias($._unary_minus, '-'), '+')],
+        [prec.right, PREC.UNARY_MINUS, choice(alias($._unary_minus, '-'), '+', alias($._unary_plus, '+'))],
         [prec.right, PREC.COMPLEMENT, choice('!', '~')],
       ];
       // @ts-ignore
@@ -969,7 +1015,7 @@ module.exports = grammar({
     )),
 
     unary_literal: $ => prec.right(PREC.UNARY_MINUS, seq(
-      field('operator', choice(alias($._unary_minus_num, '-'), '+')),
+      field('operator', choice(alias($._unary_minus_num, '-'), '+', alias($._unary_plus, '+'))),
       field('operand', $._simple_numeric),
     )),
 
@@ -1015,10 +1061,17 @@ module.exports = grammar({
       alias($._call, $.call),
     )),
 
-    _variable: $ => prec.right(choice(
+    // Left: `a ..b` and `a if b` continue the expression, they do not start a command argument
+    _variable: $ => prec.left(choice(
       $.self,
-      $.super,
       $._nonlocal_variable,
+      $._operation,
+    )),
+
+    // The variables that are also method names, as in `foo x` or `super x`: `@a <<x` and `self *x` are binary
+    // operations, as in Ruby
+    _operation: $ => prec.right(choice(
+      $.super,
       $.identifier,
       $.constant,
     )),
@@ -1058,13 +1111,16 @@ module.exports = grammar({
       seq('#', /.*/),
       seq(
         /=begin.*\r?\n/,
+        // Body lines: anything but a line starting with `=end` + whitespace/EOL
         repeat(choice(
-          /[^=]/,
-          /=[^e]/,
-          /=e[^n]/,
-          /=en[^d]/,
+          /[^=\n].*\n/,
+          /\n/,
+          /=([^e\n].*)?\n/,
+          /=e([^n\n].*)?\n/,
+          /=en([^d\n].*)?\n/,
+          /=end[^\s].*\n/,
         )),
-        /[\s*]*=end.*/,
+        /=end([ \t\r\f\v].*)?/,
       ),
     ))),
 
@@ -1089,7 +1145,11 @@ module.exports = grammar({
     instance_variable: _ => token(seq('@', ALPHA_CHAR, IDENTIFIER_CHARS)),
     class_variable: _ => token(seq('@@', ALPHA_CHAR, IDENTIFIER_CHARS)),
 
-    global_variable: _ => /\$(-[a-zA-Z0-9_]|[!@&`'+~=/\\,;.<>*$?:"]|[0-9]+|[a-zA-Z_][a-zA-Z0-9_]*)/,
+    global_variable: _ => token(choice(
+      /\$(-[a-zA-Z0-9_]|[!@&`'+~=/\\,;.<>*$?:"]|[0-9]+)/,
+      seq('$-', /[^\x00-\x7F]/),
+      seq('$', ALPHA_CHAR, IDENTIFIER_CHARS),
+    )),
 
     chained_string: $ => seq($.string, repeat1($.string)),
 
@@ -1216,11 +1276,39 @@ module.exports = grammar({
 
     lambda: $ => seq(
       '->',
-      field('parameters', optional(choice(
-        alias($.parameters, $.lambda_parameters),
-        alias($.bare_parameters, $.lambda_parameters),
-      ))),
-      field('body', choice($.block, $.do_block)),
+      // Optional parameters: either parenthesized, bare, or absent
+      optional(
+        field(
+          'parameters',
+          alias(
+            choice(
+              $.lambda_parameters_with_parens,
+              $.bare_parameters,
+            ),
+            $.lambda_parameters,
+          ),
+        ),
+      ),
+      // Body can be a regular or "do" block
+      field('body', choice(alias($._lambda_block, $.block), $.do_block)),
+    ),
+
+    // Its `{` is a scanner token, like parse.y's tLAMBEG: after bare parameters it opens the body even
+    // where a parameter default could take a block or start a hash (`-> a=b() { }`, `-> x: { }`)
+    _lambda_block: $ => seq(
+      alias($._lambda_brace, '{'),
+      field('parameters', optional($.block_parameters)),
+      optional(field('body', $.block_body)),
+      '}',
+    ),
+
+
+    // Lambda parameters with optional shadow variables: (a, b; x, y)
+    lambda_parameters_with_parens: $ => seq(
+      '(',
+      commaSep($._formal_parameter),
+      optional(seq(';', sep1(field('locals', $.identifier), ','))),
+      ')',
     ),
 
     empty_statement: _ => prec(-1, ';'),

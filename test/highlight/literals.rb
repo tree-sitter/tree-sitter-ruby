@@ -15,9 +15,9 @@
 #         ^ string.special.symbol
 
 /hello/
-# ^ string.special.regex
+# ^ string.regexp
 %r(hello)
-# ^ string.special.regex
+# ^ string.regexp
 
 12345
 # ^ number

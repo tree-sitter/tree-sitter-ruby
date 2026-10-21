@@ -1,0 +1,6 @@
+# Files of ruby/spec (https://github.com/ruby/spec) that still differ from Prism.
+# script/prism_diff.rb fails when one of them agrees again: remove it from this list then.
+
+# UTF-16 source without BOM: tree-sitter reads bytes as UTF-8
+language/fixtures/utf16-be-nobom.rb
+language/fixtures/utf16-le-nobom.rb

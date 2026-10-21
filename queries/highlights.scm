@@ -4,6 +4,8 @@
  (#is-not? local))
 
 [
+  "BEGIN"
+  "END"
   "alias"
   "and"
   "begin"
@@ -21,20 +23,20 @@
   "in"
   "module"
   "next"
+  "not"
   "or"
   "rescue"
+  "redo"
   "retry"
   "return"
   "then"
+  "undef"
   "unless"
   "until"
   "when"
   "while"
   "yield"
 ] @keyword
-
-((identifier) @keyword
- (#match? @keyword "^(private|protected|public)$"))
 
 (constant) @constructor
 
@@ -46,7 +48,13 @@
   method: [(identifier) (constant)] @function.method)
 
 ((identifier) @function.method.builtin
- (#eq? @function.method.builtin "require"))
+ (#any-of? @function.method.builtin
+   "require" "require_relative" "load" "autoload"
+   "attr_reader" "attr_writer" "attr_accessor"
+   "include" "extend" "prepend" "raise" "fail"))
+
+((identifier) @keyword
+ (#match? @keyword "^(private|protected|public)$"))
 
 ; Function definitions
 
@@ -61,6 +69,8 @@
   (class_variable)
   (instance_variable)
 ] @property
+
+(global_variable) @variable
 
 ((identifier) @constant.builtin
  (#match? @constant.builtin "^__(FILE|LINE|ENCODING)__$"))
@@ -108,13 +118,19 @@
   (bare_symbol)
 ] @string.special.symbol
 
-(regex) @string.special.regex
+(regex) @string.regexp
 (escape_sequence) @escape
 
 [
   (integer)
   (float)
+  (rational)
+  (complex)
 ] @number
+
+(character) @string
+
+(uninterpreted) @comment
 
 [
   (nil)
@@ -122,24 +138,27 @@
   (false)
 ] @constant.builtin
 
-(interpolation
-  "#{" @punctuation.special
-  "}" @punctuation.special) @embedded
-
 (comment) @comment
 
 ; Operators
 
 [
-"="
-"=>"
-"->"
+  "=" "=>" "->"
+  "!" "!=" "!~" "%" "%=" "&" "&&" "&&=" "&=" "*" "**" "**=" "*="
+  "+" "+=" "-" "-=" "/=" "<" "<<" "<<=" "<=" "<=>" "==" "==="
+  "=~" ">" ">=" ">>" ">>=" "^" "^=" "|" "|=" "||" "||=" "~" ".." "..."
 ] @operator
+
+(binary "/" @operator) ; "/" also delimits regex literals
+
+(conditional ["?" ":"] @operator)
 
 [
   ","
   ";"
   "."
+  "&."
+  "::"
 ] @punctuation.delimiter
 
 [
@@ -152,3 +171,9 @@
   "%w("
   "%i("
 ] @punctuation.bracket
+
+(block_parameters "|" @punctuation.bracket)
+
+(interpolation
+  "#{" @punctuation.special
+  "}" @punctuation.special) @embedded

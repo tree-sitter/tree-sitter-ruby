@@ -32,6 +32,75 @@ symbol
   (simple_symbol))
 
 ======
+symbol with multi-byte characters
+======
+
+:言
+:你
+:일
+:@言
+
+---
+
+(program
+  (simple_symbol)
+  (simple_symbol)
+  (simple_symbol)
+  (simple_symbol))
+
+======
+multi-byte names in variables and short interpolation
+======
+
+$é = 1
+"#$é #@ŀ #ŀa #Ĥ!"
+
+---
+
+(program
+  (assignment
+    (global_variable)
+    (integer))
+  (string
+    (interpolation (global_variable))
+    (string_content)
+    (interpolation (instance_variable))
+    (string_content)))
+
+======
+percent literal nested deeper than 255 levels
+======
+
+x = %(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((#{1})))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+y = 1
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (string
+      (string_content)
+      (interpolation (integer))
+      (string_content)))
+  (assignment
+    (identifier)
+    (integer)))
+
+========================================================
+strings nested past the scanner state limit (171 levels)
+========================================================
+
+"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{"#{x}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"}"
+foo
+
+---
+
+(ERROR
+  (comment)
+  (identifier))
+
+======
 symbol operators
 ======
 
@@ -667,6 +736,18 @@ double-quoted string with just pound
   (string
     (string_content)))
 
+===========================================
+un-terminated string at the end of the file
+===========================================
+
+"abc
+
+---
+
+(program
+  (ERROR)
+  (identifier))
+
 =============
 interpolation
 =============
@@ -725,6 +806,19 @@ interpolation
           (string_content))
         (identifier)))))
 
+================================================
+short interpolation of a special global variable
+================================================
+
+"#$!"
+
+---
+
+(program
+  (string
+    (interpolation
+      (global_variable))))
+
 ===========================================
 percent q string with unbalanced delimiters
 ===========================================
@@ -781,6 +875,35 @@ percent string with unbalanced delimiters
     (string_content))
   (string
     (string_content)))
+
+=====================================
+percent string with equals delimiters
+=====================================
+
+%=a #{b}=.size
+[%=a=, %w=b c=]
+x %=2
+
+---
+
+(program
+  (call
+    receiver: (string
+      (string_content)
+      (interpolation
+        (identifier)))
+    method: (identifier))
+  (array
+    (string
+      (string_content))
+    (string_array
+      (bare_string
+        (string_content))
+      (bare_string
+        (string_content))))
+  (operator_assignment
+    left: (identifier)
+    right: (integer)))
 
 =========================================
 percent string with balanced delimiters
@@ -904,6 +1027,48 @@ foo("%s '%s' " %
         (array
           (identifier)
           (identifier))))))
+
+========================================
+percent strings delimited by whitespace
+========================================
+
+[% a ]
+x = % b .size
+y = (1..% c )
+foo %q d , 1
+foo(%
+e
+)
+p % f
+
+---
+
+(program
+  (array
+    (string (string_content)))
+  (assignment
+    (identifier)
+    (call
+      (string (string_content))
+      (identifier)))
+  (assignment
+    (identifier)
+    (parenthesized_statements
+      (range
+        (integer)
+        (string (string_content)))))
+  (call
+    (identifier)
+    (argument_list
+      (string (string_content))
+      (integer)))
+  (call
+    (identifier)
+    (argument_list
+      (string (string_content))))
+  (binary
+    (identifier)
+    (identifier)))
 
 ========================================
 Single character string literals
@@ -1472,6 +1637,221 @@ un-terminated heredocs
     (heredoc_content)
     (heredoc_end)))
 
+========================================
+nested heredocs
+========================================
+
+puts <<HERE
+  hello #{<<HERE}
+  world
+HERE
+HERE
+x = <<~A
+  #{
+    <<~B
+      b
+    B
+  }
+A
+
+---
+
+(program
+  (call
+    (identifier)
+    (argument_list (heredoc_beginning)))
+  (heredoc_body
+    (heredoc_content)
+    (interpolation (heredoc_beginning))
+    (heredoc_body
+      (heredoc_content)
+      (heredoc_end))
+    (heredoc_content)
+    (heredoc_end))
+  (assignment
+    (identifier)
+    (heredoc_beginning))
+  (heredoc_body
+    (heredoc_content)
+    (interpolation
+      (heredoc_beginning)
+      (heredoc_body
+        (heredoc_content)
+        (heredoc_end)))
+    (heredoc_content)
+    (heredoc_end)))
+
+========================================
+heredoc opened inside a multi-line string
+========================================
+
+x = "a #{<<~EOS} b
+  body
+EOS
+c"
+y = 1
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (string
+      (string_content)
+      (interpolation (heredoc_beginning))
+      (string_content)
+      (heredoc_body
+        (heredoc_content)
+        (heredoc_end))
+      (string_content)))
+  (assignment
+    (identifier)
+    (integer)))
+
+========================================
+heredoc with a multi-byte end word
+========================================
+
+x = <<~"É"
+  a
+É
+y = <<~"Ł"
+A
+Ł
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (heredoc_beginning))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end))
+  (assignment
+    (identifier)
+    (heredoc_beginning))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end)))
+
+========================================
+heredoc end word right after an interpolation
+========================================
+
+x = <<EOS
+#{y}EOS
+#{<<B}EOS
+b
+B
+EOS
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (heredoc_beginning))
+  (heredoc_body
+    (heredoc_content)
+    (interpolation (identifier))
+    (heredoc_content)
+    (interpolation (heredoc_beginning))
+    (heredoc_content)
+    (heredoc_body
+      (heredoc_content)
+      (heredoc_end))
+    (heredoc_content)
+    (heredoc_end)))
+
+========================================
+heredoc with a plain hash before an interpolation
+========================================
+
+x = <<~MSG
+  #{a}##{b}
+MSG
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (heredoc_beginning))
+  (heredoc_body
+    (heredoc_content)
+    (interpolation (identifier))
+    (heredoc_content)
+    (interpolation (identifier))
+    (heredoc_content)
+    (heredoc_end)))
+
+========================================
+heredoc as the end of a range
+========================================
+
+x = (1..<<A)
+a
+A
+y = 1...<<~B
+  b
+  B
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (parenthesized_statements
+      (range
+        (integer)
+        (heredoc_beginning))))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end))
+  (assignment
+    (identifier)
+    (range
+      (integer)
+      (heredoc_beginning)))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end)))
+
+========================================
+left shift without spaces is not a heredoc
+========================================
+
+"test"<<"ruby"
+"test" <<"ruby"
+foo<<"a"
+a.b<<C
+foo <<EOS
+x
+EOS
+
+---
+
+(program
+  (binary
+    (string (string_content))
+    (string (string_content)))
+  (binary
+    (string (string_content))
+    (string (string_content)))
+  (binary
+    (identifier)
+    (string (string_content)))
+  (binary
+    (call (identifier) (identifier))
+    (constant))
+  (call
+    (identifier)
+    (argument_list (heredoc_beginning)))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end)))
+
 =================================
 no interpolation or escape sequences in single quoted heredoc
 =================================
@@ -1530,6 +1910,20 @@ backticks subshell with escape
     (escape_sequence)
     (string_content)
     (escape_sequence)))
+
+==================
+percent x subshell
+==================
+
+%x(ls #{dir})
+
+---
+
+(program
+  (subshell
+    (string_content)
+    (interpolation
+      (identifier))))
 
 ===========
 empty array

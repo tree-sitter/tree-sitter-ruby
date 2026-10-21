@@ -385,6 +385,42 @@ end
   (begin (rescue (then)))
   (begin (rescue (then (identifier)))))
 
+==============================================
+begin with rescue after hash shorthand argument
+==============================================
+
+begin
+  foo key:
+rescue => e
+end
+
+foo key:
+  bar!
+
+foo key:
+  rescueé
+
+---
+
+(program
+  (begin
+    (call
+      (identifier)
+      (argument_list (pair (hash_key_symbol))))
+    (rescue (exception_variable (identifier))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (call (identifier)))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (identifier)))))
+
 ===========================
 begin with rescue with args
 ===========================
@@ -560,6 +596,145 @@ return
 ---
 
 (program (return))
+
+========================================
+return with invalid syntax (parentheses with multiple values)
+========================================
+
+def f; return (1,2); end
+
+---
+
+(program
+  (method
+    name: (identifier)
+    body: (body_statement
+      (return
+        (argument_list
+          (parenthesized_statements
+            (ERROR (integer))
+            (integer)))))))
+
+========================================
+return with invalid syntax (parentheses with space-separated values)
+========================================
+
+def f; return (1 2); end
+
+---
+
+(program
+  (method
+    name: (identifier)
+    body: (body_statement
+      (return
+        (argument_list
+          (parenthesized_statements
+            (integer)
+            (ERROR (integer))))))))
+
+========================================
+return with invalid syntax (space-separated values without comma)
+========================================
+
+def f; return 1 2; end
+
+---
+
+(program
+  (method
+    name: (identifier )
+    body: (body_statement
+      (return
+        (argument_list
+          (integer )))
+      (ERROR
+        (integer )))))
+
+========================================
+return with valid syntax (comma-separated values)
+========================================
+
+def f; return 1, 2 ; end
+
+---
+
+(program
+  (method
+    name: (identifier)
+    body: (body_statement
+      (return
+        (argument_list
+          (integer)
+          (integer))))))
+
+========================================
+return with valid syntax (single value)
+========================================
+
+def f; return 1; end
+
+---
+
+(program
+  (method
+    name: (identifier)
+    body: (body_statement
+      (return
+        (argument_list
+          (integer))))))
+
+========================================
+return with valid syntax (single value in parentheses)
+========================================
+
+def f;return (1);end
+
+---
+
+(program
+  (method
+    name: (identifier)
+    body: (body_statement
+      (return
+        (argument_list
+          (parenthesized_statements
+            (integer)))))))
+
+==========================================================
+return, break and next with a percent string or regex value
+==========================================================
+
+def f
+  return %=a=
+end
+loop do
+  break %=a=
+  next / a/
+end
+
+---
+
+(program
+  (method
+    name: (identifier)
+    body: (body_statement
+      (return
+        (argument_list
+          (string
+            (string_content))))))
+  (call
+    method: (identifier)
+    block: (do_block
+      body: (body_statement
+        (break
+          (argument_list
+            (string
+              (string_content))))
+        (next
+          (argument_list
+            (regex
+              (string_content))))))))
 
 ====
 case

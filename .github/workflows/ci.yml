@@ -9,6 +9,15 @@ on:
       - test/**
       - bindings/**
       - binding.gyp
+      - script/**
+      - queries/**
+      - tree-sitter.json
+      - package.json
+      - Cargo.toml
+      - pyproject.toml
+      - setup.py
+      - go.mod
+      - Package.swift
   pull_request:
     paths:
       - grammar.js
@@ -16,6 +25,15 @@ on:
       - test/**
       - bindings/**
       - binding.gyp
+      - script/**
+      - queries/**
+      - tree-sitter.json
+      - package.json
+      - Cargo.toml
+      - pyproject.toml
+      - setup.py
+      - go.mod
+      - Package.swift
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
@@ -31,15 +49,19 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-14]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up tree-sitter
-        uses: tree-sitter/setup-action/cli@v1
+        uses: tree-sitter/setup-action/cli@v2
+        with:
+          # Must be the CLI that generated src/parser.c (checked by parser-test-action)
+          tree-sitter-ref: v0.27.1
       - name: Set up examples
         run: |
           git clone https://github.com/ruby/spec examples/ruby_spec --single-branch --depth=1 --filter=blob:none
       - name: Run tests
-        uses: tree-sitter/parser-test-action@v2
+        uses: tree-sitter/parser-test-action@v3
         with:
+          abi-version: 14
           test-rust: true
           test-node: true
           test-python: true
@@ -54,8 +76,27 @@ jobs:
             !examples/ruby_spec/command_line/fixtures/freeze_flag_required_diff_enc.rb
             !examples/ruby_spec/core/enumerable/shared/inject.rb
             !examples/ruby_spec/language/fixtures/freeze_magic_comment_required_diff_enc.rb
-            !examples/ruby_spec/language/string_spec.rb
-            !examples/ruby_spec/core/proc/ruby2_keywords_spec.rb
             !examples/ruby_spec/language/fixtures/utf16-be-nobom.rb
             !examples/ruby_spec/language/fixtures/utf16-le-nobom.rb
-            !examples/ruby_spec/language/lambda_spec.rb
+
+  prism:
+    name: Compare with Prism
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Set up tree-sitter
+        uses: tree-sitter/setup-action/cli@v2
+        with:
+          tree-sitter-ref: v0.27.1
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "4.0"
+      - name: Set up ruby/spec
+        # pinned: a new spec file must not break unrelated changes; bump it on purpose
+        run: |
+          git clone https://github.com/ruby/spec examples/ruby_spec --filter=blob:none --quiet
+          git -C examples/ruby_spec checkout --quiet 0816047460cc5c4ca23d09794b48e8638a7047cc
+      - name: Compare with Prism
+        run: ruby script/prism_diff.rb --known script/prism_diff_known.txt examples/ruby_spec

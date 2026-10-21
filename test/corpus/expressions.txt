@@ -563,6 +563,56 @@ a..b
     (identifier)))
 
 ===============
+begin range
+===============
+
+a..
+
+---
+
+(program
+  (range
+    begin: (identifier)))
+
+=====================================
+begin range continued on the next line
+=====================================
+
+r = 0..
+r = 1..2
+x = (1..
+)
+
+---
+
+(program
+  (assignment
+    left: (identifier)
+    right: (range
+      begin: (integer)
+      end: (assignment
+        left: (identifier)
+        right: (range
+          begin: (integer)
+          end: (integer)))))
+  (assignment
+    left: (identifier)
+    right: (parenthesized_statements
+      (range
+        begin: (integer)))))
+
+===============
+end range
+===============
+
+..b
+
+---
+
+(program
+  (range
+    end: (identifier)))
+===============
 exclusive range
 ===============
 
@@ -574,6 +624,25 @@ a...b
   (range
     (identifier)
     (identifier)))
+
+=========================
+range ending with a regex
+=========================
+
+(//..//)
+a.../ b/
+
+---
+
+(program
+  (parenthesized_statements
+    (range
+      begin: (regex)
+      end: (regex)))
+  (range
+    begin: (identifier)
+    end: (regex
+      (string_content))))
 
 ==========
 boolean or
@@ -763,6 +832,38 @@ a << b
     (identifier)
     (identifier)))
 
+===============================================
+operators after variables that are not methods
+===============================================
+
+@a <<"x"
+x
+@@b *c
+$d -1
+self [1]
+super *e
+
+---
+
+(program
+  (binary
+    (instance_variable)
+    (string (string_content)))
+  (identifier)
+  (binary
+    (class_variable)
+    (identifier))
+  (binary
+    (global_variable)
+    (integer))
+  (element_reference
+    (self)
+    (integer))
+  (call
+    (super)
+    (argument_list
+      (splat_argument (identifier)))))
+
 ========
 additive
 ========
@@ -843,6 +944,49 @@ foo(-a, bar)
       (unary
         (identifier))
       (identifier))))
+
+==========
+unary plus
+==========
+
++a
+foo +a, bar
+foo +1
+foo +@a
+foo + a
+foo+a
+foo += 1
+
+---
+
+(program
+  (unary
+    (identifier))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (identifier))
+      (identifier)))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer))))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (instance_variable))))
+  (binary
+    (identifier)
+    (identifier))
+  (binary
+    (identifier)
+    (identifier))
+  (operator_assignment
+    (identifier)
+    (integer)))
 
 ===========
 binary minus
@@ -1753,6 +1897,40 @@ foo 1, &;
     (argument_list
       (integer)
       (block_argument))))
+
+==========================================
+method call with block argument and space
+==========================================
+
+bar x, &
+foo(a, &
+)
+boo( & lambda {})
+foo & bar
+
+---
+
+(program
+  (call
+    (identifier)
+    (argument_list
+      (identifier)
+      (block_argument)))
+  (call
+    (identifier)
+    (argument_list
+      (identifier)
+      (block_argument)))
+  (call
+    (identifier)
+    (argument_list
+      (block_argument
+        (call
+          (identifier)
+          (block)))))
+  (binary
+    (identifier)
+    (identifier)))
 
 ===============================
 method call with splat argument
@@ -2714,6 +2892,143 @@ end
       (body_statement
         (integer)))))
 
+===============================
+lambda with shadow variables
+===============================
+
+a = 42
+->(;a) {
+  a = 1
+}.()
+
+---
+
+(program
+  (assignment
+    left: (identifier)
+    right: (integer))
+  (call
+    receiver: (lambda
+      parameters: (lambda_parameters
+        locals: (identifier))
+      body: (block
+        body: (block_body
+          (assignment
+            left: (identifier)
+            right: (integer)))))
+    arguments: (argument_list)))
+
+===============================
+lambda with shadow variables 2
+===============================
+
+def use(_) = nil
+a = 42
+-> {
+  use a
+}.()
+
+---
+
+(program
+  (method
+    name: (identifier)
+    parameters: (method_parameters
+      (identifier))
+    body: (nil))
+  (assignment
+    left: (identifier)
+    right: (integer))
+  (call
+    receiver: (lambda
+      body: (block
+        body: (block_body
+          (call
+            method: (identifier)
+            arguments: (argument_list
+              (identifier))))))
+    arguments: (argument_list)))
+
+==========================================
+lambda parameters reject a trailing comma
+==========================================
+
+->(a,) {}
+
+---
+
+(program
+  (lambda
+    (lambda_parameters
+      (identifier)
+      (ERROR))
+    (block)))
+
+=================================================================
+lambda body brace after bare parameters with a default or keyword
+=================================================================
+
+-> x: { }.parameters
+-> *a, b: { }
+-> a=a() { a }.call
+-> a=b.c { a }
+-> a=b(c { 1 }) { a }
+
+---
+
+(program
+  (call
+    receiver: (lambda
+      parameters: (lambda_parameters
+        (keyword_parameter
+          name: (identifier)))
+      body: (block))
+    method: (identifier))
+  (lambda
+    parameters: (lambda_parameters
+      (splat_parameter
+        name: (identifier))
+      (keyword_parameter
+        name: (identifier)))
+    body: (block))
+  (call
+    receiver: (lambda
+      parameters: (lambda_parameters
+        (optional_parameter
+          name: (identifier)
+          value: (call
+            method: (identifier)
+            arguments: (argument_list))))
+      body: (block
+        body: (block_body
+          (identifier))))
+    method: (identifier))
+  (lambda
+    parameters: (lambda_parameters
+      (optional_parameter
+        name: (identifier)
+        value: (call
+          receiver: (identifier)
+          method: (identifier))))
+    body: (block
+      body: (block_body
+        (identifier))))
+  (lambda
+    parameters: (lambda_parameters
+      (optional_parameter
+        name: (identifier)
+        value: (call
+          method: (identifier)
+          arguments: (argument_list
+            (call
+              method: (identifier)
+              block: (block
+                body: (block_body
+                  (integer))))))))
+    body: (block
+      body: (block_body
+        (identifier)))))
+
 ============================
 lambda and proc as variables
 ============================
@@ -2880,4 +3195,28 @@ multiline regex
 
 (program
   (regex
+    (string_content)))
+
+===============================
+regex with backslash sequences
+===============================
+
+/[[:alpha:]]\d+\/x/
+%r{a\}b}
+/\#{x}/
+/a#{b}\w/i
+
+---
+
+(program
+  (regex
+    (string_content))
+  (regex
+    (string_content))
+  (regex
+    (string_content))
+  (regex
+    (string_content)
+    (interpolation
+      (identifier))
     (string_content)))
