@@ -199,6 +199,72 @@ a or b and c
       (identifier))
     (identifier)))
 
+=========================
+leading logical operators
+=========================
+
+a
+&& b
+c
+|| d
+e
+and f
+g
+or h
+
+---
+
+(program
+  (binary
+    (identifier)
+    (identifier))
+  (binary
+    (identifier)
+    (identifier))
+  (binary
+    (identifier)
+    (identifier))
+  (binary
+    (identifier)
+    (identifier)))
+
+=============================================
+leading logical operator after a comment line
+=============================================
+
+a
+  # why
+  || b
+
+---
+
+(program
+  (binary
+    (identifier)
+    (comment)
+    (identifier)))
+
+==============================================
+identifiers starting with and/or on a new line
+==============================================
+
+a
+android
+order
+and?
+or!
+
+---
+
+(program
+  (identifier)
+  (identifier)
+  (identifier)
+  (call
+    (identifier))
+  (call
+    (identifier)))
+
 ========
 defined?
 ========
