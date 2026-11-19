@@ -1107,6 +1107,8 @@ module.exports = grammar({
 
     _method_name: $ => choice(
       $.identifier,
+      // `def self(token)`: a method named `self`, not `def self.foo`
+      alias($.self, $.identifier),
       $._function_identifier,
       $.constant,
       $.setter,

@@ -815,3 +815,21 @@ bar
 ---
 
 (program (identifier) (end_block (identifier)) (identifier))
+
+====================
+method named self
+====================
+
+def self(token); end
+def self.x; end
+
+---
+
+(program
+  (method
+    (identifier)
+    (method_parameters
+      (identifier)))
+  (singleton_method
+    (self)
+    (identifier)))
