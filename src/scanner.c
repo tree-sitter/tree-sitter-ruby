@@ -123,6 +123,11 @@ static inline void skip(Scanner *scanner, TSLexer *lexer) {
 
 static inline void advance(TSLexer *lexer) { lexer->advance(lexer, false); }
 
+static inline bool emit(TSLexer *lexer, TokenType type) {
+    lexer->result_symbol = type;
+    return true;
+}
+
 static inline void reset(Scanner *scanner) {
     array_delete(&scanner->literal_stack);
     for (uint32_t i = 0; i < scanner->open_heredocs.size; i++) {
@@ -274,8 +279,7 @@ static inline bool scan_comment(TSLexer *lexer) {
     advance_comment(lexer);
     // At the start of an included range, this marks the end of the previous one
     lexer->mark_end(lexer);
-    lexer->result_symbol = COMMENT;
-    return true;
+    return emit(lexer, COMMENT);
 }
 
 static inline bool scan_whitespace(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols,
@@ -287,8 +291,7 @@ static inline bool scan_whitespace(Scanner *scanner, TSLexer *lexer, const bool 
     for (;;) {
         if (!valid_symbols[NO_LINE_BREAK] && valid_symbols[LINE_BREAK] && lexer->is_at_included_range_start(lexer)) {
             lexer->mark_end(lexer);
-            lexer->result_symbol = LINE_BREAK;
-            return true;
+            return emit(lexer, LINE_BREAK);
         }
 
         switch (lexer->lookahead) {
@@ -346,8 +349,7 @@ static inline bool scan_whitespace(Scanner *scanner, TSLexer *lexer, const bool 
                     if (!lexer->is_at_included_range_start(lexer)) {
                         return false;
                     }
-                    lexer->result_symbol = LINE_BREAK;
-                    return true;
+                    return emit(lexer, LINE_BREAK);
                 }
                 if (crossed_newline) {
                     // Ruby 4.0: a line starting with `||`, `and` or `or` continues the previous one
@@ -357,8 +359,7 @@ static inline bool scan_whitespace(Scanner *scanner, TSLexer *lexer, const bool 
                         if (lexer->lookahead == '|') {
                             return false;
                         }
-                        lexer->result_symbol = LINE_BREAK;
-                        return true;
+                        return emit(lexer, LINE_BREAK);
                     }
                     if (lexer->lookahead == 'a' || lexer->lookahead == 'o') {
                         const char *word = lexer->lookahead == 'a' ? "and" : "or";
@@ -373,8 +374,7 @@ static inline bool scan_whitespace(Scanner *scanner, TSLexer *lexer, const bool 
                             lexer->lookahead < 0x80) {
                             return false;
                         }
-                        lexer->result_symbol = LINE_BREAK;
-                        return true;
+                        return emit(lexer, LINE_BREAK);
                     }
                     if (lexer->lookahead != '.' && lexer->lookahead != '&' && lexer->lookahead != '#') {
                         lexer->result_symbol = LINE_BREAK;
@@ -600,8 +600,7 @@ static inline bool emit_zero_width(Scanner *scanner, TSLexer *lexer, TokenType s
     if (!local_state_fits(scanner)) {
         return false;
     }
-    lexer->result_symbol = symbol;
-    return true;
+    return emit(lexer, symbol);
 }
 
 // `=` (not `==`, `=~` or `=>`), or an operator assignment such as `+=`, `||=` or `<<=` (not `<=`). Also tells
@@ -800,8 +799,7 @@ static inline bool scan_scope_end(Scanner *scanner, TSLexer *lexer) {
     } else {
         return false;
     }
-    lexer->result_symbol = SCOPE_END;
-    return true;
+    return emit(lexer, SCOPE_END);
 }
 
 // A word that ends the body of an endless method: `def f = 1 if x`, `class A; def f = 1 end`
@@ -887,25 +885,21 @@ static const PercentLiteral PERCENT_LITERALS[] = {
     {'I', SYMBOL_ARRAY_START, SYMBOL_ARRAY_START, true},
 };
 
+// After `..`/`...` (NO_LINE_BREAK) and `return`/`break`/`next` (OPERAND_NEXT), Ruby reads an operand even
+// though binary operators are valid there. STRING_CONTENT valid along with STRING_START means error recovery.
+static inline bool operand_follows(const bool *valid_symbols) {
+    return (valid_symbols[NO_LINE_BREAK] || valid_symbols[OPERAND_NEXT]) && !valid_symbols[STRING_CONTENT];
+}
+
 static inline bool scan_open_delimiter(Scanner *scanner, TSLexer *lexer, Literal *literal, const bool *valid_symbols) {
-    // After `..`/`...` (NO_LINE_BREAK) and `return`/`break`/`next` (OPERAND_NEXT), Ruby reads an operand even
-    // though binary operators are valid there. STRING_CONTENT valid along with STRING_START means error recovery.
-    const bool binary_operator_valid =
-        valid_symbols[FORWARD_SLASH] &&
-        (!(valid_symbols[NO_LINE_BREAK] || valid_symbols[OPERAND_NEXT]) || valid_symbols[STRING_CONTENT]);
+    const bool binary_operator_valid = valid_symbols[FORWARD_SLASH] && !operand_follows(valid_symbols);
 
     switch (lexer->lookahead) {
         case '"':
-            literal->type = STRING_START;
-            literal->open_delimiter = literal->close_delimiter = lexer->lookahead;
-            literal->allows_interpolation = true;
-            advance(lexer);
-            return true;
-
         case '\'':
             literal->type = STRING_START;
             literal->open_delimiter = literal->close_delimiter = lexer->lookahead;
-            literal->allows_interpolation = false;
+            literal->allows_interpolation = lexer->lookahead == '"';
             advance(lexer);
             return true;
 
@@ -964,64 +958,15 @@ static inline bool scan_open_delimiter(Scanner *scanner, TSLexer *lexer, Literal
                 advance(lexer);
             }
 
-            switch (lexer->lookahead) {
-                case '(':
-                    literal->open_delimiter = '(';
-                    literal->close_delimiter = ')';
-                    break;
-
-                case '[':
-                    literal->open_delimiter = '[';
-                    literal->close_delimiter = ']';
-                    break;
-
-                case '{':
-                    literal->open_delimiter = '{';
-                    literal->close_delimiter = '}';
-                    break;
-
-                case '<':
-                    literal->open_delimiter = '<';
-                    literal->close_delimiter = '>';
-                    break;
-
-                case '\r':
-                case '\n':
-                case ' ':
-                case '\t':
-                case '|':
-                case '!':
-                case '#':
-                case '/':
-                case '\\':
-                case '@':
-                case '$':
-                case '%':
-                case '^':
-                case '&':
-                case '*':
-                case ')':
-                case ']':
-                case '}':
-                case '>':
-                case '=':
-                case '+':
-                case '-':
-                case '~':
-                case '`':
-                case ',':
-                case '.':
-                case '?':
-                case ':':
-                case ';':
-                case '_':
-                case '"':
-                case '\'':
-                    literal->open_delimiter = lexer->lookahead;
-                    literal->close_delimiter = lexer->lookahead;
-                    break;
-                default:
-                    return false;
+            // Brackets nest; any other punctuation or whitespace is its own closer
+            const int32_t open = lexer->lookahead;
+            if (is_one_of(open, "([{<")) {
+                literal->open_delimiter = open;
+                literal->close_delimiter = strchr("()[]{}<>", open)[1];
+            } else if (is_one_of(open, "\r\n \t|!#/\\@$%^&*)]}>=+-~`,.?:;_\"'")) {
+                literal->open_delimiter = literal->close_delimiter = open;
+            } else {
+                return false;
             }
 
             advance(lexer);
@@ -1032,33 +977,28 @@ static inline bool scan_open_delimiter(Scanner *scanner, TSLexer *lexer, Literal
     }
 }
 
+static inline void push_utf8(String *word, int32_t c) {
+    char utf8[4];
+    array_extend(word, encode_utf8(c, utf8), utf8);
+}
+
 static inline void scan_heredoc_word(TSLexer *lexer, Heredoc *heredoc) {
     String word = array_new();
     int32_t quote = 0;
 
-    switch (lexer->lookahead) {
-        case '\'':
-        case '"':
-        case '`':
-            quote = lexer->lookahead;
+    if (is_one_of(lexer->lookahead, "'\"`")) {
+        quote = lexer->lookahead;
+        advance(lexer);
+        while (lexer->lookahead != quote && !lexer->eof(lexer)) {
+            push_utf8(&word, lexer->lookahead);
             advance(lexer);
-            while (lexer->lookahead != quote && !lexer->eof(lexer)) {
-                { char utf8[4]; array_extend(&word, encode_utf8(lexer->lookahead, utf8), utf8); }
-                advance(lexer);
-            }
+        }
+        advance(lexer);
+    } else {
+        while (is_iden_char(lexer->lookahead)) {
+            push_utf8(&word, lexer->lookahead);
             advance(lexer);
-            break;
-
-        default:
-            if (is_iden_char(lexer->lookahead)) {
-                { char utf8[4]; array_extend(&word, encode_utf8(lexer->lookahead, utf8), utf8); }
-                advance(lexer);
-                while (is_iden_char(lexer->lookahead)) {
-                    { char utf8[4]; array_extend(&word, encode_utf8(lexer->lookahead, utf8), utf8); }
-                    advance(lexer);
-                }
-            }
-            break;
+        }
     }
 
     heredoc->word = word;
@@ -1069,8 +1009,7 @@ static inline bool scan_short_interpolation(TSLexer *lexer, const bool has_conte
     int32_t start = lexer->lookahead;
     if (start == '@' || start == '$') {
         if (has_content) {
-            lexer->result_symbol = content_symbol;
-            return true;
+            return emit(lexer, content_symbol);
         }
         lexer->mark_end(lexer);
         advance(lexer);
@@ -1096,8 +1035,7 @@ static inline bool scan_short_interpolation(TSLexer *lexer, const bool has_conte
         }
 
         if (is_short_interpolation) {
-            lexer->result_symbol = SHORT_INTERPOLATION;
-            return true;
+            return emit(lexer, SHORT_INTERPOLATION);
         }
     }
     return false;
@@ -1111,6 +1049,12 @@ static inline uint32_t current_heredoc_index(Scanner *scanner) {
         index++;
     }
     return index;
+}
+
+static inline bool end_heredoc(Scanner *scanner, TSLexer *lexer, uint32_t index) {
+    array_delete(&array_get(&scanner->open_heredocs, index)->word);
+    array_erase(&scanner->open_heredocs, index);
+    return emit(lexer, HEREDOC_BODY_END);
 }
 
 static inline bool scan_heredoc_content(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols) {
@@ -1129,15 +1073,11 @@ static inline bool scan_heredoc_content(Scanner *scanner, TSLexer *lexer, const 
                 lexer->mark_end(lexer);
             }
             if (lexer->lookahead == '\n' || lexer->lookahead == '\r' || lexer->eof(lexer)) {
-                if (has_content) {
-                    heredoc->mid_line = false;
-                    lexer->result_symbol = HEREDOC_CONTENT;
-                } else {
-                    array_delete(&heredoc->word);
-                    array_erase(&scanner->open_heredocs, current);
-                    lexer->result_symbol = HEREDOC_BODY_END;
+                if (!has_content) {
+                    return end_heredoc(scanner, lexer, current);
                 }
-                return true;
+                heredoc->mid_line = false;
+                return emit(lexer, HEREDOC_CONTENT);
             }
             has_content = true;
             position_in_word = 0;
@@ -1145,14 +1085,7 @@ static inline bool scan_heredoc_content(Scanner *scanner, TSLexer *lexer, const 
 
         if (lexer->eof(lexer)) {
             lexer->mark_end(lexer);
-            if (has_content) {
-                lexer->result_symbol = HEREDOC_CONTENT;
-            } else {
-                array_delete(&heredoc->word);
-                array_erase(&scanner->open_heredocs, current);
-                lexer->result_symbol = HEREDOC_BODY_END;
-            }
-            return true;
+            return has_content ? emit(lexer, HEREDOC_CONTENT) : end_heredoc(scanner, lexer, current);
         }
 
         char utf8[4];
@@ -1168,8 +1101,7 @@ static inline bool scan_heredoc_content(Scanner *scanner, TSLexer *lexer, const 
             if (heredoc->allows_interpolation && lexer->lookahead == '\\') {
                 if (has_content) {
                     heredoc->mid_line = true;
-                    lexer->result_symbol = HEREDOC_CONTENT;
-                    return true;
+                    return emit(lexer, HEREDOC_CONTENT);
                 }
                 return false;
             }
@@ -1180,8 +1112,7 @@ static inline bool scan_heredoc_content(Scanner *scanner, TSLexer *lexer, const 
                 if (lexer->lookahead == '{') {
                     if (has_content) {
                         heredoc->mid_line = true;
-                        lexer->result_symbol = HEREDOC_CONTENT;
-                        return true;
+                        return emit(lexer, HEREDOC_CONTENT);
                     }
                     return false;
                 }
@@ -1237,8 +1168,7 @@ static inline bool scan_literal_content(Scanner *scanner, TSLexer *lexer, const 
         if (stop_on_space && is_space(lexer->lookahead)) {
             if (has_content) {
                 lexer->mark_end(lexer);
-                lexer->result_symbol = STRING_CONTENT;
-                return true;
+                return emit(lexer, STRING_CONTENT);
             }
             return false;
         }
@@ -1271,8 +1201,7 @@ static inline bool scan_literal_content(Scanner *scanner, TSLexer *lexer, const 
             advance(lexer);
             if (lexer->lookahead == '{') {
                 if (has_content) {
-                    lexer->result_symbol = STRING_CONTENT;
-                    return true;
+                    return emit(lexer, STRING_CONTENT);
                 }
                 return false;
             }
@@ -1284,8 +1213,7 @@ static inline bool scan_literal_content(Scanner *scanner, TSLexer *lexer, const 
             if (literal->allows_interpolation && literal->type != REGEX_START) {
                 if (has_content) {
                     lexer->mark_end(lexer);
-                    lexer->result_symbol = STRING_CONTENT;
-                    return true;
+                    return emit(lexer, STRING_CONTENT);
                 }
                 return false;
             }
@@ -1322,22 +1250,73 @@ static inline bool scan_star_operator(TSLexer *lexer, const bool *valid_symbols,
         return false;
     }
     if (valid_symbols[binary] && binary_first) {
-        lexer->result_symbol = binary;
-        return true;
+        return emit(lexer, binary);
     }
     if (valid_symbols[splat] && !is_space(lexer->lookahead)) {
-        lexer->result_symbol = splat;
-        return true;
+        return emit(lexer, splat);
     }
     if (valid_symbols[binary]) {
-        lexer->result_symbol = binary;
-        return true;
+        return emit(lexer, binary);
     }
     if (valid_symbols[splat]) {
-        lexer->result_symbol = splat;
-        return true;
+        return emit(lexer, splat);
     }
     return false;
+}
+
+static inline bool scan_hash_key_or_suffix(TSLexer *lexer, const bool *valid_symbols, TokenType suffix) {
+    // `key:`, `key?:` and `key!:`, also when the name is a keyword (`defined?:`)
+    const bool bang = lexer->lookahead == '!';
+    if (valid_symbols[HASH_KEY_SYMBOL] && (bang || lexer->lookahead == '?' || lexer->lookahead == ':')) {
+        if (lexer->lookahead != ':') {
+            advance(lexer);
+        }
+        lexer->mark_end(lexer);
+        if (lexer->lookahead == ':') {
+            advance(lexer);
+            if (lexer->lookahead != ':') {
+                return emit(lexer, HASH_KEY_SYMBOL);
+            }
+        } else if (bang && valid_symbols[suffix] && lexer->lookahead != '=') {
+            return emit(lexer, suffix);
+        }
+    } else if (valid_symbols[suffix] && bang) {
+        advance(lexer);
+        lexer->mark_end(lexer);
+        if (lexer->lookahead != '=') {
+            return emit(lexer, suffix);
+        }
+    }
+    return false;
+}
+
+// After an operand `<<` is a shift, unless it starts a command argument (`foo <<EOS`) or Ruby reads an
+// operand there (`1..<<EOS`, `return<<EOS`, see `operand_follows`)
+static inline bool scan_heredoc_start(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols) {
+    if (valid_symbols[BINARY_STAR] && !operand_follows(valid_symbols) &&
+        (!scanner->has_leading_whitespace || !valid_symbols[SPLAT_STAR])) {
+        return false;
+    }
+    advance(lexer);
+    if (lexer->lookahead != '<') {
+        return false;
+    }
+    advance(lexer);
+
+    Heredoc heredoc = {0};
+    if (lexer->lookahead == '-' || lexer->lookahead == '~') {
+        advance(lexer);
+        heredoc.end_word_indentation_allowed = true;
+    }
+
+    scan_heredoc_word(lexer, &heredoc);
+    if (heredoc.word.size == 0) {
+        array_delete(&heredoc.word);
+        return false;
+    }
+    // A heredoc opened inside another heredoc's body is read before the rest of that body
+    array_insert(&scanner->open_heredocs, current_heredoc_index(scanner), heredoc);
+    return emit(lexer, HEREDOC_START);
 }
 
 static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols) {
@@ -1423,8 +1402,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
                 advance(lexer);
                 if (lexer->lookahead != '&' && lexer->lookahead != '.' && lexer->lookahead != '=' &&
                     (!is_space(lexer->lookahead) || !valid_symbols[BINARY_STAR])) {
-                    lexer->result_symbol = BLOCK_AMPERSAND;
-                    return true;
+                    return emit(lexer, BLOCK_AMPERSAND);
                 }
                 return false;
             }
@@ -1435,8 +1413,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
                 advance(lexer);
                 if (lexer->lookahead == '<') {
                     advance(lexer);
-                    lexer->result_symbol = SINGLETON_CLASS_LEFT_ANGLE_LEFT_ANGLE;
-                    return true;
+                    return emit(lexer, SINGLETON_CLASS_LEFT_ANGLE_LEFT_ANGLE);
                 }
                 return false;
             }
@@ -1464,8 +1441,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
                 (operand_next || (scanner->has_leading_whitespace && !after_local))) {
                 advance(lexer);
                 if (lexer->lookahead != '=' && !is_space(lexer->lookahead)) {
-                    lexer->result_symbol = UNARY_PLUS;
-                    return true;
+                    return emit(lexer, UNARY_PLUS);
                 }
                 return false;
             }
@@ -1479,19 +1455,12 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
                         (!valid_symbols[BINARY_STAR] || operand_next ||
                          (scanner->has_leading_whitespace && !after_local)) &&
                         is_digit(lexer->lookahead)) {
-                        lexer->result_symbol = UNARY_MINUS_NUM;
-                        return true;
+                        return emit(lexer, UNARY_MINUS_NUM);
                     }
-                    if (valid_symbols[UNARY_MINUS] &&
-                        (operand_next ||
-                         (scanner->has_leading_whitespace && !is_space(lexer->lookahead) && !after_local))) {
-                        lexer->result_symbol = UNARY_MINUS;
-                    } else if (valid_symbols[BINARY_MINUS]) {
-                        lexer->result_symbol = BINARY_MINUS;
-                    } else {
-                        lexer->result_symbol = UNARY_MINUS;
-                    }
-                    return true;
+                    const bool unary = valid_symbols[UNARY_MINUS] &&
+                                       (operand_next || (scanner->has_leading_whitespace &&
+                                                         !is_space(lexer->lookahead) && !after_local));
+                    return emit(lexer, !unary && valid_symbols[BINARY_MINUS] ? BINARY_MINUS : UNARY_MINUS);
                 }
                 return false;
             }
@@ -1511,13 +1480,11 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
                         literal.allows_interpolation = lexer->lookahead == '"';
                         advance(lexer);
                         array_push(&scanner->literal_stack, literal);
-                        lexer->result_symbol = SYMBOL_START;
-                        return true;
+                        return emit(lexer, SYMBOL_START);
 
                     default:
                         if (scan_symbol_identifier(lexer)) {
-                            lexer->result_symbol = SIMPLE_SYMBOL;
-                            return true;
+                            return emit(lexer, SIMPLE_SYMBOL);
                         }
                 }
 
@@ -1529,8 +1496,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
             // Only where a lambda body can start, not in error recovery (every symbol valid, STRING_CONTENT included)
             if (valid_symbols[LAMBDA_BRACE] && !valid_symbols[STRING_CONTENT]) {
                 advance(lexer);
-                lexer->result_symbol = LAMBDA_BRACE;
-                return true;
+                return emit(lexer, LAMBDA_BRACE);
             }
             break;
 
@@ -1541,8 +1507,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
             if (valid_symbols[ELEMENT_REFERENCE_BRACKET] && !operand_next &&
                 (!scanner->has_leading_whitespace || !valid_symbols[STRING_START] || after_local)) {
                 advance(lexer);
-                lexer->result_symbol = ELEMENT_REFERENCE_BRACKET;
-                return true;
+                return emit(lexer, ELEMENT_REFERENCE_BRACKET);
             }
             break;
 
@@ -1579,8 +1544,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
 
         if (rescue_may_end_line && length == sizeof(RESCUE) - 1 && !is_iden_char(lexer->lookahead) &&
             lexer->lookahead != '?' && lexer->lookahead != '!' && lexer->lookahead != ':') {
-            lexer->result_symbol = LINE_BREAK;
-            return true;
+            return emit(lexer, LINE_BREAK);
         }
 
         if (ends_statement && ends_endless_body(&name, lexer->lookahead)) {
@@ -1598,33 +1562,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
             return emit_zero_width(scanner, lexer, LOCAL_VARIABLES);
         }
 
-        // `key:`, `key?:` and `key!:`, also when the name is a keyword (`defined?:`)
-        const bool bang = lexer->lookahead == '!';
-        if (valid_symbols[HASH_KEY_SYMBOL] && (bang || lexer->lookahead == '?' || lexer->lookahead == ':')) {
-            if (lexer->lookahead != ':') {
-                advance(lexer);
-            }
-            lexer->mark_end(lexer);
-            if (lexer->lookahead == ':') {
-                advance(lexer);
-                if (lexer->lookahead != ':') {
-                    lexer->result_symbol = HASH_KEY_SYMBOL;
-                    return true;
-                }
-            } else if (bang && valid_symbols[validIdentifierSymbol] && lexer->lookahead != '=') {
-                lexer->result_symbol = validIdentifierSymbol;
-                return true;
-            }
-        } else if (valid_symbols[validIdentifierSymbol] && bang) {
-            advance(lexer);
-            lexer->mark_end(lexer);
-            if (lexer->lookahead != '=') {
-                lexer->result_symbol = validIdentifierSymbol;
-                return true;
-            }
-        }
-
-        return false;
+        return scan_hash_key_or_suffix(lexer, valid_symbols, validIdentifierSymbol);
     }
 
     // Open delimiters for literals, but `x /2`, `x %(y)` and `x <<y` divide and shift when x is a local variable
@@ -1633,34 +1571,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
         literal.nesting_depth = 1;
 
         if (lexer->lookahead == '<') {
-            // After an operand `<<` is a shift, unless it starts a command argument (`foo <<EOS`) or Ruby reads an
-            // operand there (`1..<<EOS`, `return<<EOS`, see `binary_operator_valid`)
-            if (valid_symbols[BINARY_STAR] &&
-                (!(valid_symbols[NO_LINE_BREAK] || valid_symbols[OPERAND_NEXT]) || valid_symbols[STRING_CONTENT]) &&
-                (!scanner->has_leading_whitespace || !valid_symbols[SPLAT_STAR])) {
-                return false;
-            }
-            advance(lexer);
-            if (lexer->lookahead != '<') {
-                return false;
-            }
-            advance(lexer);
-
-            Heredoc heredoc = {0};
-            if (lexer->lookahead == '-' || lexer->lookahead == '~') {
-                advance(lexer);
-                heredoc.end_word_indentation_allowed = true;
-            }
-
-            scan_heredoc_word(lexer, &heredoc);
-            if (heredoc.word.size == 0) {
-                array_delete(&heredoc.word);
-                return false;
-            }
-            // A heredoc opened inside another heredoc's body is read before the rest of that body
-            array_insert(&scanner->open_heredocs, current_heredoc_index(scanner), heredoc);
-            lexer->result_symbol = HEREDOC_START;
-            return true;
+            return scan_heredoc_start(scanner, lexer, valid_symbols);
         }
 
         if (scan_open_delimiter(scanner, lexer, &literal, valid_symbols)) {
