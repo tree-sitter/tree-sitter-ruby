@@ -6,15 +6,14 @@ const PREC = {
   CURLY_BLOCK: 1,
   DO_BLOCK: -1,
 
-  AND: -2,
-  OR: -2,
+  AND_OR: -2,
   NOT: 5,
   // `arg in pat`, `arg => pat`: below every `arg` operator (`a = b in c` is `(a = b) in c`), above `not`
   MATCH: 6,
   DEFINED: 10,
   ALIAS: 11,
   ASSIGN: 15,
-  RESCUE: 16,
+  MODIFIER: 16, // `x if y`, `x rescue y`
   CONDITIONAL: 20,
   RANGE: 25,
   BOOLEAN_OR: 30,
@@ -36,9 +35,54 @@ const IDENTIFIER_CHARS = /[^\x00-\x1F\s:;`"'@$#.,|^&<=>+\-*/\\%?!~()\[\]{}]*/;
 const LOWER_ALPHA_CHAR = /[^\x00-\x1F\sA-Z0-9:;`"'@$#.,|^&<=>+\-*/\\%?!~()\[\]{}]/;
 const ALPHA_CHAR = /[^\x00-\x1F\s0-9:;`"'@$#.,|^&<=>+\-*/\\%?!~()\[\]{}]/;
 
+const ASSIGNMENT_OPERATOR = field('operator', choice('+=', '-=', '*=', '**=', '/=', '||=', '|=', '&&=', '&=', '%=', '>>=', '<<=', '^='));
+
+const commandArgs = $ => alias($.command_argument_list, $.argument_list);
+const hashKeySymbols = $ => [$.identifier, $.constant, $.identifier_suffix, $.constant_suffix].map(r => alias(r, $.hash_key_symbol));
+
+const singletonTarget = $ => seq(
+  choice(field('object', $._variable), seq('(', field('object', $._arg), ')')),
+  choice('.', '::'),
+);
+const keyword = ($, word) => prec.left(seq(word, optional($.argument_list)));
+const keywordCommand = ($, word) => prec.left(seq(word, choice(commandArgs($), $._operand_next)));
+const modifier = (body, word, name, rhs) => prec(PREC.MODIFIER, seq(field('body', body), word, field(name, rhs)));
+const loop = ($, word) => seq(word, field('condition', $._statement), field('body', $.do));
+const ifChain = ($, word, ...end) => seq(
+  word,
+  field('condition', $._statement),
+  choice($._terminator, field('consequence', $.then)),
+  field('alternative', optional(choice($.else, $.elsif))),
+  ...end,
+);
+const assign = (left, operator, right) => prec.right(PREC.ASSIGN, seq(field('left', left), operator, field('right', right)));
+const constantPatterns = ($, body) => [
+  seq(field('class', $._pattern_constant), token.immediate('['), body, ']'),
+  seq(field('class', $._pattern_constant), token.immediate('('), body, ')'),
+];
+const namedParameter = ($, sigil) => seq(sigil, field('name', optional($.identifier)));
+const delimited = ($, start, open, close = open) =>
+  seq(alias(start, open), optional($._literal_contents), alias($._string_end, close));
+const percentArray = ($, start, open, item) => seq(
+  alias(start, open),
+  optional(/\s+/),
+  sep(alias($._literal_contents, item), /\s+/),
+  optional(/\s+/),
+  alias($._string_end, ')'),
+);
+const unary = ($, operand, minuses) => {
+  const op = (fn, precedence, operator) => fn(precedence, seq(field('operator', operator), field('operand', operand)));
+  return choice(
+    op(prec, PREC.DEFINED, 'defined?'),
+    op(prec.right, PREC.NOT, 'not'),
+    op(prec.right, PREC.UNARY_MINUS, choice(...minuses.map(m => alias(m, '-')), '+', alias($._unary_plus, '+'))),
+    op(prec.right, PREC.COMPLEMENT, choice('!', '~')),
+  );
+};
+
 module.exports = grammar({
   name: 'ruby',
-  inline: $ => [$._arg_rhs, $._call_operator],
+  inline: $ => [$._arg_rhs, $._command_rhs, $._call_operator],
   externals: $ => [
     $._line_break,
     $._no_line_break,
@@ -125,11 +169,7 @@ module.exports = grammar({
   rules: {
     program: $ => seq(
       optional($._statements),
-      optional(
-        choice(
-          seq(/__END__/, $.uninterpreted),
-        ),
-      ),
+      optional(seq(/__END__/, $.uninterpreted)),
     ),
 
     uninterpreted: _ => /(.|\s)*/,
@@ -165,17 +205,7 @@ module.exports = grammar({
 
     method: $ => seq('def', $._method_rest),
 
-    singleton_method: $ => seq(
-      'def',
-      seq(
-        choice(
-          field('object', $._variable),
-          seq('(', field('object', $._arg), ')'),
-        ),
-        choice('.', '::'),
-      ),
-      $._method_rest,
-    ),
+    singleton_method: $ => seq('def', singletonTarget($), $._method_rest),
 
     _method_rest: $ => seq(
       field('name', $._method_name),
@@ -206,32 +236,15 @@ module.exports = grammar({
       ),
     ),
 
-    rescue_modifier_arg: $ => prec(PREC.RESCUE,
-      seq(
-        field('body', $._arg),
-        'rescue',
-        field('handler', $._arg),
-      ),
-    ),
-
-    rescue_modifier_expression: $ => prec(PREC.RESCUE,
-      seq(
-        field('body', $._expression),
-        'rescue',
-        field('handler', $._arg),
-      ),
-    ),
+    rescue_modifier_arg: $ => modifier($._arg, 'rescue', 'handler', $._arg),
+    rescue_modifier_expression: $ => modifier($._expression, 'rescue', 'handler', $._arg),
 
     // Above MATCH: `def f = x in pat` matches the whole def, as in Ruby.
     _body_expr: $ => prec(PREC.MATCH + 1,
       seq(
         optional($._endless_method),
         '=',
-        field('body',
-          choice(
-            $._arg,
-            alias($.rescue_modifier_arg, $.rescue_modifier),
-          )),
+        field('body', $._arg_rhs),
       ),
     ),
 
@@ -239,24 +252,14 @@ module.exports = grammar({
     // allowed where a command is, so these live in `_expression`, not `_primary`.
     command_method: $ => seq('def', $._command_method_rest),
 
-    command_singleton_method: $ => seq(
-      'def',
-      seq(
-        choice(
-          field('object', $._variable),
-          seq('(', field('object', $._arg), ')'),
-        ),
-        choice('.', '::'),
-      ),
-      $._command_method_rest,
-    ),
+    command_singleton_method: $ => seq('def', singletonTarget($), $._command_method_rest),
 
     _command_method_rest: $ => prec(1, seq(
       field('name', $._method_name),
       optional(field('parameters', alias($.parameters, $.method_parameters))),
       optional($._endless_method),
       '=',
-      field('body', choice($._expression, alias($.rescue_modifier_expression, $.rescue_modifier))),
+      field('body', $._command_rhs),
     )),
 
 
@@ -300,15 +303,9 @@ module.exports = grammar({
       '*',
       field('name', optional($.identifier)),
     )),
-    hash_splat_parameter: $ => seq(
-      '**',
-      field('name', optional($.identifier)),
-    ),
+    hash_splat_parameter: $ => namedParameter($, '**'),
     hash_splat_nil: _ => seq('**', 'nil'),
-    block_parameter: $ => seq(
-      '&',
-      field('name', optional($.identifier)),
-    ),
+    block_parameter: $ => namedParameter($, '&'),
     keyword_parameter: $ => prec.right(PREC.BITWISE_OR + 1, seq(
       field('name', $.identifier),
       token.immediate(':'),
@@ -354,58 +351,25 @@ module.exports = grammar({
     ),
 
     // '_operand_next' never matches: `return %=a=` and `next / a/` take an argument, as in Ruby
-    return_command: $ => prec.left(seq('return', choice(alias($.command_argument_list, $.argument_list), $._operand_next))),
-    yield_command: $ => prec.left(seq('yield', alias($.command_argument_list, $.argument_list))),
-    break_command: $ => prec.left(seq('break', choice(alias($.command_argument_list, $.argument_list), $._operand_next))),
-    next_command: $ => prec.left(seq('next', choice(alias($.command_argument_list, $.argument_list), $._operand_next))),
-    return: $ => prec.left('return'),
-    yield: $ => prec.left(seq('yield', optional($.argument_list))),
-    break: $ => prec.left(seq('break', optional($.argument_list))),
-    next: $ => prec.left(seq('next', optional($.argument_list))),
-    redo: $ => prec.left(seq('redo', optional($.argument_list))),
-    retry: $ => prec.left(seq('retry', optional($.argument_list))),
+    return_command: $ => keywordCommand($, 'return'),
+    yield_command: $ => prec.left(seq('yield', commandArgs($))),
+    break_command: $ => keywordCommand($, 'break'),
+    next_command: $ => keywordCommand($, 'next'),
+    return: _ => prec.left('return'),
+    yield: $ => keyword($, 'yield'),
+    break: $ => keyword($, 'break'),
+    next: $ => keyword($, 'next'),
+    redo: $ => keyword($, 'redo'),
+    retry: $ => keyword($, 'retry'),
 
-    if_modifier: $ => prec(PREC.RESCUE, seq(
-      field('body', $._statement),
-      'if',
-      field('condition', $._expression),
-    )),
+    if_modifier: $ => modifier($._statement, 'if', 'condition', $._expression),
+    unless_modifier: $ => modifier($._statement, 'unless', 'condition', $._expression),
+    while_modifier: $ => modifier($._statement, 'while', 'condition', $._expression),
+    until_modifier: $ => modifier($._statement, 'until', 'condition', $._expression),
+    rescue_modifier: $ => modifier($._statement, 'rescue', 'handler', $._expression),
 
-    unless_modifier: $ => prec(PREC.RESCUE, seq(
-      field('body', $._statement),
-      'unless',
-      field('condition', $._expression),
-    )),
-
-    while_modifier: $ => prec(PREC.RESCUE, seq(
-      field('body', $._statement),
-      'while',
-      field('condition', $._expression),
-    )),
-
-    until_modifier: $ => prec(PREC.RESCUE, seq(
-      field('body', $._statement),
-      'until',
-      field('condition', $._expression),
-    )),
-
-    rescue_modifier: $ => prec(PREC.RESCUE, seq(
-      field('body', $._statement),
-      'rescue',
-      field('handler', $._expression),
-    )),
-
-    while: $ => seq(
-      'while',
-      field('condition', $._statement),
-      field('body', $.do),
-    ),
-
-    until: $ => seq(
-      'until',
-      field('condition', $._statement),
-      field('body', $.do),
-    ),
+    while: $ => loop($, 'while'),
+    until: $ => loop($, 'until'),
 
     for: $ => seq(
       'for',
@@ -459,15 +423,8 @@ module.exports = grammar({
       $.unless_guard,
     ),
 
-    if_guard: $ => seq(
-      'if',
-      field('condition', $._expression),
-    ),
-
-    unless_guard: $ => seq(
-      'unless',
-      field('condition', $._expression),
-    ),
+    if_guard: $ => seq('if', field('condition', $._expression)),
+    unless_guard: $ => seq('unless', field('condition', $._expression)),
 
     _pattern_top_expr_body: $ => prec(-1, choice(
       $._pattern_expr,
@@ -503,15 +460,13 @@ module.exports = grammar({
 
     array_pattern: $ => prec.right(-1, choice(
       seq('[', optional($._array_pattern_body), ']'),
-      seq(field('class', $._pattern_constant), token.immediate('['), optional($._array_pattern_body), ']'),
-      seq(field('class', $._pattern_constant), token.immediate('('), optional($._array_pattern_body), ')'),
+      ...constantPatterns($, optional($._array_pattern_body)),
     )),
 
     _find_pattern_body: $ => seq($.splat_parameter, repeat1(seq(',', $._pattern_expr)), ',', $.splat_parameter),
     find_pattern: $ => choice(
       seq('[', $._find_pattern_body, ']'),
-      seq(field('class', $._pattern_constant), token.immediate('['), $._find_pattern_body, ']'),
-      seq(field('class', $._pattern_constant), token.immediate('('), $._find_pattern_body, ')'),
+      ...constantPatterns($, $._find_pattern_body),
     ),
 
     _hash_pattern_body: $ => prec.right(choice(
@@ -522,13 +477,7 @@ module.exports = grammar({
 
     keyword_pattern: $ => prec.right(-1, seq(
       field('key',
-        choice(
-          alias($.identifier, $.hash_key_symbol),
-          alias($.constant, $.hash_key_symbol),
-          alias($.identifier_suffix, $.hash_key_symbol),
-          alias($.constant_suffix, $.hash_key_symbol),
-          $.string,
-        ),
+        choice(...hashKeySymbols($), $.string),
       ),
       token.immediate(':'),
       optional(field('value', $._pattern_expr)),
@@ -538,8 +487,7 @@ module.exports = grammar({
 
     hash_pattern: $ => prec.right(-1, choice(
       seq('{', optional($._hash_pattern_body), '}'),
-      seq(field('class', $._pattern_constant), token.immediate('['), $._hash_pattern_body, ']'),
-      seq(field('class', $._pattern_constant), token.immediate('('), $._hash_pattern_body, ')'),
+      ...constantPatterns($, $._hash_pattern_body),
     )),
 
     _pattern_expr_basic: $ => prec.right(-1, choice(
@@ -619,28 +567,9 @@ module.exports = grammar({
       field('name', $.constant),
     ),
 
-    if: $ => seq(
-      'if',
-      field('condition', $._statement),
-      choice($._terminator, field('consequence', $.then)),
-      field('alternative', optional(choice($.else, $.elsif))),
-      'end',
-    ),
-
-    unless: $ => seq(
-      'unless',
-      field('condition', $._statement),
-      choice($._terminator, field('consequence', $.then)),
-      field('alternative', optional(choice($.else, $.elsif))),
-      'end',
-    ),
-
-    elsif: $ => seq(
-      'elsif',
-      field('condition', $._statement),
-      choice($._terminator, field('consequence', $.then)),
-      field('alternative', optional(choice($.else, $.elsif))),
-    ),
+    if: $ => ifChain($, 'if', 'end'),
+    unless: $ => ifChain($, 'unless', 'end'),
+    elsif: $ => ifChain($, 'elsif'),
 
     else: $ => seq(
       'else',
@@ -810,7 +739,7 @@ module.exports = grammar({
           $._function_identifier,
         )),
       ),
-      field('arguments', alias($.command_argument_list, $.argument_list)),
+      field('arguments', commandArgs($)),
     ),
 
     command_call_with_block: $ => {
@@ -818,7 +747,7 @@ module.exports = grammar({
         $._call,
         field('method', choice($._operation, $._function_identifier)),
       );
-      const args = field('arguments', alias($.command_argument_list, $.argument_list));
+      const args = field('arguments', commandArgs($));
       const block = field('block', $.block);
       const doBlock = field('block', $.do_block);
       return choice(
@@ -856,13 +785,11 @@ module.exports = grammar({
 
       const block = field('block', $.block);
       const doBlock = field('block', $.do_block);
-      return choice(
-        receiverArguments,
-        prec(PREC.CURLY_BLOCK, seq(receiverArguments, block)),
-        prec(PREC.DO_BLOCK, seq(receiverArguments, doBlock)),
-        prec(PREC.CURLY_BLOCK, seq(receiver, block)),
-        prec(PREC.DO_BLOCK, seq(receiver, doBlock)),
-      );
+      const withBlock = rule => [
+        prec(PREC.CURLY_BLOCK, seq(rule, block)),
+        prec(PREC.DO_BLOCK, seq(rule, doBlock)),
+      ];
+      return choice(receiverArguments, ...withBlock(receiverArguments), ...withBlock(receiver));
     },
 
     command_argument_list: $ => prec.right(commaSep1($._argument)),
@@ -920,37 +847,15 @@ module.exports = grammar({
     _block_open: _ => prec(PREC.CURLY_BLOCK, '{'),
 
     _arg_rhs: $ => choice($._arg, alias($.rescue_modifier_arg, $.rescue_modifier)),
-    assignment: $ => prec.right(PREC.ASSIGN, choice(
-      seq(
-        field('left', choice($._lhs, $.left_assignment_list)),
-        '=',
-        field('right', choice(
-          $._arg_rhs,
-          $.splat_argument,
-          $.right_assignment_list,
-        )),
-      ),
-    )),
-
-    command_assignment: $ => prec.right(PREC.ASSIGN,
-      seq(
-        field('left', choice($._lhs, $.left_assignment_list)),
-        '=',
-        field('right', choice($._expression, alias($.rescue_modifier_expression, $.rescue_modifier))),
-      ),
+    _command_rhs: $ => choice($._expression, alias($.rescue_modifier_expression, $.rescue_modifier)),
+    assignment: $ => assign(
+      choice($._lhs, $.left_assignment_list),
+      '=',
+      choice($._arg_rhs, $.splat_argument, $.right_assignment_list),
     ),
-
-    operator_assignment: $ => prec.right(PREC.ASSIGN, seq(
-      field('left', $._lhs),
-      field('operator', choice('+=', '-=', '*=', '**=', '/=', '||=', '|=', '&&=', '&=', '%=', '>>=', '<<=', '^=')),
-      field('right', $._arg_rhs),
-    )),
-
-    command_operator_assignment: $ => prec.right(PREC.ASSIGN, seq(
-      field('left', $._lhs),
-      field('operator', choice('+=', '-=', '*=', '**=', '/=', '||=', '|=', '&&=', '&=', '%=', '>>=', '<<=', '^=')),
-      field('right', choice($._expression, alias($.rescue_modifier_expression, $.rescue_modifier))),
-    )),
+    command_assignment: $ => assign(choice($._lhs, $.left_assignment_list), '=', $._command_rhs),
+    operator_assignment: $ => assign($._lhs, ASSIGNMENT_OPERATOR, $._arg_rhs),
+    command_operator_assignment: $ => assign($._lhs, ASSIGNMENT_OPERATOR, $._command_rhs),
 
     conditional: $ => prec.right(PREC.CONDITIONAL, seq(
       field('condition', $._arg),
@@ -974,8 +879,8 @@ module.exports = grammar({
 
     binary: $ => {
       const operators = [
-        [prec.left, PREC.AND, 'and'],
-        [prec.left, PREC.OR, 'or'],
+        [prec.left, PREC.AND_OR, 'and'],
+        [prec.left, PREC.AND_OR, 'or'],
         [prec.left, PREC.BOOLEAN_OR, '||'],
         [prec.left, PREC.BOOLEAN_AND, '&&'],
         [prec.left, PREC.SHIFT, choice('<<', '>>')],
@@ -1003,35 +908,8 @@ module.exports = grammar({
       field('right', $._expression),
     )),
 
-    unary: $ => {
-      const operators = [
-        [prec, PREC.DEFINED, 'defined?'],
-        [prec.right, PREC.NOT, 'not'],
-        [prec.right, PREC.UNARY_MINUS, choice(alias($._unary_minus, '-'), alias($._binary_minus, '-'), '+', alias($._unary_plus, '+'))],
-        [prec.right, PREC.COMPLEMENT, choice('!', '~')],
-      ];
-      // @ts-ignore
-      return choice(...operators.map(([fn, precedence, operator]) => fn(precedence, seq(
-        // @ts-ignore
-        field('operator', operator),
-        field('operand', $._arg),
-      ))));
-    },
-
-    command_unary: $ => {
-      const operators = [
-        [prec, PREC.DEFINED, 'defined?'],
-        [prec.right, PREC.NOT, 'not'],
-        [prec.right, PREC.UNARY_MINUS, choice(alias($._unary_minus, '-'), '+', alias($._unary_plus, '+'))],
-        [prec.right, PREC.COMPLEMENT, choice('!', '~')],
-      ];
-      // @ts-ignore
-      return choice(...operators.map(([fn, precedence, operator]) => fn(precedence, seq(
-        // @ts-ignore
-        field('operator', operator),
-        field('operand', $._expression),
-      ))));
-    },
+    unary: $ => unary($, $._arg, [$._unary_minus, $._binary_minus]),
+    command_unary: $ => unary($, $._expression, [$._unary_minus]),
 
     parenthesized_unary: $ => prec(PREC.CALL, seq(
       field('operator', choice('defined?', 'not')),
@@ -1186,45 +1064,12 @@ module.exports = grammar({
       seq($._short_interpolation, $._nonlocal_variable),
     ),
 
-    string: $ => seq(
-      alias($._string_start, '"'),
-      optional($._literal_contents),
-      alias($._string_end, '"'),
-    ),
-
-    subshell: $ => seq(
-      alias($._subshell_start, '`'),
-      optional($._literal_contents),
-      alias($._string_end, '`'),
-    ),
-
-    string_array: $ => seq(
-      alias($._string_array_start, '%w('),
-      optional(/\s+/),
-      sep(alias($._literal_contents, $.bare_string), /\s+/),
-      optional(/\s+/),
-      alias($._string_end, ')'),
-    ),
-
-    symbol_array: $ => seq(
-      alias($._symbol_array_start, '%i('),
-      optional(/\s+/),
-      sep(alias($._literal_contents, $.bare_symbol), /\s+/),
-      optional(/\s+/),
-      alias($._string_end, ')'),
-    ),
-
-    delimited_symbol: $ => seq(
-      alias($._symbol_start, ':"'),
-      optional($._literal_contents),
-      alias($._string_end, '"'),
-    ),
-
-    regex: $ => seq(
-      alias($._regex_start, '/'),
-      optional($._literal_contents),
-      alias($._string_end, '/'),
-    ),
+    string: $ => delimited($, $._string_start, '"'),
+    subshell: $ => delimited($, $._subshell_start, '`'),
+    delimited_symbol: $ => delimited($, $._symbol_start, ':"', '"'),
+    regex: $ => delimited($, $._regex_start, '/'),
+    string_array: $ => percentArray($, $._string_array_start, '%w(', $.bare_string),
+    symbol_array: $ => percentArray($, $._symbol_array_start, '%i(', $.bare_symbol),
 
     heredoc_body: $ => seq(
       $._heredoc_body_start,
@@ -1276,20 +1121,12 @@ module.exports = grammar({
         field('value', $._arg),
       ),
       seq(
-        field('key', choice(
-          $.string,
-        )),
+        field('key', $.string),
         token.immediate(':'),
         field('value', $._arg),
       ),
       seq(
-        field('key', choice(
-          $.hash_key_symbol,
-          alias($.identifier, $.hash_key_symbol),
-          alias($.constant, $.hash_key_symbol),
-          alias($.identifier_suffix, $.hash_key_symbol),
-          alias($.constant_suffix, $.hash_key_symbol),
-        )),
+        field('key', choice($.hash_key_symbol, ...hashKeySymbols($))),
         token.immediate(':'),
         choice(
           field('value', optional($._arg)),
