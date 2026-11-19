@@ -43,6 +43,7 @@ class EggInfo(egg_info):
         self.filelist.recursive_include("queries", "*.scm")
         self.filelist.include("src/tree_sitter/*.h")
         self.filelist.include("src/*.c")
+        self.filelist.include("src/*.h")
 
 
 setup(
