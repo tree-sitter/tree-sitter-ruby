@@ -9,6 +9,32 @@
 
 Ruby grammar for [tree-sitter](https://github.com/tree-sitter/tree-sitter).
 
+#### Development
+
+The parser is generated for ABI 14, which the Python binding (`tree-sitter~=0.24`) and older runtimes still need:
+
+```sh
+npm ci
+node_modules/.bin/tree-sitter generate --abi 14
+node_modules/.bin/tree-sitter test
+```
+
+Deno can load `grammar.js` instead of Node, and lints it:
+
+```sh
+TREE_SITTER_JS_RUNTIME=deno node_modules/.bin/tree-sitter generate --abi 14
+deno lint
+```
+
+`bundle exec ruby script/prism_diff.rb DIR` compares the trees with [Prism](https://github.com/ruby/prism) on the Ruby files in `DIR`.
+
+#### Local variables
+
+Like Ruby, the parser reads `x +1` as `x + 1` when `x` is a local variable, and as the call `x(+1)` otherwise. The external
+scanner tracks assignments, parameters, `for` and `rescue =>` variables, numbered parameters, and the scopes of blocks,
+methods, classes and modules. Variables bound by pattern matching (`in [x]`, `=> x`) are not tracked, so there `x +1`
+stays a call.
+
 #### References
 
 - [AST Format of the Whitequark parser](https://github.com/whitequark/parser/blob/master/doc/AST_FORMAT.md)
