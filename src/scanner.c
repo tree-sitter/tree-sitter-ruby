@@ -77,7 +77,9 @@ typedef struct {
     Array(Literal) literal_stack;
     Array(Heredoc) open_heredocs;
     // Hashes of the local variables in scope
-    Array(uint32_t) locals;
+    // shortcut: 16 bits, to keep the state of most scopes inline (24 bytes); a name collides with one of n locals with
+    // probability n/65536 and then reads `foo +1` as binary, widen if that is ever seen
+    Array(uint16_t) locals;
     // Size of `locals` where each open scope started, with HIDES_OUTER for `def`, `class` and `module` and ENDLESS for
     // an endless method
     Array(uint8_t) scopes;
@@ -146,7 +148,8 @@ static inline bool has_local_state(Scanner *scanner) {
 }
 
 static inline unsigned local_state_size(Scanner *scanner) {
-    return has_local_state(scanner) ? 4 + scanner->locals.size * sizeof(uint32_t) + scanner->scopes.size : 0;
+    return has_local_state(scanner) ? 4 + scanner->locals.size * sizeof(*scanner->locals.contents) + scanner->scopes.size
+                                    : 0;
 }
 
 static inline unsigned serialize(Scanner *scanner, char *buffer) {
@@ -192,8 +195,8 @@ static inline unsigned serialize(Scanner *scanner, char *buffer) {
         buffer[size++] = (char)scanner->opened;
         buffer[size++] = (char)scanner->locals.size;
         if (scanner->locals.size > 0) {
-            memcpy(&buffer[size], scanner->locals.contents, scanner->locals.size * sizeof(uint32_t));
-            size += scanner->locals.size * sizeof(uint32_t);
+            memcpy(&buffer[size], scanner->locals.contents, scanner->locals.size * sizeof(*scanner->locals.contents));
+            size += scanner->locals.size * sizeof(*scanner->locals.contents);
         }
         buffer[size++] = (char)scanner->scopes.size;
         if (scanner->scopes.size > 0) {
@@ -251,9 +254,9 @@ static inline void deserialize(Scanner *scanner, const char *buffer, unsigned le
         uint8_t count = buffer[size++];
         if (count > 0) {
             array_reserve(&scanner->locals, count);
-            memcpy(scanner->locals.contents, &buffer[size], count * sizeof(uint32_t));
+            memcpy(scanner->locals.contents, &buffer[size], count * sizeof(*scanner->locals.contents));
             scanner->locals.size = count;
-            size += count * sizeof(uint32_t);
+            size += count * sizeof(*scanner->locals.contents);
         }
         count = buffer[size++];
         if (count > 0) {
@@ -506,8 +509,9 @@ static inline bool is_local_start(int32_t c) { return is_lower(c) || c == '_' ||
 
 static inline bool is_one_of(int32_t c, const char *chars) { return c > 0 && c < 0x80 && strchr(chars, c) != NULL; }
 
-// FNV-1a: 32 bits, so that two names in scope practically never collide
+// FNV-1a, folded to the 16 bits that `locals` keeps
 static inline uint32_t hash_char(uint32_t hash, int32_t c) { return (hash ^ (uint32_t)c) * 16777619u; }
+static inline uint16_t short_hash(uint32_t hash) { return (uint16_t)(hash ^ (hash >> 16)); }
 #define HASH_START 2166136261u
 
 // Keywords are never local variables: `return %=a=` must not declare `return`, nor `def f(if:)` declare `if`
@@ -570,7 +574,7 @@ static inline bool is_local(Scanner *scanner, uint32_t name) {
         }
     }
     for (uint32_t i = start; i < scanner->locals.size; i++) {
-        if (*array_get(&scanner->locals, i) == name) {
+        if (*array_get(&scanner->locals, i) == short_hash(name)) {
             return true;
         }
     }
@@ -582,7 +586,7 @@ static inline bool add_local(Scanner *scanner, uint32_t name) {
     if (scanner->locals.size == MAX_LOCALS || is_local(scanner, name)) {
         return false;
     }
-    array_push(&scanner->locals, name);
+    array_push(&scanner->locals, short_hash(name));
     return true;
 }
 
