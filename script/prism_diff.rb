@@ -26,6 +26,7 @@ PRISM = {
   range_node: :range, flip_flop_node: :range, # a range in a condition; tree-sitter has no separate node
   return_node: :return, yield_node: :yield, break_node: :break, next_node: :next,
   match_predicate_node: :test_pattern, match_required_node: :match_pattern,
+  and_node: :binary, or_node: :binary,
   regular_expression_node: :regex, interpolated_regular_expression_node: :regex,
   match_last_line_node: :regex, interpolated_match_last_line_node: :regex # a regex as a condition, matched against $_
 }.freeze
@@ -43,9 +44,10 @@ TREE_SITTER = {
   'return' => :return, 'yield' => :yield, 'break' => :break, 'next' => :next,
   'test_pattern' => :test_pattern, 'match_pattern' => :match_pattern,
   'regex' => :regex, 'heredoc_beginning' => :heredoc, 'begin' => :begin,
-  'if_guard' => :if, 'unless_guard' => :unless
+  'if_guard' => :if, 'unless_guard' => :unless, 'binary' => :binary
 }.freeze
 
+BINARY_OPERATORS = %i[** * / % + - << >> & | ^ < <= > >= == != === =~ !~ <=>].freeze
 # tree-sitter starts these at the keyword; implicit `def ... rescue` bodies have no `begin`
 KEYWORD_LOC = { begin_node: :begin_keyword_loc, ensure_node: :ensure_keyword_loc }.freeze
 HEREDOC_NODES = %i[string_node interpolated_string_node x_string_node interpolated_x_string_node].freeze
@@ -68,11 +70,15 @@ def prism_location(node, parent)
   # `in pat if cond`: tree-sitter's guard starts at the keyword, Prism's IfNode at the pattern
   in Prism::IfNode if parent in Prism::InNode then [:if, node.if_keyword_loc]
   in Prism::UnlessNode if parent in Prism::InNode then [:unless, node.keyword_loc]
+  in Prism::CallNode if binary?(node) then [:binary, node.location]
   in _ if heredoc?(node) then [:heredoc, node.opening_loc]
   in _ if (group = PRISM[node.type]) then [group, node.public_send(KEYWORD_LOC.fetch(node.type, :location))]
   else nil
   end
 end
+
+# `a + b`, not `a.+(b)` nor `a::+(b)`
+def binary?(node) = node.receiver && !node.call_operator_loc && BINARY_OPERATORS.include?(node.name)
 
 def heredoc?(node) = HEREDOC_NODES.include?(node.type) && node.opening_loc&.slice&.start_with?('<<')
 
