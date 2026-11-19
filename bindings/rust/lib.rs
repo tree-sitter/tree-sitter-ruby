@@ -97,4 +97,62 @@ mod tests {
         let end = tree.root_node().named_child(1).unwrap().named_child(1).unwrap();
         assert_eq!((end.kind(), end.start_byte()), ("heredoc_end", 12), "{}", tree.root_node().to_sexp());
     }
+
+    #[test]
+    fn test_incremental_reparse_matches_a_fresh_parse() {
+        // Editors reparse after each edit, reusing the scanner state saved with each token (literals, heredocs,
+        // local variables and their scopes): the tree must be the one a parse from scratch gives
+        const SOURCES: [&str; 3] = [
+            "x = 1\ndef f(a) = a\nf { |y| y +1; x -1 }\nclass A < B\n  def g(b, c = b +1)\n    b [1]\n  end\nend\n",
+            "for i in [1] do i *2 end\nbegin\n  run\nrescue => e\n  e +1\nend\nputs <<~E, \"#{x}\"\n  #{y}\nE\n",
+            "module M\n  a, (b, *c) = 1, 2\n  h = { defined?: 1, k: %w[a b] }\n  -> d { d +1 }.call(b)\nend\n",
+        ];
+        const SNIPPETS: [&str; 10] =
+            [" x = 1;", "x +1\n", " def f(a) = a\n", "{ |y| y +1 }", "end\n", "\n", " +1", "do\n", "}", "a, b = 1, 2\n"];
+        let point = |text: &str, byte: usize| {
+            let line_start = text[..byte].rfind('\n').map_or(0, |i| i + 1);
+            tree_sitter::Point::new(text[..byte].matches('\n').count(), byte - line_start)
+        };
+        let mut seed: u32 = 7;
+        let mut random = |n: usize| {
+            seed ^= seed << 13;
+            seed ^= seed >> 17;
+            seed ^= seed << 5;
+            seed as usize % n
+        };
+        let mut parser = tree_sitter::Parser::new();
+        parser.set_language(&super::LANGUAGE.into()).unwrap();
+        let mut compared = 0;
+        for source in SOURCES {
+            // Each edit starts from the last valid text: with a syntax error, error recovery may take another path
+            // around the reused nodes
+            let mut text = source.to_string();
+            let mut tree = parser.parse(&text, None).unwrap();
+            for _ in 0..400 {
+                let start = random(text.len() + 1);
+                let old_end = (start + random(9)).min(text.len());
+                let insert = if random(3) > 0 { SNIPPETS[random(SNIPPETS.len())] } else { "" };
+                let mut edited = text.clone();
+                edited.replace_range(start..old_end, insert);
+                let mut old_tree = tree.clone();
+                old_tree.edit(&tree_sitter::InputEdit {
+                    start_byte: start,
+                    old_end_byte: old_end,
+                    new_end_byte: start + insert.len(),
+                    start_position: point(&text, start),
+                    old_end_position: point(&text, old_end),
+                    new_end_position: point(&edited, start + insert.len()),
+                });
+                let fresh = parser.parse(&edited, None).unwrap();
+                if fresh.root_node().has_error() {
+                    continue;
+                }
+                let incremental = parser.parse(&edited, Some(&old_tree)).unwrap();
+                assert_eq!(incremental.root_node().to_sexp(), fresh.root_node().to_sexp(), "after the edit to:\n{edited}");
+                compared += 1;
+                (text, tree) = (edited, incremental);
+            }
+        }
+        assert!(compared >= 100, "only {compared} edits left the code valid");
+    }
 }
