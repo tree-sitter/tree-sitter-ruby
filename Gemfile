@@ -2,5 +2,5 @@
 
 source 'https://rubygems.org'
 
-gem 'prism'
-gem 'rubocop'
+gem 'prism', '>= 1.9', '< 3'
+gem 'rubocop', '~> 1.92'
