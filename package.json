@@ -32,6 +32,7 @@
       "email": "amaanq12@gmail.com"
     }
   ],
+  "type": "commonjs",
   "main": "bindings/node",
   "types": "bindings/node",
   "keywords": [
