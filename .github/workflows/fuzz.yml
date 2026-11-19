@@ -6,10 +6,14 @@ on:
     paths:
       - grammar.js
       - src/**
+      - script/adversarial.rb
+      - script/sanitize.c
   pull_request:
     paths:
       - grammar.js
       - src/**
+      - script/adversarial.rb
+      - script/sanitize.c
 
 permissions:
   contents: read
@@ -24,3 +28,23 @@ jobs:
         uses: tree-sitter/fuzz-action@6a1dcff00aefd038ba418bd63732a9add4901266 # v4
         with:
           corpus: test/highlight
+
+  sanitizers:
+    name: ASan and UBSan on the inputs that once broke the scanner
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The runtime's source comes from the Rust dev-dependency, checked against Cargo.lock
+      - name: Fetch the tree-sitter runtime
+        run: cargo fetch --locked
+      - name: Build the parser with sanitizers
+        run: |
+          version=$(sed -n '/^name = "tree-sitter"$/{n;s/^version = "\(.*\)"$/\1/p}' Cargo.lock)
+          lib=$(ls -d ~/.cargo/registry/src/*/tree-sitter-"$version")
+          clang -std=gnu11 -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -g -O1 \
+            -Isrc -I"$lib/include" script/sanitize.c src/parser.c src/scanner.c "$lib/src/lib.c" -o sanitize
+      - name: Generate the inputs
+        run: ruby script/adversarial.rb adversarial
+      - name: Parse them
+        run: ./sanitize adversarial/*.rb
