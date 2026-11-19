@@ -58,9 +58,9 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Set up tree-sitter
-        uses: tree-sitter/setup-action/cli@v2
+        uses: tree-sitter/setup-action/cli@faab9a23fa6195da0f1cf868219cc1e89f238d3d # v2
         with:
           # Must be the CLI that generated src/parser.c (checked by parser-test-action)
           tree-sitter-ref: v0.27.1
@@ -68,7 +68,7 @@ jobs:
         run: |
           git clone https://github.com/ruby/spec examples/ruby_spec --single-branch --depth=1 --filter=blob:none
       - name: Run tests
-        uses: tree-sitter/parser-test-action@v3
+        uses: tree-sitter/parser-test-action@92e35c06b51ea26c80ffbd3cc8d9286d9110df17 # v3
         with:
           abi-version: 14
           test-rust: true
@@ -78,7 +78,7 @@ jobs:
           go-version: "1.23" # go-tree-sitter 0.25
           test-swift: true
       - name: Parse examples
-        uses: tree-sitter/parse-action@v4
+        uses: tree-sitter/parse-action@47beaa8ba0b5c8b44ef0879b2f647ca7f0a1257d # v5
         with:
           files: |
             examples/*.rb
@@ -94,13 +94,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Set up tree-sitter
-        uses: tree-sitter/setup-action/cli@v2
+        uses: tree-sitter/setup-action/cli@faab9a23fa6195da0f1cf868219cc1e89f238d3d # v2
         with:
           tree-sitter-ref: v0.27.1
       - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@f9c4492e86def3e644ab32a0ef185eda5b0c20d0 # v1.342.0
         with:
           ruby-version: "4.0"
           bundler-cache: true
