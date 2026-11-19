@@ -1580,14 +1580,24 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
             return emit_zero_width(scanner, lexer, LOCAL_VARIABLES);
         }
 
-        if (valid_symbols[HASH_KEY_SYMBOL] && lexer->lookahead == ':') {
-            lexer->mark_end(lexer);
-            advance(lexer);
+        // `key:`, `key?:` and `key!:`, also when the name is a keyword (`defined?:`)
+        const bool bang = lexer->lookahead == '!';
+        if (valid_symbols[HASH_KEY_SYMBOL] && (bang || lexer->lookahead == '?' || lexer->lookahead == ':')) {
             if (lexer->lookahead != ':') {
-                lexer->result_symbol = HASH_KEY_SYMBOL;
+                advance(lexer);
+            }
+            lexer->mark_end(lexer);
+            if (lexer->lookahead == ':') {
+                advance(lexer);
+                if (lexer->lookahead != ':') {
+                    lexer->result_symbol = HASH_KEY_SYMBOL;
+                    return true;
+                }
+            } else if (bang && valid_symbols[validIdentifierSymbol] && lexer->lookahead != '=') {
+                lexer->result_symbol = validIdentifierSymbol;
                 return true;
             }
-        } else if (valid_symbols[validIdentifierSymbol] && lexer->lookahead == '!') {
+        } else if (valid_symbols[validIdentifierSymbol] && bang) {
             advance(lexer);
             lexer->mark_end(lexer);
             if (lexer->lookahead != '=') {

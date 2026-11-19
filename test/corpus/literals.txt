@@ -2767,3 +2767,30 @@ Cß
   (class_variable)
   (simple_symbol)
   (identifier))
+
+=============================================
+hash keys ending in ? or !, keywords included
+=============================================
+
+{ defined?: 1, a!: 2, b?: 3 }
+f(defined?: 1)
+
+---
+
+(program
+  (hash
+    (pair
+      (hash_key_symbol)
+      (integer))
+    (pair
+      (hash_key_symbol)
+      (integer))
+    (pair
+      (hash_key_symbol)
+      (integer)))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (integer)))))
