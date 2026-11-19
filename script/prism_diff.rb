@@ -26,7 +26,8 @@ PRISM = {
   range_node: :range, flip_flop_node: :range, # a range in a condition; tree-sitter has no separate node
   return_node: :return, yield_node: :yield, break_node: :break, next_node: :next,
   match_predicate_node: :test_pattern, match_required_node: :match_pattern,
-  regular_expression_node: :regex, interpolated_regular_expression_node: :regex
+  regular_expression_node: :regex, interpolated_regular_expression_node: :regex,
+  match_last_line_node: :regex, interpolated_match_last_line_node: :regex # a regex as a condition, matched against $_
 }.freeze
 
 TREE_SITTER = {
