@@ -26,7 +26,7 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           cache: npm
-          node-version: ${{vars.NODE_VERSION}}
+          node-version: lts/* # same as the Node tests in ci.yml (parser-test-action default)
       - name: Install modules
         run: npm ci --legacy-peer-deps
       - name: Run ESLint
