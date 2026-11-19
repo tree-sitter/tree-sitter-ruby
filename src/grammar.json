@@ -511,6 +511,18 @@
         "type": "SEQ",
         "members": [
           {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "_endless_method"
+              },
+              {
+                "type": "BLANK"
+              }
+            ]
+          },
+          {
             "type": "STRING",
             "value": "="
           },
@@ -646,6 +658,18 @@
                   "named": true,
                   "value": "method_parameters"
                 }
+              },
+              {
+                "type": "BLANK"
+              }
+            ]
+          },
+          {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "_endless_method"
               },
               {
                 "type": "BLANK"
@@ -3775,6 +3799,18 @@
         {
           "type": "STRING",
           "value": "=>"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_parameter_start"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
         },
         {
           "type": "SYMBOL",
@@ -9014,6 +9050,10 @@
     {
       "type": "SYMBOL",
       "name": "_scope_end"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "_endless_method"
     }
   ],
   "inline": [

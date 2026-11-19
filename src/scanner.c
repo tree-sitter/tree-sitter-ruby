@@ -48,6 +48,7 @@ typedef enum {
     PARAMETER_START,
     SCOPE_START,
     SCOPE_END,
+    ENDLESS_METHOD,
 
     NONE
 } TokenType;
@@ -77,16 +78,23 @@ typedef struct {
     Array(Heredoc) open_heredocs;
     // Hashes of the local variables in scope
     Array(uint32_t) locals;
-    // Size of `locals` where each open block or lambda started
+    // Size of `locals` where each open scope started, with HIDES_OUTER for `def`, `class` and `module` and ENDLESS for
+    // an endless method
     Array(uint8_t) scopes;
-    // Column and first character of the operator after a local variable (the `+` of `x +1`), 0 if none
-    uint16_t binary_operator_column;
+    // First character of the operator after a local variable (the `+` of `x +1`), 0 if none
     char binary_operator;
+    // The `def`, `class` or `module` (DEF, CLASS, MODULE) whose scope the last token opened, so that it opens only once
+    uint8_t opened;
 } Scanner;
 
-// shortcut: past 64 names or 32 nested blocks the new ones are ignored, and read as method calls as on master
-#define MAX_LOCALS 64
+// shortcut: past 63 names or 32 nested scopes the new ones are ignored, and read as method calls as on master
+#define MAX_LOCALS 63
 #define MAX_SCOPES 32
+#define HIDES_OUTER 0x80
+#define ENDLESS 0x40
+#define SAVED_SIZE 0x3F
+
+enum { DEF = 1, CLASS, MODULE };
 
 static const char NON_IDENTIFIER_CHARS[] = {
     '\0', '\n', '\r', '\t', ' ', ':', ';', '`',  '"', '\'', '@', '$', '#', '.', ',', '|', '^', '&',
@@ -124,16 +132,16 @@ static inline void reset(Scanner *scanner) {
     // Cleared, not freed: deserialize runs before every scan
     array_clear(&scanner->locals);
     array_clear(&scanner->scopes);
-    scanner->binary_operator_column = 0;
     scanner->binary_operator = 0;
+    scanner->opened = 0;
 }
 
 static inline bool has_local_state(Scanner *scanner) {
-    return scanner->locals.size > 0 || scanner->scopes.size > 0 || scanner->binary_operator_column > 0;
+    return scanner->locals.size > 0 || scanner->scopes.size > 0 || scanner->binary_operator != 0 || scanner->opened;
 }
 
 static inline unsigned local_state_size(Scanner *scanner) {
-    return has_local_state(scanner) ? 5 + scanner->locals.size * sizeof(uint32_t) + scanner->scopes.size : 0;
+    return has_local_state(scanner) ? 4 + scanner->locals.size * sizeof(uint32_t) + scanner->scopes.size : 0;
 }
 
 static inline unsigned serialize(Scanner *scanner, char *buffer) {
@@ -175,9 +183,8 @@ static inline unsigned serialize(Scanner *scanner, char *buffer) {
     // Written only when set, so code without local variables keeps the same state as before. Dropped when it
     // does not fit: local variables only ever add up to that through heredocs or literals opened after them.
     if (has_local_state(scanner) && size + local_state_size(scanner) <= TREE_SITTER_SERIALIZATION_BUFFER_SIZE) {
-        memcpy(&buffer[size], &scanner->binary_operator_column, sizeof(uint16_t));
-        size += sizeof(uint16_t);
         buffer[size++] = scanner->binary_operator;
+        buffer[size++] = (char)scanner->opened;
         buffer[size++] = (char)scanner->locals.size;
         if (scanner->locals.size > 0) {
             memcpy(&buffer[size], scanner->locals.contents, scanner->locals.size * sizeof(uint32_t));
@@ -234,9 +241,8 @@ static inline void deserialize(Scanner *scanner, const char *buffer, unsigned le
     }
 
     if (size < length) {
-        memcpy(&scanner->binary_operator_column, &buffer[size], sizeof(uint16_t));
-        size += sizeof(uint16_t);
         scanner->binary_operator = buffer[size++];
+        scanner->opened = buffer[size++];
         uint8_t count = buffer[size++];
         if (count > 0) {
             array_reserve(&scanner->locals, count);
@@ -553,8 +559,17 @@ static inline Name scan_name(TSLexer *lexer) {
     return name;
 }
 
+// The locals of the innermost `def`, `class` or `module` and of the blocks in it: the outer ones are hidden
 static inline bool is_local(Scanner *scanner, uint32_t name) {
-    for (uint32_t i = 0; i < scanner->locals.size; i++) {
+    uint32_t start = 0;
+    for (uint32_t i = scanner->scopes.size; i > 0; i--) {
+        uint8_t scope = *array_get(&scanner->scopes, i - 1);
+        if (scope & HIDES_OUTER) {
+            start = scope & SAVED_SIZE;
+            break;
+        }
+    }
+    for (uint32_t i = start; i < scanner->locals.size; i++) {
         if (*array_get(&scanner->locals, i) == name) {
             return true;
         }
@@ -610,35 +625,45 @@ static inline bool scan_assignment_operator(TSLexer *lexer, bool *space_after) {
     return lexer->lookahead == '=';
 }
 
-// `a, (b, *c), @d = ...` declares the plain names; anything else (`a.b, c = ...`) declares nothing
-static inline bool scan_multiple_assignment(Scanner *scanner, TSLexer *lexer, uint32_t first) {
-    uint32_t names[16] = {first};
-    uint32_t count = 1;
-    uint32_t depth = 0;
+// `a, (b, *c), @d = ...` declares the plain names, as does `for a, b in` (`for_loop`); anything else (`a.b, c = ...`)
+// declares nothing. Reads from after `first`, if any.
+// shortcut: past 16 targets the look-ahead gives up, so that `x = a, a, ...` stays linear
+static inline bool scan_multiple_assignment(Scanner *scanner, TSLexer *lexer, const Name *first, bool for_loop) {
+    uint32_t names[16];
+    uint32_t count = 0;
+    uint32_t items = 0;
+    // Below 0 in `(a, b), c = 1` read from `a`
+    int32_t depth = 0;
+    if (first) {
+        names[count++] = first->hash;
+        items++;
+    }
     for (;;) {
         int32_t c = lexer->lookahead;
         if (is_one_of(c, " \t,*")) {
             advance(lexer);
-        } else if (c == '(') {
-            depth++;
+        } else if (c == '(' || c == ')') {
+            depth += c == '(' ? 1 : -1;
             advance(lexer);
-        } else if (c == ')' && depth > 0) {
-            depth--;
-            advance(lexer);
+        } else if (items == sizeof(names) / sizeof(names[0])) {
+            return false;
         } else if (c == '@' || c == '$' || is_upper(c)) {
             while (lexer->lookahead == '@' || lexer->lookahead == '$') {
                 advance(lexer);
             }
             scan_name(lexer);
+            items++;
         } else if (is_local_start(c)) {
             Name name = scan_name(lexer);
+            if (for_loop && name_is(&name, "in")) {
+                break;
+            }
             if (is_keyword(&name)) {
                 return false;
             }
-            if (count < sizeof(names) / sizeof(names[0])) {
-                names[count++] = name.hash;
-            }
-        } else if (c == '=' && depth == 0) {
+            names[count++] = name.hash;
+            items++;
+        } else if (c == '=' && !for_loop && depth <= 0) {
             advance(lexer);
             if (is_one_of(lexer->lookahead, "=~>")) {
                 return false;
@@ -655,87 +680,121 @@ static inline bool scan_multiple_assignment(Scanner *scanner, TSLexer *lexer, ui
     return added;
 }
 
-// After a name that starts an operand: `def`, `class` and `module` start a new scope; `x = 1`, `x += 1` and
-// `x, y = ...` declare local variables; in `x +1` after one Ruby reads a binary operator, so the column and
-// character of that operator are kept for the next scan; and any other name drops a column still kept.
-static inline bool scan_local_variable(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols,
-                                       const Name *name, uint16_t operator_column) {
-    if (is_keyword(name)) {
-        if (name_is(name, "def") || name_is(name, "class") || name_is(name, "module")) {
-            if (scanner->locals.size == 0 && scanner->scopes.size == 0 && operator_column == 0) {
-                return false;
-            }
-            array_clear(&scanner->locals);
-            array_clear(&scanner->scopes);
-        } else if (operator_column == 0) {
-            return false;
-        }
-        return emit_zero_width(scanner, lexer, LOCAL_VARIABLES);
-    }
+// `_1` to `_9`, in a block
+static inline bool is_numbered_parameter(Scanner *scanner, const Name *name) {
+    return name->length == 2 && name->text[0] == '_' && name->text[1] >= '1' && name->text[1] <= '9' &&
+           scanner->scopes.size > 0 && !(*array_back(&scanner->scopes) & HIDES_OUTER);
+}
 
-    bool has_space = false;
-    while (lexer->lookahead == ' ' || lexer->lookahead == '\t') {
-        advance(lexer);
-        has_space = true;
-    }
-    int32_t op = lexer->lookahead;
+// After a name that starts an operand: `x = 1`, `x += 1`, `x, y = ...` and `for x in` declare local variables; in
+// `x +1` after one Ruby reads a binary operator, so that operator is kept for the next scan; and any other name
+// drops an operator still kept.
+static inline bool scan_local_variable(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols, const Name *name,
+                                       char kept_operator, uint8_t opened) {
     bool changed = false;
-    if (op == ',') {
-        // Only as a statement: in `foo a, b = 1` and `[a, b = 1]` (where `a:` could start a hash) only `b` is assigned
-        if (!valid_symbols[HASH_KEY_SYMBOL]) {
-            changed = scan_multiple_assignment(scanner, lexer, name->hash);
+    if (is_keyword(name)) {
+        uint8_t kind = name_is(name, "def") ? DEF : name_is(name, "class") ? CLASS : name_is(name, "module") ? MODULE : 0;
+        // shortcut: the same keyword again before any other scanner token (`def a; def b`) opens no scope, as if it
+        // were this one scanned twice; its variables then stay until the outer scope ends
+        if (kind && kind != opened && scanner->scopes.size < MAX_SCOPES) {
+            array_push(&scanner->scopes, (uint8_t)(scanner->locals.size | HIDES_OUTER));
+            scanner->opened = kind;
+            changed = true;
+        } else if (name_is(name, "for")) {
+            while (lexer->lookahead == ' ' || lexer->lookahead == '\t') {
+                advance(lexer);
+            }
+            changed = scan_multiple_assignment(scanner, lexer, NULL, true);
         }
     } else {
-        uint32_t column = has_space && is_one_of(op, "+-*&[/%<") && is_local(scanner, name->hash)
-                              ? lexer->get_column(lexer)
-                              : 0;
-        bool space_after;
-        if (scan_assignment_operator(lexer, &space_after)) {
-            changed = add_local(scanner, name->hash);
-        } else if (column > 0 && column <= UINT16_MAX && (op == '[' || !space_after)) {
-            scanner->binary_operator_column = (uint16_t)column;
-            scanner->binary_operator = (char)op;
+        bool has_space = false;
+        int32_t op;
+        for (;;) {
+            op = lexer->lookahead;
+            if (op == ' ' || op == '\t') {
+                advance(lexer);
+                has_space = true;
+                continue;
+            }
+            if (op != '\\') {
+                break;
+            }
+            // A line continuation: `x \` then `+1`
+            advance(lexer);
+            if (lexer->lookahead == '\r') {
+                advance(lexer);
+            }
+            if (lexer->lookahead != '\n') {
+                op = 0;
+                break;
+            }
+            advance(lexer);
+            has_space = true;
+        }
+        if (op == ',') {
+            // Only as a statement: in `foo a, b = 1` and `[a, b = 1]` (where `a:` could start a hash) only `b` is
+            // assigned
+            if (!valid_symbols[HASH_KEY_SYMBOL]) {
+                changed = scan_multiple_assignment(scanner, lexer, name, false);
+            }
+        } else if (op != 0) {
+            bool local = has_space && is_one_of(op, "+-*&[/%<") &&
+                         (is_local(scanner, name->hash) || is_numbered_parameter(scanner, name));
+            bool space_after;
+            if (scan_assignment_operator(lexer, &space_after)) {
+                changed = add_local(scanner, name->hash);
+            } else if (local && (op == '[' || !space_after)) {
+                scanner->binary_operator = (char)op;
+            }
         }
     }
-    if (!changed && scanner->binary_operator_column == operator_column) {
+    if (!changed && scanner->binary_operator == kept_operator) {
         return false;
     }
     return emit_zero_width(scanner, lexer, LOCAL_VARIABLES);
 }
 
-// Before a parameter (`a`, `*a`, `**a`, `&a`, `a:`, `a = 1`): its name is a local variable
-static inline bool scan_parameter_name(Scanner *scanner, TSLexer *lexer) {
-    lexer->mark_end(lexer);
-    while (lexer->lookahead == '*' || lexer->lookahead == '&') {
-        advance(lexer);
-    }
-    if (!is_local_start(lexer->lookahead)) {
-        return false;
-    }
-    Name name = scan_name(lexer);
-    if (is_keyword(&name) || !add_local(scanner, name.hash)) {
-        return false;
-    }
-    return emit_zero_width(scanner, lexer, LOCAL_VARIABLES);
+// A parameter (`a`, `*a`, `**a`, `&a`, `a:`, `a = 1`) or the variable of `rescue => e` is a local variable, but not
+// `rescue => e.x`: returns whether the name is new
+static inline bool bind_name(Scanner *scanner, TSLexer *lexer, const Name *name) {
+    return !is_keyword(name) && !is_one_of(lexer->lookahead, ".[(?!") && add_local(scanner, name->hash);
 }
 
 // Right after `{`, `do` or `->` of a block or lambda: its parameters and new variables are dropped where it ends
 static inline bool scan_scope_start(Scanner *scanner, TSLexer *lexer) {
-    // An empty list needs no saving: the end of a scope with nothing saved clears the list
-    if (scanner->locals.size == 0 || scanner->scopes.size == MAX_SCOPES) {
+    if (scanner->scopes.size == MAX_SCOPES) {
         return false;
     }
     array_push(&scanner->scopes, (uint8_t)scanner->locals.size);
-    return emit_zero_width(scanner, lexer, SCOPE_START);
+    if (!emit_zero_width(scanner, lexer, SCOPE_START)) {
+        array_pop(&scanner->scopes);
+        return false;
+    }
+    return true;
+}
+
+static inline void close_scope(Scanner *scanner) {
+    uint8_t saved = array_pop(&scanner->scopes) & SAVED_SIZE;
+    if (saved < scanner->locals.size) {
+        scanner->locals.size = saved;
+    }
+}
+
+// An endless method's scope ends with its line or statement: returns whether one did
+static inline bool close_endless(Scanner *scanner) {
+    if (scanner->scopes.size == 0 || !(*array_back(&scanner->scopes) & ENDLESS)) {
+        return false;
+    }
+    close_scope(scanner);
+    return true;
 }
 
 // Right after the `end` or `}` of a block, lambda, method, class or module
 static inline bool scan_scope_end(Scanner *scanner, TSLexer *lexer) {
+    while (close_endless(scanner)) {
+    }
     if (scanner->scopes.size > 0) {
-        uint8_t saved = array_pop(&scanner->scopes);
-        if (saved < scanner->locals.size) {
-            scanner->locals.size = saved;
-        }
+        close_scope(scanner);
     } else if (scanner->locals.size > 0) {
         array_clear(&scanner->locals);
     } else {
@@ -743,6 +802,21 @@ static inline bool scan_scope_end(Scanner *scanner, TSLexer *lexer) {
     }
     lexer->result_symbol = SCOPE_END;
     return true;
+}
+
+// A word that ends the body of an endless method: `def f = 1 if x`, `class A; def f = 1 end`
+static inline bool ends_endless_body(const Name *name, int32_t next) {
+    static const char *const WORDS[] = {"end", "else", "elsif", "ensure", "if",  "unless",
+                                        "while", "until", "then", "when", "in"};
+    if (next == ':' || next == '?' || next == '!') {
+        return false;
+    }
+    for (size_t i = 0; i < sizeof(WORDS) / sizeof(WORDS[0]); i++) {
+        if (name_is(name, WORDS[i])) {
+            return true;
+        }
+    }
+    return false;
 }
 
 static inline bool scan_symbol_identifier(TSLexer *lexer) {
@@ -1256,10 +1330,10 @@ static inline bool scan_star_operator(Scanner *scanner, TSLexer *lexer, const bo
 static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols) {
     scanner->has_leading_whitespace = false;
     // Set by the LOCAL_VARIABLES token before `x` in `x +1`, cleared by any other token
-    const uint16_t operator_column = scanner->binary_operator_column;
     const char binary_operator = scanner->binary_operator;
-    scanner->binary_operator_column = 0;
+    const uint8_t opened = scanner->opened;
     scanner->binary_operator = 0;
+    scanner->opened = 0;
 
     // STRING_CONTENT is valid along with everything else only in error recovery
     const bool error_recovery = valid_symbols[STRING_CONTENT] && valid_symbols[STRING_START];
@@ -1287,16 +1361,45 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
         return false;
     }
     if (lexer->result_symbol != NONE) {
+        // shortcut: a line break inside an endless method (in a multi-line `if`) also ends its scope
+        if (lexer->result_symbol == LINE_BREAK && !error_recovery) {
+            while (close_endless(scanner)) {
+            }
+        }
         return true;
     }
-
-    if (valid_symbols[PARAMETER_START] && valid_symbols[LOCAL_VARIABLES] && !error_recovery &&
-        (is_local_start(lexer->lookahead) || lexer->lookahead == '*' || lexer->lookahead == '&')) {
-        return scan_parameter_name(scanner, lexer);
+    if (lexer->lookahead == ';' && valid_symbols[LOCAL_VARIABLES] && !error_recovery && close_endless(scanner)) {
+        return emit_zero_width(scanner, lexer, LOCAL_VARIABLES);
     }
-    // Only where a binary operator may follow, and at the same character
-    const bool after_local = operator_column > 0 && lexer->lookahead == binary_operator && valid_symbols[BINARY_STAR] &&
-                             scanner->has_leading_whitespace && lexer->get_column(lexer) == operator_column;
+    // The `=` of an endless method, not of a setter (`def a=(v)`, where a parameter could start)
+    if (valid_symbols[ENDLESS_METHOD] && !error_recovery && lexer->lookahead == '=' &&
+        (scanner->has_leading_whitespace || !valid_symbols[PARAMETER_START])) {
+        lexer->mark_end(lexer);
+        advance(lexer);
+        if (is_one_of(lexer->lookahead, "=~>")) {
+            return false;
+        }
+        if (scanner->scopes.size > 0 && (*array_back(&scanner->scopes) & HIDES_OUTER)) {
+            *array_back(&scanner->scopes) |= ENDLESS;
+        }
+        return emit_zero_width(scanner, lexer, ENDLESS_METHOD);
+    }
+
+    const bool binds = valid_symbols[PARAMETER_START] && valid_symbols[LOCAL_VARIABLES] && !error_recovery;
+    if (binds && (lexer->lookahead == '*' || lexer->lookahead == '&')) {
+        lexer->mark_end(lexer);
+        while (lexer->lookahead == '*' || lexer->lookahead == '&') {
+            advance(lexer);
+        }
+        if (!is_local_start(lexer->lookahead)) {
+            return false;
+        }
+        Name name = scan_name(lexer);
+        return bind_name(scanner, lexer, &name) && emit_zero_width(scanner, lexer, LOCAL_VARIABLES);
+    }
+    // Only where a binary operator may follow
+    const bool after_local = binary_operator != 0 && lexer->lookahead == binary_operator &&
+                             valid_symbols[BINARY_STAR] && scanner->has_leading_whitespace;
 
     switch (lexer->lookahead) {
         case '&':
@@ -1432,11 +1535,16 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
     // Hash keys (`key:`), method names ending in `!` (`foo!`, `Foo!`), and the line break before a `rescue` that
     // follows a hash shorthand
     // A name where an operand starts may declare or use a local variable
+    const bool local_start = is_local_start(lexer->lookahead);
     const bool starts_operand = valid_symbols[STRING_START] && valid_symbols[LOCAL_VARIABLES] && !error_recovery &&
-                                is_local_start(lexer->lookahead);
-    if (((valid_symbols[HASH_KEY_SYMBOL] || valid_symbols[IDENTIFIER_SUFFIX]) &&
-         (is_iden_char(lexer->lookahead) && !is_digit(lexer->lookahead))) ||
-        (valid_symbols[CONSTANT_SUFFIX] && is_upper(lexer->lookahead)) || starts_operand) {
+                                local_start;
+    const bool starts_name = is_iden_char(lexer->lookahead) && !is_digit(lexer->lookahead);
+    // Where no operand is expected, a word such as `if` or `end` may end an endless method's body
+    const bool ends_statement = !valid_symbols[STRING_START] && valid_symbols[LOCAL_VARIABLES] && !error_recovery &&
+                                scanner->scopes.size > 0 && (*array_back(&scanner->scopes) & ENDLESS);
+    if (((valid_symbols[HASH_KEY_SYMBOL] || valid_symbols[IDENTIFIER_SUFFIX]) && starts_name) ||
+        (valid_symbols[CONSTANT_SUFFIX] && is_upper(lexer->lookahead)) || starts_operand || (binds && local_start) ||
+        (binary_operator != 0 && starts_name) || (ends_statement && is_lower(lexer->lookahead))) {
         TokenType validIdentifierSymbol = is_upper(lexer->lookahead) ? CONSTANT_SUFFIX : IDENTIFIER_SUFFIX;
         static const char RESCUE[] = "rescue";
         uint32_t length = 0;
@@ -1457,8 +1565,19 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
             return true;
         }
 
-        if (starts_operand && (operator_column > 0 || is_one_of(lexer->lookahead, " \t=,+-*/%^|&<>"))) {
-            return scan_local_variable(scanner, lexer, valid_symbols, &name, operator_column);
+        if (ends_statement && ends_endless_body(&name, lexer->lookahead)) {
+            close_endless(scanner);
+            return emit_zero_width(scanner, lexer, LOCAL_VARIABLES);
+        }
+        if (binds && local_start && bind_name(scanner, lexer, &name)) {
+            return emit_zero_width(scanner, lexer, LOCAL_VARIABLES);
+        }
+        if (starts_operand && (binary_operator != 0 || is_one_of(lexer->lookahead, " \t=,+-*/%^|&<>\\"))) {
+            return scan_local_variable(scanner, lexer, valid_symbols, &name, binary_operator, opened);
+        }
+        // Any other name drops an operator still kept
+        if (binary_operator != 0) {
+            return emit_zero_width(scanner, lexer, LOCAL_VARIABLES);
         }
 
         if (valid_symbols[HASH_KEY_SYMBOL] && lexer->lookahead == ':') {

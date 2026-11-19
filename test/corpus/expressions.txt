@@ -3524,6 +3524,268 @@ m -1
     (integer)))
 
 ==============================================
+variables of a block or lambda end with it
+==============================================
+
+f { y = 1 }; y +1
+f do y = 1 end; y +1
+each { |z| }
+z +1
+-> a { }; a +1
+
+---
+
+(program
+  (call
+    (identifier)
+    (block
+      (block_body
+        (assignment
+          (identifier)
+          (integer)))))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer))))
+  (call
+    (identifier)
+    (do_block
+      (body_statement
+        (assignment
+          (identifier)
+          (integer)))))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer))))
+  (call
+    (identifier)
+    (block
+      (block_parameters
+        (identifier))))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer))))
+  (lambda
+    (lambda_parameters
+      (identifier))
+    (block))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer)))))
+
+==============================================
+def, class and module hide the outer variables until their end
+==============================================
+
+x = 1
+def f; x +1; end
+x +1
+class A; x +1; end
+x +1
+module M; end
+x +1
+class << self; end
+x +1
+def g(a, b = a +1); end
+def s=(v); v +1; end
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (integer))
+  (method
+    (identifier)
+    (body_statement
+      (call
+        (identifier)
+        (argument_list
+          (unary
+            (integer))))))
+  (binary
+    (identifier)
+    (integer))
+  (class
+    (constant)
+    (body_statement
+      (call
+        (identifier)
+        (argument_list
+          (unary
+            (integer))))))
+  (binary
+    (identifier)
+    (integer))
+  (module
+    (constant))
+  (binary
+    (identifier)
+    (integer))
+  (singleton_class
+    (self))
+  (binary
+    (identifier)
+    (integer))
+  (method
+    (identifier)
+    (method_parameters
+      (identifier)
+      (optional_parameter
+        (identifier)
+        (binary
+          (identifier)
+          (integer)))))
+  (method
+    (setter
+      (identifier))
+    (method_parameters
+      (identifier))
+    (body_statement
+      (binary
+        (identifier)
+        (integer)))))
+
+==============================================
+variables of an endless method end with its line
+==============================================
+
+def f(a) = a; a +1
+x = 1
+def g(b) = b
+x +1
+b +1
+
+---
+
+(program
+  (method
+    (identifier)
+    (method_parameters
+      (identifier))
+    (identifier))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer))))
+  (assignment
+    (identifier)
+    (integer))
+  (method
+    (identifier)
+    (method_parameters
+      (identifier))
+    (identifier))
+  (binary
+    (identifier)
+    (integer))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer)))))
+
+==============================================
+for, numbered parameters, rescue and nested assignments declare variables
+==============================================
+
+for i in [1] do i +1 end
+for j, k in [[1, 2]]; k +1; end
+f { _1 +1 }
+begin; rescue => e; e +1; end
+(c, d), *r = 1; c +1
+x = 1
+x \
+  +1
+
+---
+
+(program
+  (for
+    (identifier)
+    (in
+      (array
+        (integer)))
+    (do
+      (binary
+        (identifier)
+        (integer))))
+  (for
+    (left_assignment_list
+      (identifier)
+      (identifier))
+    (in
+      (array
+        (array
+          (integer)
+          (integer))))
+    (do
+      (binary
+        (identifier)
+        (integer))))
+  (call
+    (identifier)
+    (block
+      (block_body
+        (binary
+          (identifier)
+          (integer)))))
+  (begin
+    (rescue
+      (exception_variable
+        (identifier))
+      (then
+        (binary
+          (identifier)
+          (integer)))))
+  (assignment
+    (left_assignment_list
+      (destructured_left_assignment
+        (identifier)
+        (identifier))
+      (rest_assignment
+        (identifier)))
+    (integer))
+  (binary
+    (identifier)
+    (integer))
+  (assignment
+    (identifier)
+    (integer))
+  (binary
+    (identifier)
+    (integer)))
+
+==============================================
+a constant after a local variable keeps its unary argument
+==============================================
+
+x = 1; x +1; Foo +2
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (integer))
+  (binary
+    (identifier)
+    (integer))
+  (call
+    (constant)
+    (argument_list
+      (unary
+        (integer)))))
+
+==============================================
 comparisons and keywords declare no local variable
 ==============================================
 

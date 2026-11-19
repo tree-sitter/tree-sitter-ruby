@@ -91,6 +91,8 @@ module.exports = grammar({
     // (restores them)
     $._scope_start,
     $._scope_end,
+    // Zero-width, before the `=` of an endless method, whose scope then ends with the line
+    $._endless_method,
   ],
 
   extras: $ => [
@@ -223,6 +225,7 @@ module.exports = grammar({
     // Above MATCH: `def f = x in pat` matches the whole def, as in Ruby.
     _body_expr: $ => prec(PREC.MATCH + 1,
       seq(
+        optional($._endless_method),
         '=',
         field('body',
           choice(
@@ -251,6 +254,7 @@ module.exports = grammar({
     _command_method_rest: $ => prec(1, seq(
       field('name', $._method_name),
       optional(field('parameters', alias($.parameters, $.method_parameters))),
+      optional($._endless_method),
       '=',
       field('body', choice($._expression, alias($.rescue_modifier_expression, $.rescue_modifier))),
     )),
@@ -672,7 +676,7 @@ module.exports = grammar({
 
     exceptions: $ => commaSep1(choice($._arg, $.splat_argument)),
 
-    exception_variable: $ => seq('=>', $._lhs),
+    exception_variable: $ => seq('=>', optional($._parameter_start), $._lhs),
 
     body_statement: $ => $._body_statement,
 
