@@ -3286,3 +3286,510 @@ regex with backslash sequences
     (interpolation
       (identifier))
     (string_content)))
+
+==============================================
+operator after a local variable is binary
+==============================================
+
+x = 1
+x +1
+x -1
+x *2
+x **2
+x &y
+x [1]
+x /2
+x %(y)
+foo +1
+obj.z = 1
+z +1
+x <<y
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (integer))
+  (binary
+    (identifier)
+    (integer))
+  (binary
+    (identifier)
+    (integer))
+  (binary
+    (identifier)
+    (integer))
+  (binary
+    (identifier)
+    (integer))
+  (binary
+    (identifier)
+    (identifier))
+  (element_reference
+    (identifier)
+    (integer))
+  (binary
+    (identifier)
+    (integer))
+  (binary
+    (identifier)
+    (parenthesized_statements
+      (identifier)))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer))))
+  (assignment
+    (call
+      (identifier)
+      (identifier))
+    (integer))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer))))
+  (binary
+    (identifier)
+    (identifier)))
+
+==============================================
+operator after a parameter is binary
+==============================================
+
+[1].each { |i| i +1 }
+[1].each do |a, (b, *c), d: 1, **e, &f; g|
+  a -1
+  b -1
+  c -1
+  d -1
+  e -1
+  f -1
+  g -1
+end
+def m(a, b = 1)
+  b -1
+end
+def n a
+  a -1
+end
+-> k { k -1 }
+y = 1
+def o
+  y -1
+end
+
+---
+
+(program
+  (call
+    (array
+      (integer))
+    (identifier)
+    (block
+      (block_parameters
+        (identifier))
+      (block_body
+        (binary
+          (identifier)
+          (integer)))))
+  (call
+    (array
+      (integer))
+    (identifier)
+    (do_block
+      (block_parameters
+        (identifier)
+        (destructured_parameter
+          (identifier)
+          (splat_parameter
+            (identifier)))
+        (keyword_parameter
+          (identifier)
+          (integer))
+        (hash_splat_parameter
+          (identifier))
+        (block_parameter
+          (identifier))
+        (identifier))
+      (body_statement
+        (binary
+          (identifier)
+          (integer))
+        (binary
+          (identifier)
+          (integer))
+        (binary
+          (identifier)
+          (integer))
+        (binary
+          (identifier)
+          (integer))
+        (binary
+          (identifier)
+          (integer))
+        (binary
+          (identifier)
+          (integer))
+        (binary
+          (identifier)
+          (integer)))))
+  (method
+    (identifier)
+    (method_parameters
+      (identifier)
+      (optional_parameter
+        (identifier)
+        (integer)))
+    (body_statement
+      (binary
+        (identifier)
+        (integer))))
+  (method
+    (identifier)
+    (method_parameters
+      (identifier))
+    (body_statement
+      (binary
+        (identifier)
+        (integer))))
+  (lambda
+    (lambda_parameters
+      (identifier))
+    (block
+      (block_body
+        (binary
+          (identifier)
+          (integer)))))
+  (assignment
+    (identifier)
+    (integer))
+  (method
+    (identifier)
+    (body_statement
+      (call
+        (identifier)
+        (argument_list
+          (unary
+            (integer)))))))
+
+==============================================
+operator after a multiple or operator assignment is binary
+==============================================
+
+a, (b, *c) = 1, 2
+n ||= 0
+m += 1
+a -1
+b -1
+c -1
+n -1
+m -1
+
+---
+
+(program
+  (assignment
+    (left_assignment_list
+      (identifier)
+      (destructured_left_assignment
+        (identifier)
+        (rest_assignment
+          (identifier))))
+    (right_assignment_list
+      (integer)
+      (integer)))
+  (operator_assignment
+    (identifier)
+    (integer))
+  (operator_assignment
+    (identifier)
+    (integer))
+  (binary
+    (identifier)
+    (integer))
+  (binary
+    (identifier)
+    (integer))
+  (binary
+    (identifier)
+    (integer))
+  (binary
+    (identifier)
+    (integer))
+  (binary
+    (identifier)
+    (integer)))
+
+==============================================
+comparisons and keywords declare no local variable
+==============================================
+
+w == 1
+w -1
+def k(if: 1)
+  if -a then 1 else -1 end
+end
+
+---
+
+(program
+  (binary
+    (identifier)
+    (integer))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer))))
+  (method
+    (identifier)
+    (method_parameters
+      (keyword_parameter
+        (identifier)
+        (integer)))
+    (body_statement
+      (if
+        (unary
+          (identifier))
+        (then
+          (integer))
+        (else
+          (unary
+            (integer)))))))
+
+==============================================
+local variables end with their scope
+==============================================
+
+rules.each { |rule| rule.validate! }
+rule %w[a], "b"
+[1].each do |y|
+end
+y +1
+def foo(a)
+end
+a +1
+f = ->(z) { z }
+z [1]
+x = 1
+class Foo
+  x +1
+end
+
+---
+
+(program
+  (call
+    (identifier)
+    (identifier)
+    (block
+      (block_parameters
+        (identifier))
+      (block_body
+        (call
+          (identifier)
+          (identifier)))))
+  (call
+    (identifier)
+    (argument_list
+      (string_array
+        (bare_string
+          (string_content)))
+      (string
+        (string_content))))
+  (call
+    (array
+      (integer))
+    (identifier)
+    (do_block
+      (block_parameters
+        (identifier))))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer))))
+  (method
+    (identifier)
+    (method_parameters
+      (identifier)))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer))))
+  (assignment
+    (identifier)
+    (lambda
+      (lambda_parameters
+        (identifier))
+      (block
+        (block_body
+          (identifier)))))
+  (call
+    (identifier)
+    (argument_list
+      (array
+        (integer))))
+  (assignment
+    (identifier)
+    (integer))
+  (class
+    (constant)
+    (body_statement
+      (call
+        (identifier)
+        (argument_list
+          (unary
+            (integer)))))))
+
+==============================================
+a block keeps the local variables around it
+==============================================
+
+def m(a)
+  b = 1
+  [1].each { |c| a -1; b -1; c -1 }
+  a -1
+  b -1
+  c -1
+end
+
+---
+
+(program
+  (method
+    (identifier)
+    (method_parameters
+      (identifier))
+    (body_statement
+      (assignment
+        (identifier)
+        (integer))
+      (call
+        (array
+          (integer))
+        (identifier)
+        (block
+          (block_parameters
+            (identifier))
+          (block_body
+            (binary
+              (identifier)
+              (integer))
+            (binary
+              (identifier)
+              (integer))
+            (binary
+              (identifier)
+              (integer)))))
+      (binary
+        (identifier)
+        (integer))
+      (binary
+        (identifier)
+        (integer))
+      (call
+        (identifier)
+        (argument_list
+          (unary
+            (integer)))))))
+
+==============================================
+an operator column and an argument list declare nothing more
+==============================================
+
+x = 0
+cmd = [
+  x + 1,
+  {
+    "k" => 1
+  }
+]
+foo(x +1,
+      &blk)
+foo a, b = 1
+a +1
+b +1
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (integer))
+  (assignment
+    (identifier)
+    (array
+      (binary
+        (identifier)
+        (integer))
+      (hash
+        (pair
+          (string
+            (string_content))
+          (integer)))))
+  (call
+    (identifier)
+    (argument_list
+      (binary
+        (identifier)
+        (integer))
+      (block_argument
+        (identifier))))
+  (call
+    (identifier)
+    (argument_list
+      (identifier)
+      (assignment
+        (identifier)
+        (integer))))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer))))
+  (binary
+    (identifier)
+    (integer)))
+
+==============================================
+local variables past the state size limit
+==============================================
+
+foo(<<AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA); v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, v16 = 1
+body
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+---
+
+(program
+  (call
+    (identifier)
+    (argument_list
+      (heredoc_beginning)))
+  (assignment
+    (left_assignment_list
+      (identifier)
+      (identifier)
+      (identifier)
+      (identifier)
+      (identifier)
+      (identifier)
+      (identifier)
+      (identifier)
+      (identifier)
+      (identifier)
+      (identifier)
+      (identifier)
+      (identifier)
+      (identifier)
+      (identifier)
+      (identifier))
+    (integer))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end)))

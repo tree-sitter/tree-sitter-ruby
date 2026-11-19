@@ -83,10 +83,19 @@ module.exports = grammar({
     $.uninterpreted,
     // Never produced by the scanner; tells it that Ruby reads an operand next, not a binary operator
     $._operand_next,
+    // Zero-width, emitted before a name to record local variables: `x +1` is `x + 1` once `x` is one
+    $._local_variables,
+    // Never produced by the scanner; tells it that a parameter name follows, which declares a local variable
+    $._parameter_start,
+    // Zero-width, right after a block or lambda opens (saves the local variables) and right after a scope closes
+    // (restores them)
+    $._scope_start,
+    $._scope_end,
   ],
 
   extras: $ => [
     $.comment,
+    $._local_variables,
     $.heredoc_body,
     /\s/,
     /\\\r?\n/,
@@ -173,7 +182,12 @@ module.exports = grammar({
         seq(
           field('parameters', alias($.parameters, $.method_parameters)),
           choice(
-            seq(optional($._terminator), optional(field('body', $.body_statement)), 'end'),
+            seq(
+              optional($._terminator),
+              optional(field('body', $.body_statement)),
+              'end',
+              optional($._scope_end),
+            ),
             $._body_expr,
           ),
 
@@ -185,6 +199,7 @@ module.exports = grammar({
           $._terminator,
           optional(field('body', $.body_statement)),
           'end',
+          optional($._scope_end),
         ),
       ),
     ),
@@ -255,7 +270,7 @@ module.exports = grammar({
     block_parameters: $ => seq(
       '|',
       seq(commaSep($._formal_parameter), optional(',')),
-      optional(seq(';', sep1(field('locals', $.identifier), ','))), // Block shadow args e.g. {|; a, b| ...}
+      optional(seq(';', sep1(seq(optional($._parameter_start), field('locals', $.identifier)), ','))), // Block shadow args e.g. {|; a, b| ...}
       '|',
     ),
 
@@ -264,7 +279,7 @@ module.exports = grammar({
       alias($.parameters, $.destructured_parameter),
     ),
 
-    _simple_formal_parameter: $ => choice(
+    _simple_formal_parameter: $ => seq(optional($._parameter_start), choice(
       $.identifier,
       $.splat_parameter,
       $.hash_splat_parameter,
@@ -273,7 +288,7 @@ module.exports = grammar({
       $.block_parameter,
       $.keyword_parameter,
       $.optional_parameter,
-    ),
+    )),
 
     forward_parameter: _ => '...',
 
@@ -310,6 +325,7 @@ module.exports = grammar({
       ),
       optional(field('body', $.body_statement)),
       'end',
+      optional($._scope_end),
     ),
 
     superclass: $ => seq('<', $._expression),
@@ -321,6 +337,7 @@ module.exports = grammar({
       $._terminator,
       optional(field('body', $.body_statement)),
       'end',
+      optional($._scope_end),
     ),
 
     module: $ => seq(
@@ -329,6 +346,7 @@ module.exports = grammar({
       optional($._terminator),
       optional(field('body', $.body_statement)),
       'end',
+      optional($._scope_end),
     ),
 
     // '_operand_next' never matches: `return %=a=` and `next / a/` take an argument, as in Ruby
@@ -870,8 +888,10 @@ module.exports = grammar({
     hash_splat_argument: $ => prec.right(seq(alias($._hash_splat_star_star, '**'), optional($._arg))),
     block_argument: $ => prec.right(seq(alias($._block_ampersand, '&'), optional($._arg))),
 
-    do_block: $ => seq(
-      'do',
+    do_block: $ => seq('do', optional($._scope_start), $._do_block_rest),
+
+    // Without `_scope_start` in a lambda, whose `->` already opened the scope
+    _do_block_rest: $ => seq(
       optional($._terminator),
       optional(seq(
         field('parameters', $.block_parameters),
@@ -879,13 +899,16 @@ module.exports = grammar({
       )),
       optional(field('body', $.body_statement)),
       'end',
+      optional($._scope_end),
     ),
 
     block: $ => prec(PREC.CURLY_BLOCK, seq(
       $._block_open,
+      optional($._scope_start),
       field('parameters', optional($.block_parameters)),
       optional(field('body', $.block_body)),
       '}',
+      optional($._scope_end),
     )),
 
     // `foo {`, `x.y {`: reducing the brace on its own forces the block-or-hash choice right away,
@@ -1273,6 +1296,7 @@ module.exports = grammar({
 
     lambda: $ => seq(
       '->',
+      optional($._scope_start),
       optional(
         field(
           'parameters',
@@ -1285,7 +1309,7 @@ module.exports = grammar({
           ),
         ),
       ),
-      field('body', choice(alias($._lambda_block, $.block), $.do_block)),
+      field('body', choice(alias($._lambda_block, $.block), alias($._lambda_do_block, $.do_block))),
     ),
 
     // Its `{` is a scanner token, like parse.y's tLAMBEG: after bare parameters it opens the body even
@@ -1295,7 +1319,10 @@ module.exports = grammar({
       field('parameters', optional($.block_parameters)),
       optional(field('body', $.block_body)),
       '}',
+      optional($._scope_end),
     ),
+
+    _lambda_do_block: $ => seq('do', $._do_block_rest),
 
 
     lambda_parameters_with_parens: $ => seq(

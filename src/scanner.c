@@ -44,6 +44,10 @@ typedef enum {
     COMMENT,
     UNINTERPRETED,
     OPERAND_NEXT,
+    LOCAL_VARIABLES,
+    PARAMETER_START,
+    SCOPE_START,
+    SCOPE_END,
 
     NONE
 } TokenType;
@@ -71,7 +75,18 @@ typedef struct {
     bool has_leading_whitespace;
     Array(Literal) literal_stack;
     Array(Heredoc) open_heredocs;
+    // Hashes of the local variables in scope
+    Array(uint32_t) locals;
+    // Size of `locals` where each open block or lambda started
+    Array(uint8_t) scopes;
+    // Column and first character of the operator after a local variable (the `+` of `x +1`), 0 if none
+    uint16_t binary_operator_column;
+    char binary_operator;
 } Scanner;
+
+// shortcut: past 64 names or 32 nested blocks the new ones are ignored, and read as method calls as on master
+#define MAX_LOCALS 64
+#define MAX_SCOPES 32
 
 static const char NON_IDENTIFIER_CHARS[] = {
     '\0', '\n', '\r', '\t', ' ', ':', ';', '`',  '"', '\'', '@', '$', '#', '.', ',', '|', '^', '&',
@@ -106,6 +121,19 @@ static inline void reset(Scanner *scanner) {
         array_delete(&array_get(&scanner->open_heredocs, i)->word);
     }
     array_delete(&scanner->open_heredocs);
+    // Cleared, not freed: deserialize runs before every scan
+    array_clear(&scanner->locals);
+    array_clear(&scanner->scopes);
+    scanner->binary_operator_column = 0;
+    scanner->binary_operator = 0;
+}
+
+static inline bool has_local_state(Scanner *scanner) {
+    return scanner->locals.size > 0 || scanner->scopes.size > 0 || scanner->binary_operator_column > 0;
+}
+
+static inline unsigned local_state_size(Scanner *scanner) {
+    return has_local_state(scanner) ? 5 + scanner->locals.size * sizeof(uint32_t) + scanner->scopes.size : 0;
 }
 
 static inline unsigned serialize(Scanner *scanner, char *buffer) {
@@ -142,6 +170,24 @@ static inline unsigned serialize(Scanner *scanner, char *buffer) {
         size += sizeof(uint32_t);
         memcpy(&buffer[size], heredoc->word.contents, heredoc->word.size);
         size += heredoc->word.size;
+    }
+
+    // Written only when set, so code without local variables keeps the same state as before. Dropped when it
+    // does not fit: local variables only ever add up to that through heredocs or literals opened after them.
+    if (has_local_state(scanner) && size + local_state_size(scanner) <= TREE_SITTER_SERIALIZATION_BUFFER_SIZE) {
+        memcpy(&buffer[size], &scanner->binary_operator_column, sizeof(uint16_t));
+        size += sizeof(uint16_t);
+        buffer[size++] = scanner->binary_operator;
+        buffer[size++] = (char)scanner->locals.size;
+        if (scanner->locals.size > 0) {
+            memcpy(&buffer[size], scanner->locals.contents, scanner->locals.size * sizeof(uint32_t));
+            size += scanner->locals.size * sizeof(uint32_t);
+        }
+        buffer[size++] = (char)scanner->scopes.size;
+        if (scanner->scopes.size > 0) {
+            memcpy(&buffer[size], scanner->scopes.contents, scanner->scopes.size);
+            size += scanner->scopes.size;
+        }
     }
 
     return size;
@@ -185,6 +231,26 @@ static inline void deserialize(Scanner *scanner, const char *buffer, unsigned le
         heredoc.word.size = word_length;
         size += word_length;
         array_push(&scanner->open_heredocs, heredoc);
+    }
+
+    if (size < length) {
+        memcpy(&scanner->binary_operator_column, &buffer[size], sizeof(uint16_t));
+        size += sizeof(uint16_t);
+        scanner->binary_operator = buffer[size++];
+        uint8_t count = buffer[size++];
+        if (count > 0) {
+            array_reserve(&scanner->locals, count);
+            memcpy(scanner->locals.contents, &buffer[size], count * sizeof(uint32_t));
+            scanner->locals.size = count;
+            size += count * sizeof(uint32_t);
+        }
+        count = buffer[size++];
+        if (count > 0) {
+            array_reserve(&scanner->scopes, count);
+            memcpy(scanner->scopes.contents, &buffer[size], count);
+            scanner->scopes.size = count;
+            size += count;
+        }
     }
 
     assert(size == length);
@@ -427,6 +493,256 @@ static inline bool scan_operator(TSLexer *lexer) {
 
 static inline bool is_iden_char(int32_t c) {
     return c >= 0x80 || memchr(&NON_IDENTIFIER_CHARS, c, sizeof(NON_IDENTIFIER_CHARS)) == NULL;
+}
+
+// Local variables start like method names, not like constants
+static inline bool is_local_start(int32_t c) { return is_lower(c) || c == '_' || c >= 0x80; }
+
+static inline bool is_one_of(int32_t c, const char *chars) { return c > 0 && c < 0x80 && strchr(chars, c) != NULL; }
+
+// FNV-1a: 32 bits, so that two names in scope practically never collide
+static inline uint32_t hash_char(uint32_t hash, int32_t c) { return (hash ^ (uint32_t)c) * 16777619u; }
+#define HASH_START 2166136261u
+
+// Keywords are never local variables: `return %=a=` must not declare `return`, nor `def f(if:)` declare `if`
+static const char *const KEYWORDS[] = {
+    "BEGIN", "END",  "__FILE__", "__LINE__", "alias",  "and",    "begin", "break", "case",  "class",  "def",
+    "do",    "else", "elsif",    "end",      "ensure", "false",  "for",   "if",    "in",    "module", "next",
+    "nil",   "not",  "or",       "redo",     "rescue", "retry",  "return", "self", "super", "then",   "true",
+    "undef", "unless", "until",  "when",     "while",  "yield",
+};
+#define KEYWORD_MAX_LENGTH 8
+
+// A name read with scan_name: its hash, and its text when it may be a keyword
+typedef struct {
+    uint32_t hash;
+    uint32_t length;
+    char text[KEYWORD_MAX_LENGTH + 1];
+} Name;
+
+static inline void name_add_char(Name *name, int32_t c) {
+    name->hash = hash_char(name->hash, c);
+    if (name->length < KEYWORD_MAX_LENGTH) {
+        name->text[name->length] = c < 0x80 ? (char)c : '\0';
+    }
+    name->length++;
+}
+
+static inline bool name_is(const Name *name, const char *word) {
+    return strlen(word) == name->length && memcmp(name->text, word, name->length) == 0;
+}
+
+static inline bool is_keyword(const Name *name) {
+    if (name->length > KEYWORD_MAX_LENGTH) {
+        return false;
+    }
+    for (size_t i = 0; i < sizeof(KEYWORDS) / sizeof(KEYWORDS[0]); i++) {
+        if (name_is(name, KEYWORDS[i])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static inline Name scan_name(TSLexer *lexer) {
+    Name name = {.hash = HASH_START};
+    while (is_iden_char(lexer->lookahead)) {
+        name_add_char(&name, lexer->lookahead);
+        advance(lexer);
+    }
+    return name;
+}
+
+static inline bool is_local(Scanner *scanner, uint32_t name) {
+    for (uint32_t i = 0; i < scanner->locals.size; i++) {
+        if (*array_get(&scanner->locals, i) == name) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Returns whether the name is new
+static inline bool add_local(Scanner *scanner, uint32_t name) {
+    if (scanner->locals.size == MAX_LOCALS || is_local(scanner, name)) {
+        return false;
+    }
+    array_push(&scanner->locals, name);
+    return true;
+}
+
+// A zero-width token is returned only when serialize() keeps its state: otherwise the same change would be
+// made again at the same place, forever
+static inline bool local_state_fits(Scanner *scanner) {
+    unsigned size = 2 + scanner->literal_stack.size * 6;
+    for (uint32_t i = 0; i < scanner->open_heredocs.size; i++) {
+        size += 4 + sizeof(uint32_t) + array_get(&scanner->open_heredocs, i)->word.size;
+    }
+    return size + local_state_size(scanner) < TREE_SITTER_SERIALIZATION_BUFFER_SIZE;
+}
+
+static inline bool emit_zero_width(Scanner *scanner, TSLexer *lexer, TokenType symbol) {
+    if (!local_state_fits(scanner)) {
+        return false;
+    }
+    lexer->result_symbol = symbol;
+    return true;
+}
+
+// `=` (not `==`, `=~` or `=>`), or an operator assignment such as `+=`, `||=` or `<<=` (not `<=`). Also tells
+// whether a space follows the first character, as in `x + 1` but not in `x +1`.
+static inline bool scan_assignment_operator(TSLexer *lexer, bool *space_after) {
+    int32_t op = lexer->lookahead;
+    *space_after = true;
+    if (op != '=' && !is_one_of(op, "+-*/%^|&<>")) {
+        return false;
+    }
+    advance(lexer);
+    *space_after = is_space(lexer->lookahead);
+    if (op == '=') {
+        return !is_one_of(lexer->lookahead, "=~>");
+    }
+    if (lexer->lookahead == op && is_one_of(op, "*|&<>")) {
+        advance(lexer);
+    } else if (op == '<' || op == '>') {
+        return false;
+    }
+    return lexer->lookahead == '=';
+}
+
+// `a, (b, *c), @d = ...` declares the plain names; anything else (`a.b, c = ...`) declares nothing
+static inline bool scan_multiple_assignment(Scanner *scanner, TSLexer *lexer, uint32_t first) {
+    uint32_t names[16] = {first};
+    uint32_t count = 1;
+    uint32_t depth = 0;
+    for (;;) {
+        int32_t c = lexer->lookahead;
+        if (is_one_of(c, " \t,*")) {
+            advance(lexer);
+        } else if (c == '(') {
+            depth++;
+            advance(lexer);
+        } else if (c == ')' && depth > 0) {
+            depth--;
+            advance(lexer);
+        } else if (c == '@' || c == '$' || is_upper(c)) {
+            while (lexer->lookahead == '@' || lexer->lookahead == '$') {
+                advance(lexer);
+            }
+            scan_name(lexer);
+        } else if (is_local_start(c)) {
+            Name name = scan_name(lexer);
+            if (is_keyword(&name)) {
+                return false;
+            }
+            if (count < sizeof(names) / sizeof(names[0])) {
+                names[count++] = name.hash;
+            }
+        } else if (c == '=' && depth == 0) {
+            advance(lexer);
+            if (is_one_of(lexer->lookahead, "=~>")) {
+                return false;
+            }
+            break;
+        } else {
+            return false;
+        }
+    }
+    bool added = false;
+    for (uint32_t i = 0; i < count; i++) {
+        added |= add_local(scanner, names[i]);
+    }
+    return added;
+}
+
+// After a name that starts an operand: `def`, `class` and `module` start a new scope; `x = 1`, `x += 1` and
+// `x, y = ...` declare local variables; in `x +1` after one Ruby reads a binary operator, so the column and
+// character of that operator are kept for the next scan; and any other name drops a column still kept.
+static inline bool scan_local_variable(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols,
+                                       const Name *name, uint16_t operator_column) {
+    if (is_keyword(name)) {
+        if (name_is(name, "def") || name_is(name, "class") || name_is(name, "module")) {
+            if (scanner->locals.size == 0 && scanner->scopes.size == 0 && operator_column == 0) {
+                return false;
+            }
+            array_clear(&scanner->locals);
+            array_clear(&scanner->scopes);
+        } else if (operator_column == 0) {
+            return false;
+        }
+        return emit_zero_width(scanner, lexer, LOCAL_VARIABLES);
+    }
+
+    bool has_space = false;
+    while (lexer->lookahead == ' ' || lexer->lookahead == '\t') {
+        advance(lexer);
+        has_space = true;
+    }
+    int32_t op = lexer->lookahead;
+    bool changed = false;
+    if (op == ',') {
+        // Only as a statement: in `foo a, b = 1` and `[a, b = 1]` (where `a:` could start a hash) only `b` is assigned
+        if (!valid_symbols[HASH_KEY_SYMBOL]) {
+            changed = scan_multiple_assignment(scanner, lexer, name->hash);
+        }
+    } else {
+        uint32_t column = has_space && is_one_of(op, "+-*&[/%<") && is_local(scanner, name->hash)
+                              ? lexer->get_column(lexer)
+                              : 0;
+        bool space_after;
+        if (scan_assignment_operator(lexer, &space_after)) {
+            changed = add_local(scanner, name->hash);
+        } else if (column > 0 && column <= UINT16_MAX && (op == '[' || !space_after)) {
+            scanner->binary_operator_column = (uint16_t)column;
+            scanner->binary_operator = (char)op;
+        }
+    }
+    if (!changed && scanner->binary_operator_column == operator_column) {
+        return false;
+    }
+    return emit_zero_width(scanner, lexer, LOCAL_VARIABLES);
+}
+
+// Before a parameter (`a`, `*a`, `**a`, `&a`, `a:`, `a = 1`): its name is a local variable
+static inline bool scan_parameter_name(Scanner *scanner, TSLexer *lexer) {
+    lexer->mark_end(lexer);
+    while (lexer->lookahead == '*' || lexer->lookahead == '&') {
+        advance(lexer);
+    }
+    if (!is_local_start(lexer->lookahead)) {
+        return false;
+    }
+    Name name = scan_name(lexer);
+    if (is_keyword(&name) || !add_local(scanner, name.hash)) {
+        return false;
+    }
+    return emit_zero_width(scanner, lexer, LOCAL_VARIABLES);
+}
+
+// Right after `{`, `do` or `->` of a block or lambda: its parameters and new variables are dropped where it ends
+static inline bool scan_scope_start(Scanner *scanner, TSLexer *lexer) {
+    // An empty list needs no saving: the end of a scope with nothing saved clears the list
+    if (scanner->locals.size == 0 || scanner->scopes.size == MAX_SCOPES) {
+        return false;
+    }
+    array_push(&scanner->scopes, (uint8_t)scanner->locals.size);
+    return emit_zero_width(scanner, lexer, SCOPE_START);
+}
+
+// Right after the `end` or `}` of a block, lambda, method, class or module
+static inline bool scan_scope_end(Scanner *scanner, TSLexer *lexer) {
+    if (scanner->scopes.size > 0) {
+        uint8_t saved = array_pop(&scanner->scopes);
+        if (saved < scanner->locals.size) {
+            scanner->locals.size = saved;
+        }
+    } else if (scanner->locals.size > 0) {
+        array_clear(&scanner->locals);
+    } else {
+        return false;
+    }
+    lexer->result_symbol = SCOPE_END;
+    return true;
 }
 
 static inline bool scan_symbol_identifier(TSLexer *lexer) {
@@ -914,11 +1230,11 @@ static inline bool scan_literal_content(Scanner *scanner, TSLexer *lexer, const 
 
 // After `*` or `**`: `foo *args` is a splat, `a*b` and `a * b` are binary
 static inline bool scan_star_operator(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols, TokenType binary,
-                                      TokenType splat) {
+                                      TokenType splat, bool after_local) {
     if (lexer->lookahead == '=') {
         return false;
     }
-    if (valid_symbols[binary] && !scanner->has_leading_whitespace) {
+    if (valid_symbols[binary] && (!scanner->has_leading_whitespace || after_local)) {
         lexer->result_symbol = binary;
         return true;
     }
@@ -939,6 +1255,20 @@ static inline bool scan_star_operator(Scanner *scanner, TSLexer *lexer, const bo
 
 static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols) {
     scanner->has_leading_whitespace = false;
+    // Set by the LOCAL_VARIABLES token before `x` in `x +1`, cleared by any other token
+    const uint16_t operator_column = scanner->binary_operator_column;
+    const char binary_operator = scanner->binary_operator;
+    scanner->binary_operator_column = 0;
+    scanner->binary_operator = 0;
+
+    // STRING_CONTENT is valid along with everything else only in error recovery
+    const bool error_recovery = valid_symbols[STRING_CONTENT] && valid_symbols[STRING_START];
+    if (valid_symbols[SCOPE_END] && !error_recovery && scan_scope_end(scanner, lexer)) {
+        return true;
+    }
+    if (valid_symbols[SCOPE_START] && !error_recovery && scan_scope_start(scanner, lexer)) {
+        return true;
+    }
 
     // Contents of literals, which match any character except for some close delimiter
     if (!valid_symbols[STRING_START]) {
@@ -960,9 +1290,17 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
         return true;
     }
 
+    if (valid_symbols[PARAMETER_START] && valid_symbols[LOCAL_VARIABLES] && !error_recovery &&
+        (is_local_start(lexer->lookahead) || lexer->lookahead == '*' || lexer->lookahead == '&')) {
+        return scan_parameter_name(scanner, lexer);
+    }
+    // Only where a binary operator may follow, and at the same character
+    const bool after_local = operator_column > 0 && lexer->lookahead == binary_operator && valid_symbols[BINARY_STAR] &&
+                             scanner->has_leading_whitespace && lexer->get_column(lexer) == operator_column;
+
     switch (lexer->lookahead) {
         case '&':
-            if (valid_symbols[BLOCK_AMPERSAND]) {
+            if (valid_symbols[BLOCK_AMPERSAND] && !after_local) {
                 advance(lexer);
                 if (lexer->lookahead != '&' && lexer->lookahead != '.' && lexer->lookahead != '=' &&
                     (!is_space(lexer->lookahead) || !valid_symbols[BINARY_STAR])) {
@@ -990,19 +1328,21 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
                 valid_symbols[BINARY_STAR_STAR]) {
                 advance(lexer);
                 if (lexer->lookahead != '*') {
-                    return scan_star_operator(scanner, lexer, valid_symbols, BINARY_STAR, SPLAT_STAR);
+                    return scan_star_operator(scanner, lexer, valid_symbols, BINARY_STAR, SPLAT_STAR, after_local);
                 }
                 if (!valid_symbols[HASH_SPLAT_STAR_STAR] && !valid_symbols[BINARY_STAR_STAR]) {
                     return false;
                 }
                 advance(lexer);
-                return scan_star_operator(scanner, lexer, valid_symbols, BINARY_STAR_STAR, HASH_SPLAT_STAR_STAR);
+                return scan_star_operator(scanner, lexer, valid_symbols, BINARY_STAR_STAR, HASH_SPLAT_STAR_STAR,
+                                          after_local);
             }
             break;
 
         case '+':
             // `foo +x` is a command argument, like `foo -x`; otherwise `+` is left to the internal lexer
-            if (valid_symbols[UNARY_PLUS] && valid_symbols[BINARY_STAR] && scanner->has_leading_whitespace) {
+            if (valid_symbols[UNARY_PLUS] && valid_symbols[BINARY_STAR] && scanner->has_leading_whitespace &&
+                !after_local) {
                 advance(lexer);
                 if (lexer->lookahead != '=' && !is_space(lexer->lookahead)) {
                     lexer->result_symbol = UNARY_PLUS;
@@ -1017,12 +1357,13 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
                 advance(lexer);
                 if (lexer->lookahead != '=' && lexer->lookahead != '>') {
                     if (valid_symbols[UNARY_MINUS_NUM] &&
-                        (!valid_symbols[BINARY_STAR] || scanner->has_leading_whitespace) &&
+                        (!valid_symbols[BINARY_STAR] || (scanner->has_leading_whitespace && !after_local)) &&
                         is_digit(lexer->lookahead)) {
                         lexer->result_symbol = UNARY_MINUS_NUM;
                         return true;
                     }
-                    if (valid_symbols[UNARY_MINUS] && scanner->has_leading_whitespace && !is_space(lexer->lookahead)) {
+                    if (valid_symbols[UNARY_MINUS] && scanner->has_leading_whitespace && !is_space(lexer->lookahead) &&
+                        !after_local) {
                         lexer->result_symbol = UNARY_MINUS;
                     } else if (valid_symbols[BINARY_MINUS]) {
                         lexer->result_symbol = BINARY_MINUS;
@@ -1077,7 +1418,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
             // * the bracket is not preceded by any whitespace
             // * an arbitrary expression is not valid at the current position.
             if (valid_symbols[ELEMENT_REFERENCE_BRACKET] &&
-                (!scanner->has_leading_whitespace || !valid_symbols[STRING_START])) {
+                (!scanner->has_leading_whitespace || !valid_symbols[STRING_START] || after_local)) {
                 advance(lexer);
                 lexer->result_symbol = ELEMENT_REFERENCE_BRACKET;
                 return true;
@@ -1090,17 +1431,22 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
 
     // Hash keys (`key:`), method names ending in `!` (`foo!`, `Foo!`), and the line break before a `rescue` that
     // follows a hash shorthand
+    // A name where an operand starts may declare or use a local variable
+    const bool starts_operand = valid_symbols[STRING_START] && valid_symbols[LOCAL_VARIABLES] && !error_recovery &&
+                                is_local_start(lexer->lookahead);
     if (((valid_symbols[HASH_KEY_SYMBOL] || valid_symbols[IDENTIFIER_SUFFIX]) &&
          (is_iden_char(lexer->lookahead) && !is_digit(lexer->lookahead))) ||
-        (valid_symbols[CONSTANT_SUFFIX] && is_upper(lexer->lookahead))) {
+        (valid_symbols[CONSTANT_SUFFIX] && is_upper(lexer->lookahead)) || starts_operand) {
         TokenType validIdentifierSymbol = is_upper(lexer->lookahead) ? CONSTANT_SUFFIX : IDENTIFIER_SUFFIX;
         static const char RESCUE[] = "rescue";
         uint32_t length = 0;
+        Name name = {.hash = HASH_START};
         lexer->mark_end(lexer);
         while (is_iden_char(lexer->lookahead)) {
             if (length >= sizeof(RESCUE) - 1 || lexer->lookahead != RESCUE[length]) {
                 rescue_may_end_line = false;
             }
+            name_add_char(&name, lexer->lookahead);
             advance(lexer);
             length++;
         }
@@ -1109,6 +1455,10 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
             lexer->lookahead != '?' && lexer->lookahead != '!' && lexer->lookahead != ':') {
             lexer->result_symbol = LINE_BREAK;
             return true;
+        }
+
+        if (starts_operand && (operator_column > 0 || is_one_of(lexer->lookahead, " \t=,+-*/%^|&<>"))) {
+            return scan_local_variable(scanner, lexer, valid_symbols, &name, operator_column);
         }
 
         if (valid_symbols[HASH_KEY_SYMBOL] && lexer->lookahead == ':') {
@@ -1130,8 +1480,8 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
         return false;
     }
 
-    // Open delimiters for literals
-    if (valid_symbols[STRING_START]) {
+    // Open delimiters for literals, but `x /2`, `x %(y)` and `x <<y` divide and shift when x is a local variable
+    if (valid_symbols[STRING_START] && !after_local) {
         Literal literal = {0};
         literal.nesting_depth = 1;
 
@@ -1200,5 +1550,7 @@ void tree_sitter_ruby_external_scanner_deserialize(void *payload, const char *bu
 void tree_sitter_ruby_external_scanner_destroy(void *payload) {
     Scanner *scanner = (Scanner *)payload;
     reset(scanner);
+    array_delete(&scanner->locals);
+    array_delete(&scanner->scopes);
     ts_free(scanner);
 }
