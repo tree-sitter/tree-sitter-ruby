@@ -898,3 +898,58 @@ end
         (identifier))
       (then
         (identifier)))))
+
+======================================
+return, break and next read an operand
+======================================
+
+def f
+  return[1]
+  return-1
+  return*a
+  return+1
+  return - (a + 1)
+end
+loop { break[1]; next-1 }
+
+---
+
+(program
+  (method
+    (identifier)
+    (body_statement
+      (return
+        (argument_list
+          (array
+            (integer))))
+      (return
+        (argument_list
+          (unary
+            (integer))))
+      (return
+        (argument_list
+          (splat_argument
+            (identifier))))
+      (return
+        (argument_list
+          (unary
+            (integer))))
+      (return
+        (argument_list
+          (unary
+            (parenthesized_statements
+              (binary
+                (identifier)
+                (integer))))))))
+  (call
+    (identifier)
+    (block
+      (block_body
+        (break
+          (argument_list
+            (array
+              (integer))))
+        (next
+          (argument_list
+            (unary
+              (integer))))))))

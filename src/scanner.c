@@ -1316,12 +1316,12 @@ static inline bool scan_literal_content(Scanner *scanner, TSLexer *lexer, const 
 }
 
 // After `*` or `**`: `foo *args` is a splat, `a*b` and `a * b` are binary
-static inline bool scan_star_operator(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols, TokenType binary,
-                                      TokenType splat, bool after_local) {
+static inline bool scan_star_operator(TSLexer *lexer, const bool *valid_symbols, TokenType binary, TokenType splat,
+                                      bool binary_first) {
     if (lexer->lookahead == '=') {
         return false;
     }
-    if (valid_symbols[binary] && (!scanner->has_leading_whitespace || after_local)) {
+    if (valid_symbols[binary] && binary_first) {
         lexer->result_symbol = binary;
         return true;
     }
@@ -1413,6 +1413,9 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
     // Only where a binary operator may follow
     const bool after_local = binary_operator != 0 && lexer->lookahead == binary_operator &&
                              valid_symbols[BINARY_STAR] && scanner->has_leading_whitespace;
+    // After `return`, `break` and `next` Ruby reads an operand: `return-1`, `return[1]`, `return*a`
+    const bool operand_next = valid_symbols[OPERAND_NEXT] && !valid_symbols[STRING_CONTENT];
+    const bool star_binary_first = !operand_next && (!scanner->has_leading_whitespace || after_local);
 
     switch (lexer->lookahead) {
         case '&':
@@ -1444,21 +1447,21 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
                 valid_symbols[BINARY_STAR_STAR]) {
                 advance(lexer);
                 if (lexer->lookahead != '*') {
-                    return scan_star_operator(scanner, lexer, valid_symbols, BINARY_STAR, SPLAT_STAR, after_local);
+                    return scan_star_operator(lexer, valid_symbols, BINARY_STAR, SPLAT_STAR, star_binary_first);
                 }
                 if (!valid_symbols[HASH_SPLAT_STAR_STAR] && !valid_symbols[BINARY_STAR_STAR]) {
                     return false;
                 }
                 advance(lexer);
-                return scan_star_operator(scanner, lexer, valid_symbols, BINARY_STAR_STAR, HASH_SPLAT_STAR_STAR,
-                                          after_local);
+                return scan_star_operator(lexer, valid_symbols, BINARY_STAR_STAR, HASH_SPLAT_STAR_STAR,
+                                          star_binary_first);
             }
             break;
 
         case '+':
             // `foo +x` is a command argument, like `foo -x`; otherwise `+` is left to the internal lexer
-            if (valid_symbols[UNARY_PLUS] && valid_symbols[BINARY_STAR] && scanner->has_leading_whitespace &&
-                !after_local) {
+            if (valid_symbols[UNARY_PLUS] && valid_symbols[BINARY_STAR] &&
+                (operand_next || (scanner->has_leading_whitespace && !after_local))) {
                 advance(lexer);
                 if (lexer->lookahead != '=' && !is_space(lexer->lookahead)) {
                     lexer->result_symbol = UNARY_PLUS;
@@ -1473,13 +1476,15 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
                 advance(lexer);
                 if (lexer->lookahead != '=' && lexer->lookahead != '>') {
                     if (valid_symbols[UNARY_MINUS_NUM] &&
-                        (!valid_symbols[BINARY_STAR] || (scanner->has_leading_whitespace && !after_local)) &&
+                        (!valid_symbols[BINARY_STAR] || operand_next ||
+                         (scanner->has_leading_whitespace && !after_local)) &&
                         is_digit(lexer->lookahead)) {
                         lexer->result_symbol = UNARY_MINUS_NUM;
                         return true;
                     }
-                    if (valid_symbols[UNARY_MINUS] && scanner->has_leading_whitespace && !is_space(lexer->lookahead) &&
-                        !after_local) {
+                    if (valid_symbols[UNARY_MINUS] &&
+                        (operand_next ||
+                         (scanner->has_leading_whitespace && !is_space(lexer->lookahead) && !after_local))) {
                         lexer->result_symbol = UNARY_MINUS;
                     } else if (valid_symbols[BINARY_MINUS]) {
                         lexer->result_symbol = BINARY_MINUS;
@@ -1533,7 +1538,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
             // Treat a square bracket as an element reference if either:
             // * the bracket is not preceded by any whitespace
             // * an arbitrary expression is not valid at the current position.
-            if (valid_symbols[ELEMENT_REFERENCE_BRACKET] &&
+            if (valid_symbols[ELEMENT_REFERENCE_BRACKET] && !operand_next &&
                 (!scanner->has_leading_whitespace || !valid_symbols[STRING_START] || after_local)) {
                 advance(lexer);
                 lexer->result_symbol = ELEMENT_REFERENCE_BRACKET;
