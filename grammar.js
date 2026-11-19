@@ -893,10 +893,10 @@ module.exports = grammar({
         [prec.right, PREC.EXPONENTIAL, alias($._binary_star_star, '**')],
       ];
 
-      // @ts-ignore
+      // @ts-ignore: TypeScript reads each row as a union, not as a [prec, number, rule] tuple
       return choice(...operators.map(([fn, precedence, operator]) => fn(precedence, seq(
         field('left', $._arg),
-        // @ts-ignore
+        // @ts-ignore: same
         field('operator', operator),
         field('right', $._arg),
       ))));
