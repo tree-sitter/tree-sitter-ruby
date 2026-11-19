@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.13)
 project(tree-sitter-ruby
         VERSION "0.24.1"
         DESCRIPTION "Ruby grammar for tree-sitter"
-        HOMEPAGE_URL "https://github.com/tree-sitter/tree-sitter-ruby"
+        HOMEPAGE_URL "https://github.com/Magikdidi24/tree-sitter-ruby"
         LANGUAGES C)
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)

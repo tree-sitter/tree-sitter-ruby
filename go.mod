@@ -1,4 +1,4 @@
-module github.com/tree-sitter/tree-sitter-ruby
+module github.com/Magikdidi24/tree-sitter-ruby
 
 go 1.23
 
