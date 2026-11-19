@@ -17,7 +17,8 @@ endif()
 
 include(GNUInstallDirs)
 
-find_program(TREE_SITTER_CLI tree-sitter DOC "Tree-sitter CLI")
+# The project's CLI (`npm ci`), which generated src/parser.c, before a system one
+find_program(TREE_SITTER_CLI tree-sitter HINTS "${CMAKE_CURRENT_SOURCE_DIR}/node_modules/.bin" DOC "Tree-sitter CLI")
 
 add_custom_command(OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/src/grammar.json"
                           "${CMAKE_CURRENT_SOURCE_DIR}/src/node-types.json"

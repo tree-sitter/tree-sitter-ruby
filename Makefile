@@ -6,7 +6,8 @@ DESCRIPTION := Ruby grammar for tree-sitter
 # repository
 SRC_DIR := src
 
-TS ?= tree-sitter
+# The project's CLI (`npm ci`), which generated src/parser.c, before a system one
+TS ?= $(or $(wildcard node_modules/.bin/tree-sitter),tree-sitter)
 
 # install directory layout
 PREFIX ?= /usr/local
