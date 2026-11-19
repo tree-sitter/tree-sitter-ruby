@@ -431,3 +431,72 @@ foo x in 5 # FIXME: should be parsed as `(foo x) in 5` instead of `foo (x in 5)`
 (program
   (call (identifier) (argument_list (test_pattern (identifier) (integer)))) (comment)
 )
+
+=================================================
+fields of patterns, aliases, rescue and operators
+=================================================
+
+alias foo bar
+case v
+in Point[1] | Point(2) if v then 1
+in [*, 1, *] | {k: 1}
+else 2
+end
+begin; rescue => e; end
+A::B
+x += -1 + (1..2).size
+a&.b
+
+---
+
+(program
+  (alias
+    name: (identifier)
+    alias: (identifier))
+  (case_match
+    value: (identifier)
+    clauses: (in_clause
+      pattern: (alternative_pattern
+        alternatives: (array_pattern
+          class: (constant)
+          (integer))
+        alternatives: (array_pattern
+          class: (constant)
+          (integer)))
+      guard: (if_guard
+        condition: (identifier))
+      body: (then
+        (integer)))
+    clauses: (in_clause
+      pattern: (alternative_pattern
+        alternatives: (find_pattern
+          (splat_parameter)
+          (integer)
+          (splat_parameter))
+        alternatives: (hash_pattern
+          (keyword_pattern
+            key: (hash_key_symbol)
+            value: (integer)))))
+    else: (else
+      (integer)))
+  (begin
+    (rescue
+      variable: (exception_variable
+        (identifier))))
+  (scope_resolution
+    scope: (constant)
+    name: (constant))
+  (operator_assignment
+    left: (identifier)
+    right: (binary
+      left: (unary
+        operand: (integer))
+      right: (call
+        receiver: (parenthesized_statements
+          (range
+            begin: (integer)
+            end: (integer)))
+        method: (identifier))))
+  (call
+    receiver: (identifier)
+    method: (identifier)))

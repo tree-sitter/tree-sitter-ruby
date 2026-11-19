@@ -34,3 +34,14 @@ false
 # ^ constant.builtin
 FALSE
 # ^ constant
+
+# a comment
+# <- comment
+"a\n#{ b }"
+# ^ escape
+#     ^ embedded
+foo([1])
+#  ^ punctuation.bracket
+#   ^ punctuation.bracket
+self
+# <- variable.builtin

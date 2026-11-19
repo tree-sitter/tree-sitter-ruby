@@ -2811,3 +2811,18 @@ symbols of special global variables
     (simple_symbol)
     (simple_symbol)
     (simple_symbol)))
+
+========================================================
+character literals with control and multibyte characters
+========================================================
+
+?\C-a
+?\M-a
+?あ
+
+---
+
+(program
+  (character)
+  (character)
+  (character))

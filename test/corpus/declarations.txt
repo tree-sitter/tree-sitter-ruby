@@ -833,3 +833,23 @@ def self.x; end
   (singleton_method
     (self)
     (identifier)))
+
+===========================================
+method calls ending in ? or ! on a constant
+===========================================
+
+Foo?
+Foo!
+Foo! 1
+
+---
+
+(program
+  (call
+    (constant))
+  (call
+    (constant))
+  (call
+    (constant)
+    (argument_list
+      (integer))))
