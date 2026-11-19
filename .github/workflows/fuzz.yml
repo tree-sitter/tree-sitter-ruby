@@ -11,6 +11,9 @@ on:
       - grammar.js
       - src/**
 
+permissions:
+  contents: read
+
 jobs:
   fuzz:
     runs-on: ubuntu-latest

@@ -13,6 +13,9 @@ on:
       - eslint.config.mjs
       - package.json
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     runs-on: ubuntu-latest
