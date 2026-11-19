@@ -86,8 +86,9 @@ jobs:
         uses: tree-sitter/parse-action@47beaa8ba0b5c8b44ef0879b2f647ca7f0a1257d # v5
         with:
           files: |
-            examples/*.rb
+            examples/**/*.rb
             !examples/ruby_spec/command_line/fixtures/bad_syntax.rb
+            !examples/ruby_spec/core/exception/fixtures/syntax_error.rb
             !examples/ruby_spec/command_line/fixtures/freeze_flag_required_diff_enc.rb
             !examples/ruby_spec/core/enumerable/shared/inject.rb
             !examples/ruby_spec/language/fixtures/freeze_magic_comment_required_diff_enc.rb
