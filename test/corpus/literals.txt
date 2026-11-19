@@ -2794,3 +2794,20 @@ f(defined?: 1)
       (pair
         (hash_key_symbol)
         (integer)))))
+
+===================================
+symbols of special global variables
+===================================
+
+[:$', :$:, :$;, :$", :$-w, :$!]
+
+---
+
+(program
+  (array
+    (simple_symbol)
+    (simple_symbol)
+    (simple_symbol)
+    (simple_symbol)
+    (simple_symbol)
+    (simple_symbol)))

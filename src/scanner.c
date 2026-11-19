@@ -827,6 +827,19 @@ static inline bool scan_symbol_identifier(TSLexer *lexer) {
         }
     } else if (lexer->lookahead == '$') {
         advance(lexer);
+        // Special globals: `:$'`, `:$:`, `:$;`, `:$-w`
+        if (is_one_of(lexer->lookahead, "!@;,/\\.~=*$?:\"<>&`'+")) {
+            advance(lexer);
+            return true;
+        }
+        if (lexer->lookahead == '-') {
+            advance(lexer);
+            if (!is_iden_char(lexer->lookahead)) {
+                return false;
+            }
+            advance(lexer);
+            return true;
+        }
     }
 
     if (is_iden_char(lexer->lookahead)) {
