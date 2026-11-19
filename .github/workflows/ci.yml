@@ -44,6 +44,10 @@ on:
 permissions:
   contents: read
 
+env:
+  # pinned: a new spec file must not break unrelated changes; bump it on purpose
+  RUBY_SPEC_REF: 0816047460cc5c4ca23d09794b48e8638a7047cc
+
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
   cancel-in-progress: true
@@ -66,7 +70,8 @@ jobs:
           tree-sitter-ref: v0.27.1
       - name: Set up examples
         run: |
-          git clone https://github.com/ruby/spec examples/ruby_spec --single-branch --depth=1 --filter=blob:none
+          git clone https://github.com/ruby/spec examples/ruby_spec --filter=blob:none --quiet
+          git -C examples/ruby_spec checkout --quiet ${{env.RUBY_SPEC_REF}}
       - name: Run tests
         uses: tree-sitter/parser-test-action@92e35c06b51ea26c80ffbd3cc8d9286d9110df17 # v3
         with:
@@ -107,9 +112,8 @@ jobs:
       - name: Run RuboCop
         run: bundle exec rubocop
       - name: Set up ruby/spec
-        # pinned: a new spec file must not break unrelated changes; bump it on purpose
         run: |
           git clone https://github.com/ruby/spec examples/ruby_spec --filter=blob:none --quiet
-          git -C examples/ruby_spec checkout --quiet 0816047460cc5c4ca23d09794b48e8638a7047cc
+          git -C examples/ruby_spec checkout --quiet ${{env.RUBY_SPEC_REF}}
       - name: Compare with Prism
         run: bundle exec ruby script/prism_diff.rb --known script/prism_diff_known.txt examples/ruby_spec
