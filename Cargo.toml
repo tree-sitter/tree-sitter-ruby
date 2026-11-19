@@ -12,6 +12,7 @@ keywords = ["incremental", "parsing", "tree-sitter", "ruby"]
 categories = ["parsing", "text-editors"]
 repository = "https://github.com/tree-sitter/tree-sitter-ruby"
 edition = "2024"
+rust-version = "1.90"
 autoexamples = false
 
 build = "bindings/rust/build.rs"
@@ -31,7 +32,7 @@ path = "bindings/rust/lib.rs"
 tree-sitter-language = "0.1"
 
 [build-dependencies]
-cc = "1.10"
+cc = "1.11"
 
 [dev-dependencies]
-tree-sitter = "0.27.1"
+tree-sitter = "0.27.2"
