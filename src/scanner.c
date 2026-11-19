@@ -98,9 +98,12 @@ typedef struct {
 
 enum { DEF = 1, CLASS, MODULE };
 
-static const char NON_IDENTIFIER_CHARS[] = {
-    '\0', '\n', '\r', '\t', ' ', ':', ';', '`',  '"', '\'', '@', '$', '#', '.', ',', '|', '^', '&',
-    '<',  '=',  '>',  '+',  '-', '*', '/', '\\', '%', '?',  '!', '~', '(', ')', '[', ']', '{', '}',
+// Indexed by ASCII code
+static const bool NON_IDENTIFIER_CHAR[128] = {
+    ['\0'] = 1, ['\n'] = 1, ['\r'] = 1, ['\t'] = 1, [' '] = 1, [':'] = 1, [';'] = 1, ['`'] = 1, ['"'] = 1,
+    ['\''] = 1, ['@'] = 1, ['$'] = 1, ['#'] = 1, ['.'] = 1, [','] = 1, ['|'] = 1, ['^'] = 1, ['&'] = 1,
+    ['<'] = 1, ['='] = 1, ['>'] = 1, ['+'] = 1, ['-'] = 1, ['*'] = 1, ['/'] = 1, ['\\'] = 1, ['%'] = 1,
+    ['?'] = 1, ['!'] = 1, ['~'] = 1, ['('] = 1, [')'] = 1, ['['] = 1, [']'] = 1, ['{'] = 1, ['}'] = 1,
 };
 
 // ASCII only, like Ruby: the isw* functions depend on the host process locale
@@ -501,7 +504,7 @@ static inline bool scan_operator(TSLexer *lexer) {
 }
 
 static inline bool is_iden_char(int32_t c) {
-    return c >= 0x80 || memchr(&NON_IDENTIFIER_CHARS, c, sizeof(NON_IDENTIFIER_CHARS)) == NULL;
+    return c >= 0x80 || c < 0 || !NON_IDENTIFIER_CHAR[c];
 }
 
 // Local variables start like method names, not like constants
