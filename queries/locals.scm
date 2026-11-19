@@ -1,13 +1,18 @@
 ; Scopes
 
-; `def`, `class`, `module` and `class << x` bodies do not see outer locals
+; `def`, `class`, `module` and `class << x` bodies do not see outer locals, but a superclass (`class A < base`) and
+; the object of `class << obj` are read outside
 ([
   (method)
   (singleton_method)
-  (class)
   (module)
-  (singleton_class)
 ] @local.scope
+ (#set! local.scope-inherits false))
+
+([
+  (class body: (_) @local.scope)
+  (singleton_class body: (_) @local.scope)
+]
  (#set! local.scope-inherits false))
 
 [

@@ -31,3 +31,8 @@ class Car < Vehicle
   # ^ keyword
 end
 # <- keyword
+
+base = Object
+class Bike < base
+  #          ^ variable
+end
