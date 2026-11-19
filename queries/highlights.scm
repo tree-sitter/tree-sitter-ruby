@@ -75,10 +75,6 @@
 ((identifier) @constant.builtin
  (#match? @constant.builtin "^__(FILE|LINE|ENCODING)__$"))
 
-(file) @constant.builtin
-(line) @constant.builtin
-(encoding) @constant.builtin
-
 (hash_splat_nil
   "**" @operator) @constant.builtin
 
@@ -136,6 +132,9 @@
   (nil)
   (true)
   (false)
+  (file)
+  (line)
+  (encoding)
 ] @constant.builtin
 
 (comment) @comment
