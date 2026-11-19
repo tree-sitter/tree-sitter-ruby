@@ -116,5 +116,7 @@ jobs:
         run: |
           git clone https://github.com/ruby/spec examples/ruby_spec --filter=blob:none --quiet
           git -C examples/ruby_spec checkout --quiet ${{env.RUBY_SPEC_REF}}
+      - name: Check the scanner's external tokens
+        run: ruby script/check_externals.rb
       - name: Compare with Prism
         run: bundle exec ruby script/prism_diff.rb --known script/prism_diff_known.txt examples/ruby_spec
