@@ -11,4 +11,4 @@ permissions:
 
 jobs:
   github:
-    uses: tree-sitter/workflows/.github/workflows/release.yml@main
+    uses: tree-sitter/workflows/.github/workflows/release.yml@dca539e07998ac429e185349d3dd194d2c7418d3 # main@2026-11-18
