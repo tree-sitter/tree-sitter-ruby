@@ -11,18 +11,19 @@ Ruby grammar for [tree-sitter](https://github.com/tree-sitter/tree-sitter).
 
 #### Development
 
-The parser is generated for ABI 14, which the Python binding (`tree-sitter~=0.24`) and older runtimes still need:
+The parser is generated for ABI 15, which tree-sitter 0.25 and newer runtimes read (Neovim 0.11, py-tree-sitter 0.25,
+node-tree-sitter 0.25, the Rust crate 0.25):
 
 ```sh
 npm ci
-node_modules/.bin/tree-sitter generate --abi 14
+node_modules/.bin/tree-sitter generate
 node_modules/.bin/tree-sitter test
 ```
 
 Deno can load `grammar.js` instead of Node, and lints it:
 
 ```sh
-TREE_SITTER_JS_RUNTIME=deno node_modules/.bin/tree-sitter generate --abi 14
+TREE_SITTER_JS_RUNTIME=deno node_modules/.bin/tree-sitter generate
 deno lint
 ```
 
