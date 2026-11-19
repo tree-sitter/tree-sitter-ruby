@@ -1,5 +1,6 @@
 [package]
-name = "tree-sitter-ruby"
+# This fork's crate; the library keeps the upstream name, so `tree_sitter_ruby::LANGUAGE` works unchanged
+name = "tree-sitter-ruby-magikdidi24"
 description = "Ruby grammar for tree-sitter"
 version = "0.24.1"
 authors = [
@@ -26,6 +27,7 @@ include = [
 ]
 
 [lib]
+name = "tree_sitter_ruby"
 path = "bindings/rust/lib.rs"
 
 [dependencies]

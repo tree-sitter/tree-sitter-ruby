@@ -3,7 +3,8 @@ requires = ["setuptools>=71"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "tree-sitter-ruby"
+# This fork's distribution; the module keeps the upstream name, `import tree_sitter_ruby`
+name = "tree-sitter-ruby-magikdidi24"
 description = "Ruby grammar for tree-sitter"
 version = "0.24.1"
 keywords = ["incremental", "parsing", "tree-sitter", "ruby"]

@@ -1,5 +1,5 @@
 {
-  "name": "tree-sitter-ruby",
+  "name": "@magikdidi24/tree-sitter-ruby",
   "version": "0.24.1",
   "description": "Ruby grammar for tree-sitter",
   "repository": "https://github.com/Magikdidi24/tree-sitter-ruby",
@@ -74,5 +74,8 @@
     "start": "tree-sitter playground",
     "lint": "deno lint",
     "test": "node --test bindings/node/*_test.js"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
