@@ -1046,6 +1046,10 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
         literal.nesting_depth = 1;
 
         if (lexer->lookahead == '<') {
+            // STRING_START is also valid after a string, for adjacent string literals, but there `<<` is a shift
+            if (!valid_symbols[HEREDOC_START]) {
+                return false;
+            }
             advance(lexer);
             if (lexer->lookahead != '<') {
                 return false;

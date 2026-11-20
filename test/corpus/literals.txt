@@ -971,6 +971,39 @@ nested strings with different delimiters
     (string_content)))
 
 ========================================
+left shift after a string is not a heredoc
+========================================
+
+"test"<<"ruby"
+"test" <<"ruby"
+%q(a)<<EOS
+x = (1..<<A)
+a
+A
+
+---
+
+(program
+  (binary
+    (string (string_content))
+    (string (string_content)))
+  (binary
+    (string (string_content))
+    (string (string_content)))
+  (binary
+    (string (string_content))
+    (constant))
+  (assignment
+    (identifier)
+    (parenthesized_statements
+      (range
+        (integer)
+        (heredoc_beginning))))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end)))
+
+========================================
 basic heredocs
 ========================================
 
