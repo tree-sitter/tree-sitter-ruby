@@ -120,3 +120,28 @@ jobs:
         run: ruby script/check_externals.rb
       - name: Compare with Prism
         run: bundle exec ruby script/prism_diff.rb --known script/prism_diff_known.txt examples/ruby_spec
+
+  perf:
+    name: Instruction count against the base
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Checkout the base
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{github.event.pull_request.base.sha}}
+          path: base
+          sparse-checkout: src
+      - name: Install valgrind
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq valgrind
+      # The runtime's source comes from the Rust dev-dependency, checked against Cargo.lock
+      - name: Fetch the tree-sitter runtime
+        run: cargo fetch --locked
+      - name: Set up ruby/spec
+        run: |
+          git clone https://github.com/ruby/spec examples/ruby_spec --filter=blob:none --quiet
+          git -C examples/ruby_spec checkout --quiet ${{env.RUBY_SPEC_REF}}
+      - name: Compare with the base
+        run: script/perf_guard.sh base examples/ruby_spec test/highlight
