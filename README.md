@@ -6,6 +6,7 @@
 [![crates][crates]](https://crates.io/crates/tree-sitter-ruby-magikdidi24)
 [![pypi][pypi]](https://pypi.org/project/tree-sitter-ruby-magikdidi24/)
 [![coverage][coverage]](https://github.com/Magikdidi24/tree-sitter-ruby/actions/workflows/ci.yml)
+[![scorecard][scorecard]](https://scorecard.dev/viewer/?uri=github.com/Magikdidi24/tree-sitter-ruby)
 [![playground][playground]](https://magikdidi24.github.io/tree-sitter-ruby/)
 [![discord][discord]](https://discord.gg/w7nTvsVJhm)
 [![matrix][matrix]](https://matrix.to/#/#tree-sitter-chat:matrix.org)
@@ -96,6 +97,7 @@ a hash pattern (`in {"name":}`) still declares nothing, so there `name +1` stays
 [crates]: https://img.shields.io/crates/v/tree-sitter-ruby-magikdidi24?logo=rust
 [pypi]: https://img.shields.io/pypi/v/tree-sitter-ruby-magikdidi24?logo=pypi
 [coverage]: https://img.shields.io/endpoint?url=https%3A%2F%2Fmagikdidi24.github.io%2Ftree-sitter-ruby%2Fcoverage.json
+[scorecard]: https://api.scorecard.dev/projects/github.com/Magikdidi24/tree-sitter-ruby/badge
 [playground]: https://img.shields.io/badge/playground-try%20it-blue?logo=webassembly
 [discord]: https://img.shields.io/discord/1063097320771698699?logo=discord&label=discord
 [matrix]: https://img.shields.io/matrix/tree-sitter-chat%3Amatrix.org?logo=matrix&label=matrix
