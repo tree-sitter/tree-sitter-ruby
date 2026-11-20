@@ -1087,6 +1087,29 @@ foo += 1
     (identifier)
     (integer)))
 
+==========
+unary plus before a number and a method call
+==========
+
+x = +1.abs
+x = + 1.abs
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (call
+      (unary
+        (integer))
+      (identifier)))
+  (assignment
+    (identifier)
+    (unary
+      (call
+        (integer)
+        (identifier)))))
+
 ===========
 binary minus
 ===========
@@ -2171,6 +2194,55 @@ end
         block: (do_block
           body: (body_statement
             (identifier)))))))
+
+===============================================
+chained method calls with parentheses after a command with a do block
+===============================================
+
+a b do |c|
+end.d(e, f)
+
+a b do end.c(1).d
+
+a b do end.c.d e
+
+---
+
+(program
+  (call
+    receiver: (call
+      method: (identifier)
+      arguments: (argument_list
+        (identifier))
+      block: (do_block
+        parameters: (block_parameters
+          (identifier))))
+    method: (identifier)
+    arguments: (argument_list
+      (identifier)
+      (identifier)))
+  (call
+    receiver: (call
+      receiver: (call
+        method: (identifier)
+        arguments: (argument_list
+          (identifier))
+        block: (do_block))
+      method: (identifier)
+      arguments: (argument_list
+        (integer)))
+    method: (identifier))
+  (call
+    receiver: (call
+      receiver: (call
+        method: (identifier)
+        arguments: (argument_list
+          (identifier))
+        block: (do_block))
+      method: (identifier))
+    method: (identifier)
+    arguments: (argument_list
+      (identifier))))
 
 ===============================
 method calls in binary expression
@@ -4341,6 +4413,135 @@ n +1
   (heredoc_body
     (heredoc_content)
     (heredoc_end))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer)))))
+
+==============================================
+string keys of hash patterns declare variables
+==============================================
+
+case v
+in {"a":}
+  a +1
+in 'b':
+  b +1
+in {"c": 1}
+  c +1
+in ["d"]
+  d +1
+in {"e#{x}":}
+  e +1
+in {"#{f}":}
+  f +1
+end
+v => {"g":}
+g +1
+h = {"i": 1}
+i +1
+j("k": l)
+k +1
+
+---
+
+(program
+  (case_match
+    (identifier)
+    (in_clause
+      (hash_pattern
+        (keyword_pattern
+          (string
+            (string_content))))
+      (then
+        (binary
+          (identifier)
+          (integer))))
+    (in_clause
+      (hash_pattern
+        (keyword_pattern
+          (string
+            (string_content))))
+      (then
+        (binary
+          (identifier)
+          (integer))))
+    (in_clause
+      (hash_pattern
+        (keyword_pattern
+          (string
+            (string_content))
+          (integer)))
+      (then
+        (call
+          (identifier)
+          (argument_list
+            (unary
+              (integer))))))
+    (in_clause
+      (array_pattern
+        (string
+          (string_content)))
+      (then
+        (call
+          (identifier)
+          (argument_list
+            (unary
+              (integer))))))
+    (in_clause
+      (hash_pattern
+        (keyword_pattern
+          (string
+            (string_content)
+            (interpolation
+              (identifier)))))
+      (then
+        (call
+          (identifier)
+          (argument_list
+            (unary
+              (integer))))))
+    (in_clause
+      (hash_pattern
+        (keyword_pattern
+          (string
+            (interpolation
+              (identifier)))))
+      (then
+        (call
+          (identifier)
+          (argument_list
+            (unary
+              (integer)))))))
+  (match_pattern
+    (identifier)
+    (hash_pattern
+      (keyword_pattern
+        (string
+          (string_content)))))
+  (binary
+    (identifier)
+    (integer))
+  (assignment
+    (identifier)
+    (hash
+      (pair
+        (string
+          (string_content))
+        (integer))))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (string
+          (string_content))
+        (identifier))))
   (call
     (identifier)
     (argument_list

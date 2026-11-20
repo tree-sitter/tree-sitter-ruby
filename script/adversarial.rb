@@ -58,6 +58,10 @@ SEEDS = <<~'RUBY'.split("\n---\n")
     x => {e:}; x in [f]; f +1
   end
   ---
+  case x
+  in {"a":, 'b': 1} | ["c"] then a +1
+  end
+  ---
   a, (b, *c) = 1, 2
   ---
   for i in a do i +1 end

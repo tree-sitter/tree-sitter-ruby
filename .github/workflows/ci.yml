@@ -46,7 +46,7 @@ permissions:
 
 env:
   # pinned: a new spec file must not break unrelated changes; bump it on purpose
-  RUBY_SPEC_REF: 0816047460cc5c4ca23d09794b48e8638a7047cc
+  RUBY_SPEC_REF: 0260823021feefce01cc18619f3e71825dd55219
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
@@ -157,3 +157,15 @@ jobs:
         run: cargo fetch --locked
       - name: Measure the coverage
         run: script/coverage.sh
+
+  warnings:
+    name: Scanner compiler warnings
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Build the scanner with every warning an error
+        run: |
+          for cc in gcc clang; do
+            "$cc" -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Werror -Isrc -c src/scanner.c -o /dev/null
+          done

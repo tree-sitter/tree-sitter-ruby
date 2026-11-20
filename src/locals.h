@@ -301,6 +301,21 @@ static inline bool bind_key(Scanner *scanner, TSLexer *lexer, const Name *name) 
     return !is_keyword(name) && add_local(scanner, name->hash);
 }
 
+// A string key binds its name too (`in {"k":}`). Reads from after the opening quote, where the STRING_START token
+// ends: the rest is only look-ahead.
+static inline void bind_string_key(Scanner *scanner, TSLexer *lexer, int32_t quote) {
+    if (!is_local_start(lexer->lookahead)) {
+        return;
+    }
+    Name name = scan_name(lexer);
+    if (lexer->lookahead == quote) {
+        advance(lexer);
+        if (lexer->lookahead == ':') {
+            bind_key(scanner, lexer, &name);
+        }
+    }
+}
+
 // `in A => x`: `=>` where neither a binary operator nor an operand may follow, so after a pattern (`{a => x}` and
 // `rescue A => e` follow an operand, `rescue => e` follows a keyword). Reads from the `=`.
 static inline bool scan_pattern_name(Scanner *scanner, TSLexer *lexer) {
@@ -327,7 +342,7 @@ static inline bool scan_scope_start(Scanner *scanner, TSLexer *lexer) {
     }
     array_push(&scanner->scopes, (uint8_t)scanner->locals.size);
     if (!emit_zero_width(scanner, lexer, SCOPE_START)) {
-        array_pop(&scanner->scopes);
+        (void)array_pop(&scanner->scopes);
         return false;
     }
     return true;

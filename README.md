@@ -6,6 +6,8 @@
 [![crates][crates]](https://crates.io/crates/tree-sitter-ruby-magikdidi24)
 [![pypi][pypi]](https://pypi.org/project/tree-sitter-ruby-magikdidi24/)
 [![coverage][coverage]](https://github.com/Magikdidi24/tree-sitter-ruby/actions/workflows/ci.yml)
+[![scorecard][scorecard]](https://scorecard.dev/viewer/?uri=github.com/Magikdidi24/tree-sitter-ruby)
+[![performance][performance]](https://magikdidi24.github.io/tree-sitter-ruby/perf.html)
 [![playground][playground]](https://magikdidi24.github.io/tree-sitter-ruby/)
 [![discord][discord]](https://discord.gg/w7nTvsVJhm)
 [![matrix][matrix]](https://matrix.to/#/#tree-sitter-chat:matrix.org)
@@ -78,13 +80,14 @@ deno lint
 `bundle exec ruby script/prism_diff.rb DIR` compares the trees with [Prism](https://github.com/ruby/prism) on the Ruby files in `DIR`.
 `script/coverage.sh` prints how much of the hand-written scanner the tests run, by line and by branch; the coverage
 badge shows it for master.
+The [performance history](https://magikdidi24.github.io/tree-sitter-ruby/perf.html) shows the parse cost and the parser
+size of every release.
 
 #### Local variables
 
 Like Ruby, the parser reads `x +1` as `x + 1` when `x` is a local variable, and as the call `x(+1)` otherwise. The external
 scanner tracks assignments, parameters, `for` and `rescue =>` variables, numbered parameters, variables bound by pattern
-matching (`in [x]`, `in {name:}`, `v => x`), and the scopes of blocks, methods, classes and modules. Only a string key in
-a hash pattern (`in {"name":}`) still declares nothing, so there `name +1` stays a call.
+matching (`in [x]`, `in {name:}`, `in {"name":}`, `v => x`), and the scopes of blocks, methods, classes and modules.
 
 #### References
 
@@ -96,6 +99,8 @@ a hash pattern (`in {"name":}`) still declares nothing, so there `name +1` stays
 [crates]: https://img.shields.io/crates/v/tree-sitter-ruby-magikdidi24?logo=rust
 [pypi]: https://img.shields.io/pypi/v/tree-sitter-ruby-magikdidi24?logo=pypi
 [coverage]: https://img.shields.io/endpoint?url=https%3A%2F%2Fmagikdidi24.github.io%2Ftree-sitter-ruby%2Fcoverage.json
+[scorecard]: https://api.scorecard.dev/projects/github.com/Magikdidi24/tree-sitter-ruby/badge
+[performance]: https://img.shields.io/badge/performance-history-blue
 [playground]: https://img.shields.io/badge/playground-try%20it-blue?logo=webassembly
 [discord]: https://img.shields.io/discord/1063097320771698699?logo=discord&label=discord
 [matrix]: https://img.shields.io/matrix/tree-sitter-chat%3Amatrix.org?logo=matrix&label=matrix

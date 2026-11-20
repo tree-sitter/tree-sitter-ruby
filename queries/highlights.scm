@@ -3,6 +3,12 @@
 ((identifier) @function.method
  (#is-not? local))
 
+; `it` and `_1` to `_9`: a block's implicit parameter, unless a local variable is named `it`. Before the patterns
+; below, so that `it(1)` and `x.it` stay method calls.
+((identifier) @variable.parameter
+ (#match? @variable.parameter "^(it|_[1-9])$")
+ (#is-not? local))
+
 [
   "BEGIN"
   "END"
@@ -113,6 +119,10 @@
   (hash_key_symbol)
   (bare_symbol)
 ] @string.special.symbol
+
+; A key without a value binds a variable: `in {name:}`, `in {"name":}`
+(keyword_pattern key: (hash_key_symbol) @variable !value)
+(keyword_pattern key: (string . (string_content) @variable .) !value)
 
 (regex) @string.regexp
 (escape_sequence) @escape

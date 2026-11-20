@@ -903,7 +903,7 @@ static inline bool scan_literal_content(Scanner *scanner, TSLexer *lexer, const 
                             advance(lexer);
                         }
                     }
-                    array_pop(&scanner->literal_stack);
+                    (void)array_pop(&scanner->literal_stack);
                     lexer->result_symbol = STRING_END;
                     lexer->mark_end(lexer);
                 }
@@ -1187,6 +1187,11 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
                 }
                 return false;
             }
+            // Where only an operand may follow, `+1` is a number only without a space: `+ 1.abs` is `+(1.abs)`
+            if (valid_symbols[UNARY_PLUS] && !valid_symbols[BINARY_STAR]) {
+                advance(lexer);
+                return is_digit(lexer->lookahead) && emit(lexer, UNARY_PLUS);
+            }
             break;
 
         case '-':
@@ -1319,8 +1324,13 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
     if (literal_valid) {
         Literal literal = {0};
         literal.nesting_depth = 1;
+        const int32_t quote = lexer->lookahead;
 
         if (scan_open_delimiter(scanner, lexer, &literal, valid_symbols)) {
+            if (binds && pattern && (quote == '"' || quote == '\'')) {
+                lexer->mark_end(lexer);
+                bind_string_key(scanner, lexer, quote);
+            }
             array_push(&scanner->literal_stack, literal);
             lexer->result_symbol = literal.type;
             return true;
