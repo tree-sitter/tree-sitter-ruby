@@ -129,7 +129,8 @@ module.exports = grammar({
     $._operand_next,
     // Zero-width, emitted before a name to record local variables: `x +1` is `x + 1` once `x` is one
     $._local_variables,
-    // Never produced by the scanner; tells it that a parameter name follows, which declares a local variable
+    // Zero-width, before a parameter name, which declares a local variable: valid where one follows, and cheaper for
+    // the parser than the `_local_variables` extra
     $._parameter_start,
     // Zero-width, right after a block or lambda opens (saves the local variables) and right after a scope closes
     // (restores them)
@@ -210,19 +211,12 @@ module.exports = grammar({
     _method_rest: $ => seq(
       field('name', $._method_name),
       choice(
-        $._body_expr,
         seq(
           field('parameters', alias($.parameters, $.method_parameters)),
-          choice(
-            seq(
-              optional($._terminator),
-              optional(field('body', $.body_statement)),
-              'end',
-              optional($._scope_end),
-            ),
-            $._body_expr,
-          ),
-
+          optional($._terminator),
+          optional(field('body', $.body_statement)),
+          'end',
+          optional($._scope_end),
         ),
         seq(
           optional(
@@ -236,17 +230,30 @@ module.exports = grammar({
       ),
     ),
 
+    // An endless method is an `_arg`, not a `_primary`: nothing follows it as a receiver (`def f = x .y` calls `y`
+    // on `x`), and its body then shares the parser states of the `_arg` around it
+    _endless_def: $ => seq('def', $._endless_def_rest),
+    _endless_singleton_def: $ => seq('def', singletonTarget($), $._endless_def_rest),
+    _endless_def_rest: $ => seq(
+      field('name', $._method_name),
+      optional(field('parameters', alias($.parameters, $.method_parameters))),
+      $._body_expr,
+    ),
+
     rescue_modifier_arg: $ => modifier($._arg, 'rescue', 'handler', $._arg),
     rescue_modifier_expression: $ => modifier($._expression, 'rescue', 'handler', $._arg),
 
     // Above MATCH: `def f = x in pat` matches the whole def, as in Ruby.
     _body_expr: $ => prec(PREC.MATCH + 1,
       seq(
-        optional($._endless_method),
-        '=',
+        $._endless_eq,
         field('body', $._arg_rhs),
       ),
     ),
+
+    // A rule of its own, so that the body after it is one set of parser states, not one with `_endless_method` and
+    // one without
+    _endless_eq: $ => seq(optional($._endless_method), '='),
 
     // `def foo = bar baz`: like parse.y's `endless_command`, a command body is only
     // allowed where a command is, so these live in `_expression`, not `_primary`.
@@ -257,8 +264,7 @@ module.exports = grammar({
     _command_method_rest: $ => prec(1, seq(
       field('name', $._method_name),
       optional(field('parameters', alias($.parameters, $.method_parameters))),
-      optional($._endless_method),
-      '=',
+      $._endless_eq,
       field('body', $._command_rhs),
     )),
 
@@ -654,6 +660,8 @@ module.exports = grammar({
 
     _arg: $ => choice(
       alias($._unary_minus_pow, $.unary),
+      alias($._endless_def, $.method),
+      alias($._endless_singleton_def, $.singleton_method),
       $._primary,
       $.assignment,
       $.operator_assignment,

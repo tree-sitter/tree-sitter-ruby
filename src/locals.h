@@ -9,13 +9,6 @@ static inline uint32_t hash_char(uint32_t hash, int32_t c) { return (hash ^ (uin
 static inline uint16_t short_hash(uint32_t hash) { return (uint16_t)(hash ^ (hash >> 16)); }
 #define HASH_START 2166136261u
 
-// Keywords are never local variables: `return %=a=` must not declare `return`, nor `def f(if:)` declare `if`
-static const char *const KEYWORDS[] = {
-    "BEGIN", "END",  "__FILE__", "__LINE__", "alias",  "and",    "begin", "break", "case",  "class",  "def",
-    "do",    "else", "elsif",    "end",      "ensure", "false",  "for",   "if",    "in",    "module", "next",
-    "nil",   "not",  "or",       "redo",     "rescue", "retry",  "return", "self", "super", "then",   "true",
-    "undef", "unless", "until",  "when",     "while",  "yield",
-};
 #define KEYWORD_MAX_LENGTH 8
 
 // A name read with scan_name: its hash, and its text when it may be a keyword
@@ -34,19 +27,37 @@ static inline void name_add_char(Name *name, int32_t c) {
 }
 
 static inline bool name_is(const Name *name, const char *word) {
-    return strlen(word) == name->length && memcmp(name->text, word, name->length) == 0;
+    size_t length = strlen(word);
+    return length == name->length && memcmp(name->text, word, length) == 0;
 }
 
+// Keywords are never local variables: `return %=a=` must not declare `return`, nor `def f(if:)` declare `if`.
+// By first letter, so that each word is a constant compare.
 static inline bool is_keyword(const Name *name) {
-    if (name->length > KEYWORD_MAX_LENGTH) {
-        return false;
+    switch (name->text[0]) {
+        case 'B': return name_is(name, "BEGIN");
+        case 'E': return name_is(name, "END");
+        case '_': return name_is(name, "__FILE__") || name_is(name, "__LINE__");
+        case 'a': return name_is(name, "alias") || name_is(name, "and");
+        case 'b': return name_is(name, "begin") || name_is(name, "break");
+        case 'c': return name_is(name, "case") || name_is(name, "class");
+        case 'd': return name_is(name, "def") || name_is(name, "do");
+        case 'e':
+            return name_is(name, "else") || name_is(name, "elsif") || name_is(name, "end") || name_is(name, "ensure");
+        case 'f': return name_is(name, "false") || name_is(name, "for");
+        case 'i': return name_is(name, "if") || name_is(name, "in");
+        case 'm': return name_is(name, "module");
+        case 'n': return name_is(name, "next") || name_is(name, "nil") || name_is(name, "not");
+        case 'o': return name_is(name, "or");
+        case 'r':
+            return name_is(name, "redo") || name_is(name, "rescue") || name_is(name, "retry") || name_is(name, "return");
+        case 's': return name_is(name, "self") || name_is(name, "super");
+        case 't': return name_is(name, "then") || name_is(name, "true");
+        case 'u': return name_is(name, "undef") || name_is(name, "unless") || name_is(name, "until");
+        case 'w': return name_is(name, "when") || name_is(name, "while");
+        case 'y': return name_is(name, "yield");
+        default: return false;
     }
-    for (size_t i = 0; i < sizeof(KEYWORDS) / sizeof(KEYWORDS[0]); i++) {
-        if (name_is(name, KEYWORDS[i])) {
-            return true;
-        }
-    }
-    return false;
 }
 
 static inline Name scan_name(TSLexer *lexer) {
@@ -194,7 +205,9 @@ static inline bool scan_local_variable(Scanner *scanner, TSLexer *lexer, const b
         uint8_t kind = name_is(name, "def") ? DEF : name_is(name, "class") ? CLASS : name_is(name, "module") ? MODULE : 0;
         // shortcut: the same keyword again before any other scanner token (`def a; def b`) opens no scope, as if it
         // were this one scanned twice; its variables then stay until the outer scope ends
-        if (kind && kind != opened && scanner->scopes.size < MAX_SCOPES) {
+        // With no scope and no local open, there is nothing to hide, and the `end` clears the locals anyway
+        if (kind && kind != opened && scanner->scopes.size < MAX_SCOPES &&
+            (scanner->scopes.size > 0 || scanner->locals.size > 0)) {
             array_push(&scanner->scopes, (uint8_t)(scanner->locals.size | HIDES_OUTER));
             scanner->opened = kind;
             changed = true;

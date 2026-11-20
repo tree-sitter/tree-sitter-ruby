@@ -75,7 +75,7 @@ deno lint
 ```
 
 `bundle exec ruby script/prism_diff.rb DIR` compares the trees with [Prism](https://github.com/ruby/prism) on the Ruby files in `DIR`.
-`script/coverage.sh` prints how much of the hand-written scanner the tests run (95 % of lines, 85 % of branches); CI
+`script/coverage.sh` prints how much of the hand-written scanner the tests run (96 % of lines, 86 % of branches); CI
 shows it in the summary of the `coverage` job.
 
 #### Local variables

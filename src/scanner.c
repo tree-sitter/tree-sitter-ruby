@@ -133,13 +133,13 @@ static inline bool emit(TSLexer *lexer, TokenType type) {
     return true;
 }
 
+// Cleared, not freed: deserialize runs before every scan
 static inline void reset(Scanner *scanner) {
-    array_delete(&scanner->literal_stack);
+    array_clear(&scanner->literal_stack);
     for (uint32_t i = 0; i < scanner->open_heredocs.size; i++) {
         array_delete(&array_get(&scanner->open_heredocs, i)->word);
     }
-    array_delete(&scanner->open_heredocs);
-    // Cleared, not freed: deserialize runs before every scan
+    array_clear(&scanner->open_heredocs);
     array_clear(&scanner->locals);
     array_clear(&scanner->scopes);
     scanner->binary_operator = 0;
@@ -1016,6 +1016,12 @@ static inline bool scan_heredoc_start(Scanner *scanner, TSLexer *lexer, const bo
     return emit(lexer, HEREDOC_START);
 }
 
+// A parameter is bound with `_parameter_start`, which the grammar has right before it: the parser shifts it more
+// cheaply than the `_local_variables` extra
+static inline TokenType binding(const bool *valid_symbols) {
+    return valid_symbols[PARAMETER_START] ? PARAMETER_START : LOCAL_VARIABLES;
+}
+
 static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols) {
     scanner->has_leading_whitespace = false;
     // Set by the LOCAL_VARIABLES token before `x` in `x +1`, cleared by any other token
@@ -1070,6 +1076,9 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
         }
         if (scanner->scopes.size > 0 && (*array_back(&scanner->scopes) & HIDES_OUTER)) {
             *array_back(&scanner->scopes) |= ENDLESS;
+        } else if (scanner->scopes.size == 0) {
+            // A `def` with nothing to hide opened no scope: its locals started at 0
+            array_push(&scanner->scopes, (uint8_t)(HIDES_OUTER | ENDLESS));
         }
         return emit_zero_width(scanner, lexer, ENDLESS_METHOD);
     }
@@ -1091,7 +1100,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
             return false;
         }
         Name name = scan_name(lexer);
-        return bind_name(scanner, lexer, &name) && emit_zero_width(scanner, lexer, LOCAL_VARIABLES);
+        return bind_name(scanner, lexer, &name) && emit_zero_width(scanner, lexer, binding(valid_symbols));
     }
     // Only where a binary operator may follow
     const bool after_local = binary_operator != 0 && lexer->lookahead == binary_operator &&
@@ -1259,7 +1268,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
             return bind_key(scanner, lexer, &name) && emit_zero_width(scanner, lexer, LOCAL_VARIABLES);
         }
         if (binds && local_start && bind_name(scanner, lexer, &name)) {
-            return emit_zero_width(scanner, lexer, LOCAL_VARIABLES);
+            return emit_zero_width(scanner, lexer, binding(valid_symbols));
         }
         if (starts_operand && (binary_operator != 0 || is_one_of(lexer->lookahead, " \t=,+-*/%^|&<>\\"))) {
             return scan_local_variable(scanner, lexer, valid_symbols, &name, binary_operator, opened);
@@ -1315,6 +1324,8 @@ void tree_sitter_ruby_external_scanner_deserialize(void *payload, const char *bu
 void tree_sitter_ruby_external_scanner_destroy(void *payload) {
     Scanner *scanner = (Scanner *)payload;
     reset(scanner);
+    array_delete(&scanner->literal_stack);
+    array_delete(&scanner->open_heredocs);
     array_delete(&scanner->locals);
     array_delete(&scanner->scopes);
     ts_free(scanner);
