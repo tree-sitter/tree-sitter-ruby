@@ -80,6 +80,10 @@
         "named": true
       },
       {
+        "type": "method",
+        "named": true
+      },
+      {
         "type": "next",
         "named": true
       },
@@ -89,6 +93,10 @@
       },
       {
         "type": "return",
+        "named": true
+      },
+      {
+        "type": "singleton_method",
         "named": true
       },
       {
@@ -2395,7 +2403,7 @@
         "required": false,
         "types": [
           {
-            "type": "_arg",
+            "type": "_expression",
             "named": true
           },
           {
@@ -3073,7 +3081,7 @@
         "required": false,
         "types": [
           {
-            "type": "_arg",
+            "type": "_expression",
             "named": true
           },
           {

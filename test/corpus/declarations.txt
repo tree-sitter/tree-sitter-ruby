@@ -57,6 +57,37 @@ def foo() = bar rescue (print "error")
   )
 )
 
+=====================================
+"end"-less method with a command body
+=====================================
+
+def foo() = raise NotImplementedError
+def show = render json: user
+def self.call(x) = new(x).run x
+def a = puts 1 rescue nil
+private def b = puts "b"
+
+---
+
+(program
+  (method name: (identifier) parameters: (method_parameters)
+    body: (call method: (identifier) arguments: (argument_list (constant))))
+  (method name: (identifier)
+    body: (call method: (identifier) arguments: (argument_list (pair key: (hash_key_symbol) value: (identifier)))))
+  (singleton_method object: (self) name: (identifier) parameters: (method_parameters (identifier))
+    body: (call
+      receiver: (call method: (identifier) arguments: (argument_list (identifier)))
+      method: (identifier)
+      arguments: (argument_list (identifier))))
+  (method name: (identifier)
+    body: (rescue_modifier
+      body: (call method: (identifier) arguments: (argument_list (integer)))
+      handler: (nil)))
+  (call method: (identifier)
+    arguments: (argument_list
+      (method name: (identifier)
+        body: (call method: (identifier) arguments: (argument_list (string (string_content))))))))
+
 ===========================
 method as attribute setter
 ===========================

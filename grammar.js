@@ -195,7 +195,7 @@ module.exports = grammar({
       ),
     ),
 
-    _body_expr: $ =>
+    _body_expr: $ => prec(1,
       seq(
         '=',
         field('body',
@@ -204,7 +204,30 @@ module.exports = grammar({
             alias($.rescue_modifier_arg, $.rescue_modifier),
           )),
       ),
+    ),
 
+    // `def foo = bar baz`: like parse.y's `endless_command`, a command body is only
+    // allowed where a command is, so these live in `_expression`, not `_primary`.
+    command_method: $ => seq('def', $._command_method_rest),
+
+    command_singleton_method: $ => seq(
+      'def',
+      seq(
+        choice(
+          field('object', $._variable),
+          seq('(', field('object', $._arg), ')'),
+        ),
+        choice('.', '::'),
+      ),
+      $._command_method_rest,
+    ),
+
+    _command_method_rest: $ => prec(1, seq(
+      field('name', $._method_name),
+      optional(field('parameters', alias($.parameters, $.method_parameters))),
+      '=',
+      field('body', choice($._expression, alias($.rescue_modifier_expression, $.rescue_modifier))),
+    )),
 
     parameters: $ => seq(
       '(',
@@ -654,6 +677,8 @@ module.exports = grammar({
       alias($.yield_command, $.yield),
       alias($.break_command, $.break),
       alias($.next_command, $.next),
+      alias($.command_method, $.method),
+      alias($.command_singleton_method, $.singleton_method),
       $.match_pattern,
       $.test_pattern,
       $._arg,
