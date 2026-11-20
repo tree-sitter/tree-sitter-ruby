@@ -1054,6 +1054,29 @@ foo += 1
     (identifier)
     (integer)))
 
+==========
+unary plus before a number and a method call
+==========
+
+x = +1.abs
+x = + 1.abs
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (call
+      (unary
+        (integer))
+      (identifier)))
+  (assignment
+    (identifier)
+    (unary
+      (call
+        (integer)
+        (identifier)))))
+
 ===========
 binary minus
 ===========

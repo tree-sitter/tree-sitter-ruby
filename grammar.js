@@ -933,7 +933,7 @@ module.exports = grammar({
     )),
 
     unary_literal: $ => prec.right(PREC.UNARY_MINUS, seq(
-      field('operator', choice(alias($._unary_minus_num, '-'), '+', alias($._unary_plus, '+'))),
+      field('operator', choice(alias($._unary_minus_num, '-'), alias($._unary_plus, '+'))),
       field('operand', $._simple_numeric),
     )),
 

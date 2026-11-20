@@ -1179,6 +1179,11 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
                 }
                 return false;
             }
+            // Where only an operand may follow, `+1` is a number only without a space: `+ 1.abs` is `+(1.abs)`
+            if (valid_symbols[UNARY_PLUS] && !valid_symbols[BINARY_STAR]) {
+                advance(lexer);
+                return is_digit(lexer->lookahead) && emit(lexer, UNARY_PLUS);
+            }
             break;
 
         case '-':
