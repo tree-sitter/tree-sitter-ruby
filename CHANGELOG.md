@@ -4,6 +4,7 @@ Changes of this fork since upstream 0.23.1. Releases: https://github.com/Magikdi
 
 ## Unreleased
 
+- Like Ruby, `a b do end.c(1).d` chains calls with arguments on a command's do block (RSpec's `end.and_return(x)`), and `+ 1.abs` is `+(1.abs)`; with these, Prism agrees on all 78k Ruby files of Rails, Discourse, Mastodon and GitLab, and CI tests ruby/spec of 2026-11-18.
 - A string key in a hash pattern binds its name, as in Ruby: after `in {"name":}`, `name +1` is `name + 1`.
 - `highlights.scm`: a block's implicit parameter, `it` or `_1` to `_9`, is a parameter, no longer a method call.
 - `locals.scm`: `in {name:}`, `in {"name":}`, `in (x)` and `in _a | _b` define their names, so later uses are variables;
