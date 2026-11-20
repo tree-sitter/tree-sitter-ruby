@@ -162,10 +162,13 @@ mod tests {
         // Texts and their edits (byte, bytes deleted, bytes inserted) from script/edit_fuzz.c: after the last edit, the
         // reparse with the old tree must give the tree of a fresh parse
         type Edit = (usize, usize, &'static [u8]);
-        const CASES: [(&[u8], &[Edit]); 2] = [
+        const CASES: [(&[u8], &[Edit]); 4] = [
             // `<<` and `%w` lexed again where no literal starts must still read the byte that decides one
             (b"p break<<-\n.", &[(11, 1, b""), (10, 0, b"B")]),
             (b"e%wlass Foo\n  x +1\n[]=){}", &[(22, 0, b"->("), (3, 16, b"")]),
+            // A `;` on the line after `key:`, lexed again after the call is reused
+            (b"o B\0o B:\n;", &[(3, 1, b"")]),
+            (b"foo key:\n;", &[(1, 0, b"o")]),
         ];
         let point = |text: &[u8], byte: usize| {
             let line_start = text[..byte].iter().rposition(|&c| c == b'\n').map_or(0, |i| i + 1);

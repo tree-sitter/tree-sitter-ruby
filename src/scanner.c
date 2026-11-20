@@ -342,6 +342,11 @@ static inline bool scan_whitespace(Scanner *scanner, TSLexer *lexer, const bool 
                 }
                 break;
             default:
+                // A `;` on the next line ends the statement after `foo key:` as after `foo`: tree-sitter reuses the call
+                // and lexes the line break where no value may follow
+                if (*rescue_may_end_line && lexer->lookahead == ';') {
+                    return emit(lexer, LINE_BREAK);
+                }
                 // Not after `__END__` (only there is UNINTERPRETED valid without STRING_START)
                 if (lexer->lookahead == '#' && valid_symbols[COMMENT] &&
                     (!valid_symbols[UNINTERPRETED] || valid_symbols[STRING_START])) {
