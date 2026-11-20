@@ -643,6 +643,7 @@ module.exports = grammar({
       alias($.command_call, $.call),
       alias($.command_call_with_block, $.call),
       prec.left(alias($._chained_command_call, $.call)),
+      alias($._chained_paren_call, $.call),
       alias($.return_command, $.return),
       alias($.yield_command, $.yield),
       alias($.break_command, $.break),
@@ -764,11 +765,18 @@ module.exports = grammar({
       );
     },
 
+    // `a b do end.c` and, as in Ruby's block_call, `a b do end.c(1).d`
     _chained_command_call: $ => seq(
-      field('receiver', alias($.command_call_with_block, $.call)),
+      field('receiver', choice(
+        alias($.command_call_with_block, $.call),
+        alias($._chained_command_call, $.call),
+        alias($._chained_paren_call, $.call),
+      )),
       field('operator', $._call_operator),
       field('method', choice($.identifier, $._function_identifier, $.operator, $.constant)),
     ),
+    // Not followed by command arguments, which only follow `a b do end.c`
+    _chained_paren_call: $ => seq($._chained_command_call, field('arguments', $.argument_list)),
 
     call: $ => {
       const receiver = choice(

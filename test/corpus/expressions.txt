@@ -2139,6 +2139,55 @@ end
           body: (body_statement
             (identifier)))))))
 
+===============================================
+chained method calls with parentheses after a command with a do block
+===============================================
+
+a b do |c|
+end.d(e, f)
+
+a b do end.c(1).d
+
+a b do end.c.d e
+
+---
+
+(program
+  (call
+    receiver: (call
+      method: (identifier)
+      arguments: (argument_list
+        (identifier))
+      block: (do_block
+        parameters: (block_parameters
+          (identifier))))
+    method: (identifier)
+    arguments: (argument_list
+      (identifier)
+      (identifier)))
+  (call
+    receiver: (call
+      receiver: (call
+        method: (identifier)
+        arguments: (argument_list
+          (identifier))
+        block: (do_block))
+      method: (identifier)
+      arguments: (argument_list
+        (integer)))
+    method: (identifier))
+  (call
+    receiver: (call
+      receiver: (call
+        method: (identifier)
+        arguments: (argument_list
+          (identifier))
+        block: (do_block))
+      method: (identifier))
+    method: (identifier)
+    arguments: (argument_list
+      (identifier))))
+
 ===============================
 method calls in binary expression
 ===============================

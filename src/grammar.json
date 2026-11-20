@@ -4029,6 +4029,15 @@
           "type": "ALIAS",
           "content": {
             "type": "SYMBOL",
+            "name": "_chained_paren_call"
+          },
+          "named": true,
+          "value": "call"
+        },
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
             "name": "return_command"
           },
           "named": true,
@@ -4829,13 +4838,36 @@
           "type": "FIELD",
           "name": "receiver",
           "content": {
-            "type": "ALIAS",
-            "content": {
-              "type": "SYMBOL",
-              "name": "command_call_with_block"
-            },
-            "named": true,
-            "value": "call"
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "ALIAS",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "command_call_with_block"
+                },
+                "named": true,
+                "value": "call"
+              },
+              {
+                "type": "ALIAS",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "_chained_command_call"
+                },
+                "named": true,
+                "value": "call"
+              },
+              {
+                "type": "ALIAS",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "_chained_paren_call"
+                },
+                "named": true,
+                "value": "call"
+              }
+            ]
           }
         },
         {
@@ -4869,6 +4901,23 @@
                 "name": "constant"
               }
             ]
+          }
+        }
+      ]
+    },
+    "_chained_paren_call": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "_chained_command_call"
+        },
+        {
+          "type": "FIELD",
+          "name": "arguments",
+          "content": {
+            "type": "SYMBOL",
+            "name": "argument_list"
           }
         }
       ]
