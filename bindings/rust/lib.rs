@@ -162,7 +162,7 @@ mod tests {
         // Texts and their edits (byte, bytes deleted, bytes inserted) from script/edit_fuzz.c: after the last edit, the
         // reparse with the old tree must give the tree of a fresh parse
         type Edit = (usize, usize, &'static [u8]);
-        const CASES: [(&[u8], &[Edit]); 7] = [
+        const CASES: [(&[u8], &[Edit]); 9] = [
             // `<<` and `%w` lexed again where no literal starts must still read the byte that decides one
             (b"p break<<-\n.", &[(11, 1, b""), (10, 0, b"B")]),
             (b"e%wlass Foo\n  x +1\n[]=){}", &[(22, 0, b"->("), (3, 16, b"")]),
@@ -174,6 +174,9 @@ mod tests {
             (b"o y:\nrescue  rescue\xc3\xa9\n", &[(0, 1, b"oo"), (12, 8, b"")]),
             // The quote that closes a string left open to the end of the file
             (b"().e\"\"do\nt\"\"do\n()end\n'd=e end\n\np[]end", &[(30, 0, b"'")]),
+            // `in` after the name that ends an endless method, lexed again after the method is reused
+            (b"[]\ndef x =v in[d]@", &[(17, 1, b"\nd +1if v in{e:}\n")]),
+            (b"def x =v in[d]@", &[(14, 1, b"\nd +1")]),
         ];
         let point = |text: &[u8], byte: usize| {
             let line_start = text[..byte].iter().rposition(|&c| c == b'\n').map_or(0, |i| i + 1);

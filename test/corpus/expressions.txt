@@ -3694,6 +3694,26 @@ b +1
         (integer)))))
 
 ==============================================
+a pattern after an endless method binds outside it
+==============================================
+
+def f = v in [d]
+d +1
+
+---
+
+(program
+  (test_pattern
+    (method
+      (identifier)
+      (identifier))
+    (array_pattern
+      (identifier)))
+  (binary
+    (identifier)
+    (integer)))
+
+==============================================
 for, numbered parameters, rescue and nested assignments declare variables
 ==============================================
 

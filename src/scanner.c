@@ -1256,8 +1256,9 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
     const bool starts_operand = valid_symbols[STRING_START] && valid_symbols[LOCAL_VARIABLES] && !error_recovery &&
                                 local_start;
     const bool starts_name = is_iden_char(lexer->lookahead) && !is_digit(lexer->lookahead);
-    // Where no operand is expected, a word such as `if` or `end` may end an endless method's body
-    const bool ends_statement = !valid_symbols[STRING_START] && valid_symbols[LOCAL_VARIABLES] && !error_recovery &&
+    // After an operand, a word such as `if` or `end` may end an endless method's body, also after a name that could
+    // take an argument (`def x = v in [d]`): tree-sitter lexes the word after reusing the name as a whole operand
+    const bool ends_statement = valid_symbols[BINARY_STAR] && valid_symbols[LOCAL_VARIABLES] && !error_recovery &&
                                 scanner->scopes.size > 0 && (*array_back(&scanner->scopes) & ENDLESS);
     if (((valid_symbols[HASH_KEY_SYMBOL] || valid_symbols[IDENTIFIER_SUFFIX]) && starts_name) ||
         (valid_symbols[CONSTANT_SUFFIX] && is_upper(lexer->lookahead)) || starts_operand || (binds && local_start) ||
