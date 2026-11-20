@@ -745,8 +745,9 @@ un-terminated string at the end of the file
 ---
 
 (program
-  (ERROR)
-  (identifier))
+  (string
+    (string_content)
+    (MISSING """)))
 
 =============
 interpolation

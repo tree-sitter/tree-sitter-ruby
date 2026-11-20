@@ -943,9 +943,10 @@ static inline bool scan_literal_content(Scanner *scanner, TSLexer *lexer, const 
             }
             return true;
         } else if (lexer->eof(lexer)) {
-            advance(lexer);
+            // An unterminated literal is content up to the end of the file: a failed scan leaves no token whose
+            // lookahead reaches the end, so typing the closing delimiter there would not lex the literal again
             lexer->mark_end(lexer);
-            return false;
+            return has_content && emit(lexer, STRING_CONTENT);
         } else {
             advance(lexer);
         }
