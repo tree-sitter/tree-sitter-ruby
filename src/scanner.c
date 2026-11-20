@@ -646,14 +646,15 @@ static inline bool scan_open_delimiter(Scanner *scanner, TSLexer *lexer, Literal
                     percent = PERCENT_LITERALS[i];
                 }
             }
+            // The letter is read even where it starts no literal, as in scan_heredoc_start
+            if (percent.letter) {
+                advance(lexer);
+            }
             if (!valid_symbols[percent.valid_symbol]) {
                 return false;
             }
             literal->type = percent.type;
             literal->allows_interpolation = percent.allows_interpolation;
-            if (percent.letter) {
-                advance(lexer);
-            }
 
             // Brackets nest; any other punctuation or whitespace is its own closer
             const int32_t open = lexer->lookahead;
@@ -988,12 +989,12 @@ static inline bool scan_hash_key_or_suffix(TSLexer *lexer, const bool *valid_sym
 }
 
 // After an operand `<<` is a shift, unless it starts a command argument (`foo <<EOS`) or Ruby reads an
-// operand there (`1..<<EOS`, `return<<EOS`, see `operand_follows`)
-static inline bool scan_heredoc_start(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols) {
-    if (valid_symbols[BINARY_STAR] && !operand_follows(valid_symbols) &&
-        (!scanner->has_leading_whitespace || !valid_symbols[SPLAT_STAR])) {
-        return false;
-    }
+// operand there (`1..<<EOS`, `return<<EOS`, see `operand_follows`). A shift is read as far as whether a word starts:
+// where a heredoc may start that decides it, and after reusing the node before `<<`, tree-sitter lexes it again in a
+// state where none may
+static inline bool scan_heredoc_start(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols, bool heredoc_valid) {
+    const bool shift = !heredoc_valid || (valid_symbols[BINARY_STAR] && !operand_follows(valid_symbols) &&
+                                          (!scanner->has_leading_whitespace || !valid_symbols[SPLAT_STAR]));
     advance(lexer);
     if (lexer->lookahead != '<') {
         return false;
@@ -1004,6 +1005,12 @@ static inline bool scan_heredoc_start(Scanner *scanner, TSLexer *lexer, const bo
     if (lexer->lookahead == '-' || lexer->lookahead == '~') {
         advance(lexer);
         heredoc.end_word_indentation_allowed = true;
+    }
+    if (shift) {
+        if (is_one_of(lexer->lookahead, "'\"`")) {
+            advance(lexer);
+        }
+        return false;
     }
 
     scan_heredoc_word(lexer, &heredoc);
@@ -1282,13 +1289,13 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
     }
 
     // Open delimiters for literals, but `x /2`, `x %(y)` and `x <<y` divide and shift when x is a local variable
-    if (valid_symbols[STRING_START] && !after_local) {
+    const bool literal_valid = valid_symbols[STRING_START] && !after_local;
+    if (lexer->lookahead == '<') {
+        return scan_heredoc_start(scanner, lexer, valid_symbols, literal_valid);
+    }
+    if (literal_valid) {
         Literal literal = {0};
         literal.nesting_depth = 1;
-
-        if (lexer->lookahead == '<') {
-            return scan_heredoc_start(scanner, lexer, valid_symbols);
-        }
 
         if (scan_open_delimiter(scanner, lexer, &literal, valid_symbols)) {
             array_push(&scanner->literal_stack, literal);
@@ -1296,6 +1303,13 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
             return true;
         }
         return false;
+    }
+    // Where no literal starts, `%w` is still read as far as in scan_open_delimiter (see scan_heredoc_start)
+    if (lexer->lookahead == '%') {
+        advance(lexer);
+        if (is_one_of(lexer->lookahead, "srxqQwWiI")) {
+            advance(lexer);
+        }
     }
 
     return false;

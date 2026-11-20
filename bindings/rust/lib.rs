@@ -156,4 +156,43 @@ mod tests {
         }
         assert!(compared >= 100, "only {compared} edits left the code valid");
     }
+
+    #[test]
+    fn test_incremental_reparse_after_edits_found_by_edit_fuzz() {
+        // Texts and their edits (byte, bytes deleted, bytes inserted) from script/edit_fuzz.c: after the last edit, the
+        // reparse with the old tree must give the tree of a fresh parse
+        type Edit = (usize, usize, &'static [u8]);
+        const CASES: [(&[u8], &[Edit]); 2] = [
+            // `<<` and `%w` lexed again where no literal starts must still read the byte that decides one
+            (b"p break<<-\n.", &[(11, 1, b""), (10, 0, b"B")]),
+            (b"e%wlass Foo\n  x +1\n[]=){}", &[(22, 0, b"->("), (3, 16, b"")]),
+        ];
+        let point = |text: &[u8], byte: usize| {
+            let line_start = text[..byte].iter().rposition(|&c| c == b'\n').map_or(0, |i| i + 1);
+            tree_sitter::Point::new(text[..byte].iter().filter(|&&c| c == b'\n').count(), byte - line_start)
+        };
+        let mut parser = tree_sitter::Parser::new();
+        parser.set_language(&super::LANGUAGE.into()).unwrap();
+        for (source, edits) in CASES {
+            let mut text = source.to_vec();
+            let mut tree = parser.parse(&text, None).unwrap();
+            for &(start, deleted, inserted) in edits {
+                let mut edited = text.clone();
+                edited.splice(start..start + deleted, inserted.iter().copied());
+                tree.edit(&tree_sitter::InputEdit {
+                    start_byte: start,
+                    old_end_byte: start + deleted,
+                    new_end_byte: start + inserted.len(),
+                    start_position: point(&text, start),
+                    old_end_position: point(&text, start + deleted),
+                    new_end_position: point(&edited, start + inserted.len()),
+                });
+                tree = parser.parse(&edited, Some(&tree)).unwrap();
+                text = edited;
+            }
+            let fresh = parser.parse(&text, None).unwrap();
+            let text = String::from_utf8_lossy(&text);
+            assert_eq!(tree.root_node().to_sexp(), fresh.root_node().to_sexp(), "after the edits to:\n{text:?}");
+        }
+    }
 }
