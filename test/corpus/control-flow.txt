@@ -385,6 +385,45 @@ end
   (begin (rescue (then)))
   (begin (rescue (then (identifier)))))
 
+==============================================
+rescue after a hash shorthand argument
+==============================================
+
+def create
+  render json: user, status:
+rescue => e
+  log e
+end
+
+foo key:
+  bar!
+
+foo key:
+  rescued
+
+---
+
+(program
+  (method
+    (identifier)
+    (body_statement
+      (call
+        (identifier)
+        (argument_list
+          (pair (hash_key_symbol) (identifier))
+          (pair (hash_key_symbol))))
+      (rescue
+        (exception_variable (identifier))
+        (then (call (identifier) (argument_list (identifier)))))))
+  (call
+    (identifier)
+    (argument_list
+      (pair (hash_key_symbol) (call (identifier)))))
+  (call
+    (identifier)
+    (argument_list
+      (pair (hash_key_symbol) (identifier)))))
+
 ===========================
 begin with rescue with args
 ===========================
