@@ -387,6 +387,14 @@ static inline bool scan_whitespace(Scanner *scanner, TSLexer *lexer, const bool 
                         }
                         return emit(lexer, LINE_BREAK);
                     }
+                    // After `foo key:` the line break before `rescue` reads it (see rescue_may_end_line): read as far
+                    // here, where tree-sitter lexes it after reusing the call
+                    if (lexer->lookahead == 'r') {
+                        for (const char *c = "rescue"; *c && lexer->lookahead == *c; c++) {
+                            advance(lexer);
+                        }
+                        return emit(lexer, LINE_BREAK);
+                    }
                     if (lexer->lookahead != '.' && lexer->lookahead != '&' && lexer->lookahead != '#') {
                         lexer->result_symbol = LINE_BREAK;
                     } else if (lexer->lookahead == '.') {
