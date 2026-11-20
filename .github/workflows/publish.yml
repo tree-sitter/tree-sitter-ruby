@@ -3,6 +3,8 @@ name: Publish release
 on:
   push:
     tags: ["*"]
+  # Publishes the packages of a tag pushed before the tokens existed: gh workflow run publish.yml --ref v0.25.0
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -11,6 +13,7 @@ permissions:
 
 jobs:
   github:
+    if: github.event_name == 'push'
     uses: tree-sitter/workflows/.github/workflows/release.yml@dca539e07998ac429e185349d3dd194d2c7418d3 # main@2026-11-18
 
   # Off until the registry tokens exist: set the repository variable PUBLISH_PACKAGES to true
