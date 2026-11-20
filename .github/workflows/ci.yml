@@ -46,7 +46,7 @@ permissions:
 
 env:
   # pinned: a new spec file must not break unrelated changes; bump it on purpose
-  RUBY_SPEC_REF: 0816047460cc5c4ca23d09794b48e8638a7047cc
+  RUBY_SPEC_REF: 0260823021feefce01cc18619f3e71825dd55219
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}

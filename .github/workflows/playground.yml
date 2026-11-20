@@ -32,6 +32,9 @@ jobs:
         with:
           # The performance history builds every release tag
           fetch-depth: 0
+      # Upstream's last release is the first point of the performance history; this only reads it
+      - name: Fetch upstream v0.23.1
+        run: git fetch --no-tags --quiet https://github.com/tree-sitter/tree-sitter-ruby refs/tags/v0.23.1:refs/tags/v0.23.1
       - name: Set up tree-sitter
         uses: tree-sitter/setup-action/cli@faab9a23fa6195da0f1cf868219cc1e89f238d3d # v2
         with:

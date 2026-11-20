@@ -1054,6 +1054,29 @@ foo += 1
     (identifier)
     (integer)))
 
+==========
+unary plus before a number and a method call
+==========
+
+x = +1.abs
+x = + 1.abs
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (call
+      (unary
+        (integer))
+      (identifier)))
+  (assignment
+    (identifier)
+    (unary
+      (call
+        (integer)
+        (identifier)))))
+
 ===========
 binary minus
 ===========
@@ -2138,6 +2161,55 @@ end
         block: (do_block
           body: (body_statement
             (identifier)))))))
+
+===============================================
+chained method calls with parentheses after a command with a do block
+===============================================
+
+a b do |c|
+end.d(e, f)
+
+a b do end.c(1).d
+
+a b do end.c.d e
+
+---
+
+(program
+  (call
+    receiver: (call
+      method: (identifier)
+      arguments: (argument_list
+        (identifier))
+      block: (do_block
+        parameters: (block_parameters
+          (identifier))))
+    method: (identifier)
+    arguments: (argument_list
+      (identifier)
+      (identifier)))
+  (call
+    receiver: (call
+      receiver: (call
+        method: (identifier)
+        arguments: (argument_list
+          (identifier))
+        block: (do_block))
+      method: (identifier)
+      arguments: (argument_list
+        (integer)))
+    method: (identifier))
+  (call
+    receiver: (call
+      receiver: (call
+        method: (identifier)
+        arguments: (argument_list
+          (identifier))
+        block: (do_block))
+      method: (identifier))
+    method: (identifier)
+    arguments: (argument_list
+      (identifier))))
 
 ===============================
 method calls in binary expression
