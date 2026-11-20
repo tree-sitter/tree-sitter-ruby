@@ -41,7 +41,7 @@ read -r lines branches exact_lines exact_branches <"$out/totals"
 
 # A shields.io endpoint badge, colored by line coverage
 if [[ -n ${1:-} ]]; then
-    color=$(awk -v l="$lines" 'BEGIN { print l >= 90 ? "brightgreen" : l >= 80 ? "green" : l >= 70 ? "yellow" : "red" }')
+    color=$(awk -v l="$lines" 'BEGIN { print (l >= 90 ? "brightgreen" : l >= 80 ? "green" : l >= 70 ? "yellow" : "red") }')
     printf '{"schemaVersion":1,"label":"coverage","message":"lines %s%% · branches %s%%","color":"%s"}\n' \
         "$lines" "$branches" "$color" >"$1"
 fi
