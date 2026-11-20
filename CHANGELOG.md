@@ -6,6 +6,8 @@ Changes of this fork since upstream 0.23.1. Releases: https://github.com/Magikdi
 
 - Packages are published with trusted publishing (OIDC): no registry token is stored in the repository.
 - 0.25.0 is on npm, crates.io and PyPI; the README installs from there.
+- Parser 27 % smaller (`parser.c` 19.9 → 14.6 MB, 7925 → 6123 states, wasm 2.77 → 2.02 MB) and 2 % fewer instructions
+  to parse. An endless method is now an `_arg` in `node-types.json`, as in Ruby's grammar.
 - Names bound by pattern matching (`in [x]`, `in {name:}`, `in A => x`, `v => x`, `v in [x]`) are local variables, so
   `x +1` after them is `x + 1`, like Ruby.
 
