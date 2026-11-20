@@ -79,9 +79,9 @@ deno lint
 #### Local variables
 
 Like Ruby, the parser reads `x +1` as `x + 1` when `x` is a local variable, and as the call `x(+1)` otherwise. The external
-scanner tracks assignments, parameters, `for` and `rescue =>` variables, numbered parameters, and the scopes of blocks,
-methods, classes and modules. Variables bound by pattern matching (`in [x]`, `=> x`) are not tracked, so there `x +1`
-stays a call.
+scanner tracks assignments, parameters, `for` and `rescue =>` variables, numbered parameters, variables bound by pattern
+matching (`in [x]`, `in {name:}`, `v => x`), and the scopes of blocks, methods, classes and modules. Only a string key in
+a hash pattern (`in {"name":}`) still declares nothing, so there `name +1` stays a call.
 
 #### References
 

@@ -3765,6 +3765,374 @@ x \
     (integer)))
 
 ==============================================
+pattern variables are local variables
+==============================================
+
+case v
+in [x]
+  x +1
+in [a, *rest]
+  rest +1
+in {name:}
+  name +1
+in {k: y}
+  y +1
+in {**opts}
+  opts +1
+in Integer => z
+  z +1
+in [w] if w +1 > 0
+  w
+in [[b], {c:}]
+  b +1
+  c +1
+in [*, d, *]
+  d +1
+in e, *g
+  g +1
+in f:
+  f +1
+end
+
+---
+
+(program
+  (case_match
+    (identifier)
+    (in_clause
+      (array_pattern
+        (identifier))
+      (then
+        (binary
+          (identifier)
+          (integer))))
+    (in_clause
+      (array_pattern
+        (identifier)
+        (splat_parameter
+          (identifier)))
+      (then
+        (binary
+          (identifier)
+          (integer))))
+    (in_clause
+      (hash_pattern
+        (keyword_pattern
+          (hash_key_symbol)))
+      (then
+        (binary
+          (identifier)
+          (integer))))
+    (in_clause
+      (hash_pattern
+        (keyword_pattern
+          (hash_key_symbol)
+          (identifier)))
+      (then
+        (binary
+          (identifier)
+          (integer))))
+    (in_clause
+      (hash_pattern
+        (hash_splat_parameter
+          (identifier)))
+      (then
+        (binary
+          (identifier)
+          (integer))))
+    (in_clause
+      (as_pattern
+        (constant)
+        (identifier))
+      (then
+        (binary
+          (identifier)
+          (integer))))
+    (in_clause
+      (array_pattern
+        (identifier))
+      (if_guard
+        (binary
+          (binary
+            (identifier)
+            (integer))
+          (integer)))
+      (then
+        (identifier)))
+    (in_clause
+      (array_pattern
+        (array_pattern
+          (identifier))
+        (hash_pattern
+          (keyword_pattern
+            (hash_key_symbol))))
+      (then
+        (binary
+          (identifier)
+          (integer))
+        (binary
+          (identifier)
+          (integer))))
+    (in_clause
+      (find_pattern
+        (splat_parameter)
+        (identifier)
+        (splat_parameter))
+      (then
+        (binary
+          (identifier)
+          (integer))))
+    (in_clause
+      (array_pattern
+        (identifier)
+        (splat_parameter
+          (identifier)))
+      (then
+        (binary
+          (identifier)
+          (integer))))
+    (in_clause
+      (hash_pattern
+        (keyword_pattern
+          (hash_key_symbol)))
+      (then
+        (binary
+          (identifier)
+          (integer))))))
+
+==============================================
+rightward assignment and one-line patterns declare variables
+==============================================
+
+v => a
+a +1
+v => [b, c]
+b +1
+v in [d]
+d +1
+if v in {e:}
+  e +1
+end
+
+---
+
+(program
+  (match_pattern
+    (identifier)
+    (identifier))
+  (binary
+    (identifier)
+    (integer))
+  (match_pattern
+    (identifier)
+    (array_pattern
+      (identifier)
+      (identifier)))
+  (binary
+    (identifier)
+    (integer))
+  (test_pattern
+    (identifier)
+    (array_pattern
+      (identifier)))
+  (binary
+    (identifier)
+    (integer))
+  (if
+    (test_pattern
+      (identifier)
+      (hash_pattern
+        (keyword_pattern
+          (hash_key_symbol))))
+    (then
+      (binary
+        (identifier)
+        (integer)))))
+
+==============================================
+pinned values, constants, hash arguments and strings declare nothing
+==============================================
+
+case v
+in ^a
+  a +1
+in Foo | Foo::Bar
+  1
+in {k: 1}
+  k +1
+end
+f(b => c)
+c +1
+f d => e
+e +1
+h = {g => i}
+i +1
+for j in l do end
+l +1
+s = "in [m]"
+m +1
+t = <<~A
+  v in [n]
+A
+n +1
+
+---
+
+(program
+  (case_match
+    (identifier)
+    (in_clause
+      (variable_reference_pattern
+        (identifier))
+      (then
+        (call
+          (identifier)
+          (argument_list
+            (unary
+              (integer))))))
+    (in_clause
+      (alternative_pattern
+        (constant)
+        (scope_resolution
+          (constant)
+          (constant)))
+      (then
+        (integer)))
+    (in_clause
+      (hash_pattern
+        (keyword_pattern
+          (hash_key_symbol)
+          (integer)))
+      (then
+        (call
+          (identifier)
+          (argument_list
+            (unary
+              (integer)))))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (identifier)
+        (identifier))))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (identifier)
+        (identifier))))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer))))
+  (assignment
+    (identifier)
+    (hash
+      (pair
+        (identifier)
+        (identifier))))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer))))
+  (for
+    (identifier)
+    (in
+      (identifier))
+    (do))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer))))
+  (assignment
+    (identifier)
+    (string
+      (string_content)))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer))))
+  (assignment
+    (identifier)
+    (heredoc_beginning))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer)))))
+
+==============================================
+pattern variables follow the scope rules
+==============================================
+
+def m
+  v => a
+  a +1
+end
+a +1
+foo { v => b; b +1 }
+b +1
+case v
+in [c] then 1
+end
+c +1
+
+---
+
+(program
+  (method
+    (identifier)
+    (body_statement
+      (match_pattern
+        (identifier)
+        (identifier))
+      (binary
+        (identifier)
+        (integer))))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer))))
+  (call
+    (identifier)
+    (block
+      (block_body
+        (match_pattern
+          (identifier)
+          (identifier))
+        (binary
+          (identifier)
+          (integer)))))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer))))
+  (case_match
+    (identifier)
+    (in_clause
+      (array_pattern
+        (identifier))
+      (then
+        (integer))))
+  (binary
+    (identifier)
+    (integer)))
+
+==============================================
 a constant after a local variable keeps its unary argument
 ==============================================
 

@@ -1074,10 +1074,17 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
         return emit_zero_width(scanner, lexer, ENDLESS_METHOD);
     }
 
-    const bool binds = valid_symbols[PARAMETER_START] && valid_symbols[LOCAL_VARIABLES] && !error_recovery;
+    if (lexer->lookahead == '=' && valid_symbols[LOCAL_VARIABLES] && !error_recovery && !valid_symbols[BINARY_MINUS] &&
+        !valid_symbols[UNARY_MINUS]) {
+        return scan_pattern_name(scanner, lexer);
+    }
+    // A name declares a local variable in a parameter list and in a pattern
+    const bool pattern = binds_pattern(valid_symbols);
+    const bool binds = (valid_symbols[PARAMETER_START] || pattern) && valid_symbols[LOCAL_VARIABLES] && !error_recovery;
     if (binds && (lexer->lookahead == '*' || lexer->lookahead == '&')) {
         lexer->mark_end(lexer);
-        while (lexer->lookahead == '*' || lexer->lookahead == '&') {
+        // At most `**`, so that a run of them in `a, ***` is not read again at each one
+        for (int i = 0; i < 2 && (lexer->lookahead == '*' || lexer->lookahead == '&'); i++) {
             advance(lexer);
         }
         if (!is_local_start(lexer->lookahead)) {
@@ -1247,6 +1254,9 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
         if (ends_statement && ends_endless_body(&name, lexer->lookahead)) {
             close_endless(scanner);
             return emit_zero_width(scanner, lexer, LOCAL_VARIABLES);
+        }
+        if (binds && local_start && pattern && lexer->lookahead == ':') {
+            return bind_key(scanner, lexer, &name) && emit_zero_width(scanner, lexer, LOCAL_VARIABLES);
         }
         if (binds && local_start && bind_name(scanner, lexer, &name)) {
             return emit_zero_width(scanner, lexer, LOCAL_VARIABLES);

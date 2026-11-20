@@ -23,6 +23,7 @@ write['parens', "#{'(' * 100_000}#{')' * 100_000}"]
 write['params', "def f(#{(1..3000).map { |i| "a#{i}" }.join(', ')}); a1 +1; end"]
 write['locals', (1..5000).map { |i| "v#{i} = 1; v#{i} +1" }.join("\n")]
 write['masgn', "x = #{'a, ' * 20_000}1\n#{'a, ' * 20_000}b = 1\n"]
+write['patterns', "case v\nin {#{'a:, ' * 20_000}b: [#{'c, ' * 20_000}*d]} => e\nend\na, #{'*' * 100_000}f = 1\n"]
 write['long_line', "x = 1;#{'x +1;' * 40_000}"]
 # Bytes that are not Ruby
 write['random', Random.new(1).bytes(200_000)]
@@ -50,6 +51,11 @@ SEEDS = <<~'RUBY'.split("\n---\n")
   ---
   case x
   in [a, *b] then a
+  end
+  ---
+  case x
+  in {k: [a, *b], c:} | [*, Integer => d, *] if a +1
+    x => {e:}; x in [f]; f +1
   end
   ---
   a, (b, *c) = 1, 2

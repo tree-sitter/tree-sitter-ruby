@@ -258,6 +258,55 @@ static inline bool bind_name(Scanner *scanner, TSLexer *lexer, const Name *name)
     return !is_keyword(name) && !is_one_of(lexer->lookahead, ".[(?!") && add_local(scanner, name->hash);
 }
 
+// Where a pattern element starts (`in [x, *y]`, `v => x`), or a `for` variable or a target after the first of
+// `a, b = 1` (which declare variables too): a string may start there, but no other operand (`-a`) nor any binary
+// operator. Not after `class` (`class <<`) nor where a parameter starts.
+static inline bool binds_pattern(const bool *valid_symbols) {
+    return valid_symbols[STRING_START] && !valid_symbols[UNARY_MINUS] && !valid_symbols[BINARY_MINUS] &&
+           !valid_symbols[SINGLETON_CLASS_LEFT_ANGLE_LEFT_ANGLE] && !valid_symbols[PARAMETER_START];
+}
+
+// A key in a hash pattern binds its name when no value follows: `in {k:}` and `in k: then`, not `in {k: v}` nor
+// `a::B`. Reads from the `:`.
+static inline bool bind_key(Scanner *scanner, TSLexer *lexer, const Name *name) {
+    advance(lexer);
+    if (lexer->lookahead == ':') {
+        return false;
+    }
+    while (lexer->lookahead == ' ' || lexer->lookahead == '\t') {
+        advance(lexer);
+    }
+    if (is_local_start(lexer->lookahead)) {
+        Name next = scan_name(lexer);
+        if (!name_is(&next, "then") && !name_is(&next, "if") && !name_is(&next, "unless") && !name_is(&next, "and") &&
+            !name_is(&next, "or")) {
+            return false;
+        }
+    } else if (!lexer->eof(lexer) && !is_one_of(lexer->lookahead, ",})]|;#\r\n")) {
+        return false;
+    }
+    return !is_keyword(name) && add_local(scanner, name->hash);
+}
+
+// `in A => x`: `=>` where neither a binary operator nor an operand may follow, so after a pattern (`{a => x}` and
+// `rescue A => e` follow an operand, `rescue => e` follows a keyword). Reads from the `=`.
+static inline bool scan_pattern_name(Scanner *scanner, TSLexer *lexer) {
+    lexer->mark_end(lexer);
+    advance(lexer);
+    if (lexer->lookahead != '>') {
+        return false;
+    }
+    advance(lexer);
+    while (is_space(lexer->lookahead)) {
+        advance(lexer);
+    }
+    if (!is_local_start(lexer->lookahead)) {
+        return false;
+    }
+    Name name = scan_name(lexer);
+    return bind_name(scanner, lexer, &name) && emit_zero_width(scanner, lexer, LOCAL_VARIABLES);
+}
+
 // Right after `{`, `do` or `->` of a block or lambda: its parameters and new variables are dropped where it ends
 static inline bool scan_scope_start(Scanner *scanner, TSLexer *lexer) {
     if (scanner->scopes.size == MAX_SCOPES) {
