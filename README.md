@@ -2,6 +2,9 @@
 
 [![CI][ci]](https://github.com/Magikdidi24/tree-sitter-ruby/actions/workflows/ci.yml)
 [![release][release]](https://github.com/Magikdidi24/tree-sitter-ruby/releases/latest)
+[![npm][npm]](https://www.npmjs.com/package/@magikdidi24/tree-sitter-ruby)
+[![crates][crates]](https://crates.io/crates/tree-sitter-ruby-magikdidi24)
+[![pypi][pypi]](https://pypi.org/project/tree-sitter-ruby-magikdidi24/)
 [![playground][playground]](https://magikdidi24.github.io/tree-sitter-ruby/)
 [![discord][discord]](https://discord.gg/w7nTvsVJhm)
 [![matrix][matrix]](https://matrix.to/#/#tree-sitter-chat:matrix.org)
@@ -15,9 +18,9 @@ Ruby grammar for [tree-sitter](https://github.com/tree-sitter/tree-sitter), a ma
 The import names are the upstream ones (`tree_sitter_ruby`), so only the dependency changes:
 
 ```sh
-cargo add tree-sitter-ruby-magikdidi24 --git https://github.com/Magikdidi24/tree-sitter-ruby --tag v0.25.0
-npm install github:Magikdidi24/tree-sitter-ruby#v0.25.0
-pip install git+https://github.com/Magikdidi24/tree-sitter-ruby@v0.25.0
+cargo add tree-sitter-ruby-magikdidi24
+npm install @magikdidi24/tree-sitter-ruby
+pip install tree-sitter-ruby-magikdidi24
 go get github.com/Magikdidi24/tree-sitter-ruby@v0.25.0
 ```
 
@@ -86,6 +89,9 @@ stays a call.
 
 [ci]: https://img.shields.io/github/actions/workflow/status/Magikdidi24/tree-sitter-ruby/ci.yml?branch=master&logo=github&label=CI
 [release]: https://img.shields.io/github/v/release/Magikdidi24/tree-sitter-ruby?logo=github
+[npm]: https://img.shields.io/npm/v/%40magikdidi24%2Ftree-sitter-ruby?logo=npm
+[crates]: https://img.shields.io/crates/v/tree-sitter-ruby-magikdidi24?logo=rust
+[pypi]: https://img.shields.io/pypi/v/tree-sitter-ruby-magikdidi24?logo=pypi
 [playground]: https://img.shields.io/badge/playground-try%20it-blue?logo=webassembly
 [discord]: https://img.shields.io/discord/1063097320771698699?logo=discord&label=discord
 [matrix]: https://img.shields.io/matrix/tree-sitter-chat%3Amatrix.org?logo=matrix&label=matrix

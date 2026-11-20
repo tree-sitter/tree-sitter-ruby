@@ -5,6 +5,7 @@ Changes of this fork since upstream 0.23.1. Releases: https://github.com/Magikdi
 ## Unreleased
 
 - Packages are published with trusted publishing (OIDC): no registry token is stored in the repository.
+- 0.25.0 is on npm, crates.io and PyPI; the README installs from there.
 
 ## 0.25.0 (2026-11-20)
 
