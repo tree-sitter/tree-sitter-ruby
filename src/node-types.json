@@ -20,11 +20,19 @@
         "named": true
       },
       {
+        "type": "method",
+        "named": true
+      },
+      {
         "type": "operator_assignment",
         "named": true
       },
       {
         "type": "range",
+        "named": true
+      },
+      {
+        "type": "singleton_method",
         "named": true
       },
       {

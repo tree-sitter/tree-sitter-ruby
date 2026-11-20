@@ -211,19 +211,12 @@ module.exports = grammar({
     _method_rest: $ => seq(
       field('name', $._method_name),
       choice(
-        $._body_expr,
         seq(
           field('parameters', alias($.parameters, $.method_parameters)),
-          choice(
-            seq(
-              optional($._terminator),
-              optional(field('body', $.body_statement)),
-              'end',
-              optional($._scope_end),
-            ),
-            $._body_expr,
-          ),
-
+          optional($._terminator),
+          optional(field('body', $.body_statement)),
+          'end',
+          optional($._scope_end),
         ),
         seq(
           optional(
@@ -235,6 +228,16 @@ module.exports = grammar({
           optional($._scope_end),
         ),
       ),
+    ),
+
+    // An endless method is an `_arg`, not a `_primary`: nothing follows it as a receiver (`def f = x .y` calls `y`
+    // on `x`), and its body then shares the parser states of the `_arg` around it
+    _endless_def: $ => seq('def', $._endless_def_rest),
+    _endless_singleton_def: $ => seq('def', singletonTarget($), $._endless_def_rest),
+    _endless_def_rest: $ => seq(
+      field('name', $._method_name),
+      optional(field('parameters', alias($.parameters, $.method_parameters))),
+      $._body_expr,
     ),
 
     rescue_modifier_arg: $ => modifier($._arg, 'rescue', 'handler', $._arg),
@@ -657,6 +660,8 @@ module.exports = grammar({
 
     _arg: $ => choice(
       alias($._unary_minus_pow, $.unary),
+      alias($._endless_def, $.method),
+      alias($._endless_singleton_def, $.singleton_method),
       $._primary,
       $.assignment,
       $.operator_assignment,
