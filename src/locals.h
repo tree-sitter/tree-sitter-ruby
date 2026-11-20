@@ -42,7 +42,7 @@ static inline bool is_keyword(const Name *name) {
         return false;
     }
     for (size_t i = 0; i < sizeof(KEYWORDS) / sizeof(KEYWORDS[0]); i++) {
-        if (name_is(name, KEYWORDS[i])) {
+        if (KEYWORDS[i][0] == name->text[0] && name_is(name, KEYWORDS[i])) {
             return true;
         }
     }
