@@ -2,7 +2,7 @@
 
 Changes of this fork since upstream 0.23.1. Releases: https://github.com/Magikdidi24/tree-sitter-ruby/releases
 
-## Unreleased
+## 0.27.0 (2026-11-20)
 
 - Fuzzing runs in ClusterFuzzLite (libFuzzer with ASan and UBSan, a Ruby dictionary and the test inputs as seeds):
   five minutes per sanitizer on pull requests that touch the parser, an hour each every night.

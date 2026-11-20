@@ -2,7 +2,7 @@
 # This fork's crate; the library keeps the upstream name, so `tree_sitter_ruby::LANGUAGE` works unchanged
 name = "tree-sitter-ruby-magikdidi24"
 description = "Ruby grammar for tree-sitter"
-version = "0.26.0"
+version = "0.27.0"
 authors = [
   "Max Brunsfeld <maxbrunsfeld@gmail.com>",
   "Amaan Qureshi <amaanq12@gmail.com>",

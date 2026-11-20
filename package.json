@@ -1,6 +1,6 @@
 {
   "name": "@magikdidi24/tree-sitter-ruby",
-  "version": "0.26.0",
+  "version": "0.27.0",
   "description": "Ruby grammar for tree-sitter",
   "repository": {
     "type": "git",
