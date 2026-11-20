@@ -17,7 +17,9 @@ Fixes go into the latest release only; update to it.
 
 ## What is already checked
 
-- Every pull request: ASan and UBSan on inputs that once crashed, hung or slowed the scanner, a short fuzzing run, and
-  CodeQL on the scanner.
-- Every night: an hour of fuzzing, and random edits with incremental reparses under ASan and UBSan.
+- Every pull request: ASan and UBSan on inputs that once crashed, hung or slowed the scanner, a minute of fuzzing,
+  five minutes of [ClusterFuzzLite](https://google.github.io/clusterfuzzlite/) per sanitizer when the parser changes,
+  warnings as errors under gcc and clang, and CodeQL on the scanner.
+- Every night: an hour of ClusterFuzzLite fuzzing per sanitizer (ASan, UBSan), and random edits with incremental
+  reparses under ASan and UBSan.
 - Packages are published from CI with trusted publishing (OIDC) and npm provenance; no registry token is stored.
