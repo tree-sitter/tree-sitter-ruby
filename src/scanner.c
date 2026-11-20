@@ -1311,8 +1311,13 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
     if (literal_valid) {
         Literal literal = {0};
         literal.nesting_depth = 1;
+        const int32_t quote = lexer->lookahead;
 
         if (scan_open_delimiter(scanner, lexer, &literal, valid_symbols)) {
+            if (binds && pattern && (quote == '"' || quote == '\'')) {
+                lexer->mark_end(lexer);
+                bind_string_key(scanner, lexer, quote);
+            }
             array_push(&scanner->literal_stack, literal);
             lexer->result_symbol = literal.type;
             return true;

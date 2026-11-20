@@ -2,6 +2,10 @@
 
 Changes of this fork since upstream 0.23.1. Releases: https://github.com/Magikdidi24/tree-sitter-ruby/releases
 
+## Unreleased
+
+- A string key in a hash pattern binds its name, as in Ruby: after `in {"name":}`, `name +1` is `name + 1`.
+
 ## 0.26.0 (2026-11-20)
 
 - Packages are published with trusted publishing (OIDC): no registry token is stored in the repository.
