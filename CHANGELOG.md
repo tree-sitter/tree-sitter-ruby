@@ -2,6 +2,10 @@
 
 Changes of this fork since upstream 0.23.1. Releases: https://github.com/Magikdidi24/tree-sitter-ruby/releases
 
+## Unreleased
+
+- Like Ruby, `a b do end.c(1).d` chains calls with arguments on a command's do block (RSpec's `end.and_return(x)`), and `+ 1.abs` is `+(1.abs)`; with these, Prism agrees on all 78k Ruby files of Rails, Discourse, Mastodon and GitLab, and CI tests ruby/spec of 2026-11-18.
+
 ## 0.26.0 (2026-11-20)
 
 - Packages are published with trusted publishing (OIDC): no registry token is stored in the repository.
