@@ -1958,6 +1958,33 @@ EOF
     (heredoc_content)
     (heredoc_end)))
 
+========================================
+heredoc line that repeats the end word is content
+========================================
+
+x = <<~EOS
+  EOSEOS
+  EOS
+y = <<A
+AA
+A
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (heredoc_beginning))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end))
+  (assignment
+    (identifier)
+    (heredoc_beginning))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end)))
+
 ==================
 backticks subshell
 ==================

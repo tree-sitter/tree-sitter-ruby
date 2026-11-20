@@ -792,6 +792,8 @@ static inline bool scan_heredoc_content(Scanner *scanner, TSLexer *lexer, const 
             }
             has_content = true;
             position_in_word = 0;
+            // The rest of the line is content: `EOSEOS` does not end at its second `EOS`
+            look_for_heredoc_end = false;
         }
 
         if (lexer->eof(lexer)) {
