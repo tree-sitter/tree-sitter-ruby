@@ -102,10 +102,11 @@ mod tests {
     fn test_incremental_reparse_matches_a_fresh_parse() {
         // Editors reparse after each edit, reusing the scanner state saved with each token (literals, heredocs,
         // local variables and their scopes): the tree must be the one a parse from scratch gives
-        const SOURCES: [&str; 3] = [
+        const SOURCES: [&str; 4] = [
             "x = 1\ndef f(a) = a\nf { |y| y +1; x -1 }\nclass A < B\n  def g(b, c = b +1)\n    b [1]\n  end\nend\n",
             "for i in [1] do i *2 end\nbegin\n  run\nrescue => e\n  e +1\nend\nputs <<~E, \"#{x}\"\n  #{y}\nE\n",
             "module M\n  a, (b, *c) = 1, 2\n  h = { defined?: 1, k: %w[a b] }\n  -> d { d +1 }.call(b)\nend\n",
+            "case v\nin [x, *r] if x +1\n  r -1\nin {k:, n: Integer => m}\n  k +1\nend\nv => [w]\nw *2\n",
         ];
         const SNIPPETS: [&str; 10] =
             [" x = 1;", "x +1\n", " def f(a) = a\n", "{ |y| y +1 }", "end\n", "\n", " +1", "do\n", "}", "a, b = 1, 2\n"];

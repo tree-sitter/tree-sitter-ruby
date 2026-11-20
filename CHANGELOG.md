@@ -6,6 +6,8 @@ Changes of this fork since upstream 0.23.1. Releases: https://github.com/Magikdi
 
 - Packages are published with trusted publishing (OIDC): no registry token is stored in the repository.
 - 0.25.0 is on npm, crates.io and PyPI; the README installs from there.
+- Names bound by pattern matching (`in [x]`, `in {name:}`, `in A => x`, `v => x`, `v in [x]`) are local variables, so
+  `x +1` after them is `x + 1`, like Ruby.
 
 ## 0.25.0 (2026-11-20)
 
