@@ -32,6 +32,8 @@ node_modules/.bin/tree-sitter generate
 node_modules/.bin/tree-sitter test
 ```
 
+Older runtimes (Neovim 0.10, tree-sitter 0.22 to 0.24) need a parser for ABI 14: `node_modules/.bin/tree-sitter generate --abi 14`.
+
 Deno can load `grammar.js` instead of Node, and lints it:
 
 ```sh
