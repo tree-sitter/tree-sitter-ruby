@@ -14,7 +14,7 @@ on:
       - src/**
       - script/adversarial.rb
       - script/sanitize.c
-  # Nightly: an hour of fuzzing from the corpus kept by earlier nights
+  # Nightly: an hour of fuzzing from the corpus kept by earlier nights, and the incremental-parsing fuzzer
   schedule:
     - cron: "17 3 * * *"
 
@@ -66,3 +66,51 @@ jobs:
         run: ruby script/adversarial.rb adversarial
       - name: Parse them
         run: ./sanitize adversarial/*.rb
+
+  edits:
+    name: Incremental parses against fresh ones, with ASan and UBSan
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Fetch the tree-sitter runtime
+        run: cargo fetch --locked
+      - name: Build the edit fuzzer with sanitizers
+        run: |
+          version=$(sed -n '/^name = "tree-sitter"$/{n;s/^version = "\(.*\)"$/\1/p}' Cargo.lock)
+          lib=$(ls -d ~/.cargo/registry/src/*/tree-sitter-"$version")
+          clang -std=gnu11 -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -g -O1 \
+            -Isrc -I"$lib/include" script/edit_fuzz.c src/parser.c src/scanner.c "$lib/src/lib.c" -o edit_fuzz
+      - name: Set up ruby/spec
+        run: |
+          ref=$(sed -n 's/^ *RUBY_SPEC_REF: //p' .github/workflows/ci.yml)
+          git clone https://github.com/ruby/spec examples/ruby_spec --filter=blob:none --quiet
+          git -C examples/ruby_spec checkout --quiet "$ref"
+      - name: Generate the inputs
+        run: |
+          ruby script/adversarial.rb adversarial
+          ruby script/corpus_inputs.rb corpus
+      # A sanitizer report fails the job. A tree mismatch only warns: the tree-sitter runtime causes some itself (a
+      # keyword inside a reused node, a token lexed after the reductions of a reused node, an empty line break dropped
+      # after error recovery), which no scanner change can fix
+      - name: Edit and reparse the test inputs, ruby/spec and the adversarial inputs
+        env:
+          ASAN_OPTIONS: exitcode=86
+          UBSAN_OPTIONS: exitcode=86
+        run: |
+          shopt -s globstar
+          failed=0
+          fuzz() {
+            local status=0
+            ./edit_fuzz -s "$GITHUB_RUN_NUMBER" "$@" || status=$?
+            if [ "$status" -eq 1 ]; then
+              echo "::warning::an incremental parse differs from a fresh one, see the repro in the log"
+            elif [ "$status" -ne 0 ]; then
+              failed=1
+            fi
+          }
+          fuzz -n 300 corpus/*.rb test/highlight/*.rb
+          fuzz -n 20 examples/**/*.rb
+          fuzz -n 30 adversarial/*.rb
+          exit "$failed"

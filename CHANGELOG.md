@@ -9,6 +9,9 @@ Changes of this fork since upstream 0.23.1. Releases: https://github.com/Magikdi
 - Parser 27 % smaller (`parser.c` 19.9 → 14.6 MB, 7925 → 6123 states, wasm 2.77 → 2.02 MB) and 2 % fewer instructions
   to parse. An endless method is now an `_arg` in `node-types.json`, as in Ruby's grammar.
 - CI measures how much of the scanner the tests run: 95.9 % of lines, 86.4 % of branches.
+- An incremental reparse gives the same tree as a fresh parse in 6 more cases found by a new edit fuzzer (`<<` and `%w`
+  after a reused node, `rescue` or `;` on the line after `key:`, `def x = v in [d]`, a literal left open). A literal
+  left open is now content up to the end of the file, as in Prism. The fuzzer runs every night with ASan and UBSan.
 - Names bound by pattern matching (`in [x]`, `in {name:}`, `in A => x`, `v => x`, `v in [x]`) are local variables, so
   `x +1` after them is `x + 1`, like Ruby.
 

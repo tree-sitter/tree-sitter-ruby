@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Writes the input of each test in test/corpus to its own file, for script/coverage.sh.
+# Writes the input of each test in test/corpus to its own file, for script/coverage.sh and script/edit_fuzz.c.
 # usage: ruby script/corpus_inputs.rb DIR
 
 require 'fileutils'
