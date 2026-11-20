@@ -15,9 +15,9 @@
 #         ^ string.special.symbol
 
 /hello/
-# ^ string.special.regex
+# ^ string.regexp
 %r(hello)
-# ^ string.special.regex
+# ^ string.regexp
 
 12345
 # ^ number
@@ -34,3 +34,14 @@ false
 # ^ constant.builtin
 FALSE
 # ^ constant
+
+# a comment
+# <- comment
+"a\n#{ b }"
+# ^ escape
+#     ^ embedded
+foo([1])
+#  ^ punctuation.bracket
+#   ^ punctuation.bracket
+self
+# <- variable.builtin

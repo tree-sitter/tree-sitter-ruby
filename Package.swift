@@ -1,5 +1,13 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.6
+
+import Foundation
 import PackageDescription
+
+let dir = Context.packageDirectory
+var sources = ["src/parser.c"]
+if FileManager.default.fileExists(atPath: "\(dir)/src/scanner.c") {
+    sources.append("src/scanner.c")
+}
 
 let package = Package(
     name: "TreeSitterRuby",
@@ -7,17 +15,14 @@ let package = Package(
         .library(name: "TreeSitterRuby", targets: ["TreeSitterRuby"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/ChimeHQ/SwiftTreeSitter", from: "0.8.0"),
+        .package(url: "https://github.com/tree-sitter/swift-tree-sitter", from: "0.10.0"),
     ],
     targets: [
         .target(
             name: "TreeSitterRuby",
             dependencies: [],
             path: ".",
-            sources: [
-                "src/parser.c",
-                "src/scanner.c",
-            ],
+            sources: sources,
             resources: [
                 .copy("queries")
             ],
@@ -27,7 +32,7 @@ let package = Package(
         .testTarget(
             name: "TreeSitterRubyTests",
             dependencies: [
-                "SwiftTreeSitter",
+                .product(name: "SwiftTreeSitter", package: "swift-tree-sitter"),
                 "TreeSitterRuby",
             ],
             path: "bindings/swift/TreeSitterRubyTests"

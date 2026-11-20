@@ -3,7 +3,15 @@
 ((identifier) @function.method
  (#is-not? local))
 
+; `it` and `_1` to `_9`: a block's implicit parameter, unless a local variable is named `it`. Before the patterns
+; below, so that `it(1)` and `x.it` stay method calls.
+((identifier) @variable.parameter
+ (#match? @variable.parameter "^(it|_[1-9])$")
+ (#is-not? local))
+
 [
+  "BEGIN"
+  "END"
   "alias"
   "and"
   "begin"
@@ -21,20 +29,20 @@
   "in"
   "module"
   "next"
+  "not"
   "or"
   "rescue"
+  "redo"
   "retry"
   "return"
   "then"
+  "undef"
   "unless"
   "until"
   "when"
   "while"
   "yield"
 ] @keyword
-
-((identifier) @keyword
- (#match? @keyword "^(private|protected|public)$"))
 
 (constant) @constructor
 
@@ -46,7 +54,13 @@
   method: [(identifier) (constant)] @function.method)
 
 ((identifier) @function.method.builtin
- (#eq? @function.method.builtin "require"))
+ (#any-of? @function.method.builtin
+   "require" "require_relative" "load" "autoload"
+   "attr_reader" "attr_writer" "attr_accessor"
+   "include" "extend" "prepend" "raise" "fail"))
+
+((identifier) @keyword
+ (#match? @keyword "^(private|protected|public)$"))
 
 ; Function definitions
 
@@ -62,12 +76,10 @@
   (instance_variable)
 ] @property
 
+(global_variable) @variable
+
 ((identifier) @constant.builtin
  (#match? @constant.builtin "^__(FILE|LINE|ENCODING)__$"))
-
-(file) @constant.builtin
-(line) @constant.builtin
-(encoding) @constant.builtin
 
 (hash_splat_nil
   "**" @operator) @constant.builtin
@@ -108,38 +120,54 @@
   (bare_symbol)
 ] @string.special.symbol
 
-(regex) @string.special.regex
+; A key without a value binds a variable: `in {name:}`, `in {"name":}`
+(keyword_pattern key: (hash_key_symbol) @variable !value)
+(keyword_pattern key: (string . (string_content) @variable .) !value)
+
+(regex) @string.regexp
 (escape_sequence) @escape
 
 [
   (integer)
   (float)
+  (rational)
+  (complex)
 ] @number
+
+(character) @string
+
+(uninterpreted) @comment
 
 [
   (nil)
   (true)
   (false)
+  (file)
+  (line)
+  (encoding)
 ] @constant.builtin
-
-(interpolation
-  "#{" @punctuation.special
-  "}" @punctuation.special) @embedded
 
 (comment) @comment
 
 ; Operators
 
 [
-"="
-"=>"
-"->"
+  "=" "=>" "->"
+  "!" "!=" "!~" "%" "%=" "&" "&&" "&&=" "&=" "*" "**" "**=" "*="
+  "+" "+=" "-" "-=" "/=" "<" "<<" "<<=" "<=" "<=>" "==" "==="
+  "=~" ">" ">=" ">>" ">>=" "^" "^=" "|" "|=" "||" "||=" "~" ".." "..."
 ] @operator
+
+(binary "/" @operator) ; "/" also delimits regex literals
+
+(conditional ["?" ":"] @operator)
 
 [
   ","
   ";"
   "."
+  "&."
+  "::"
 ] @punctuation.delimiter
 
 [
@@ -152,3 +180,9 @@
   "%w("
   "%i("
 ] @punctuation.bracket
+
+(block_parameters "|" @punctuation.bracket)
+
+(interpolation
+  "#{" @punctuation.special
+  "}" @punctuation.special) @embedded

@@ -46,3 +46,19 @@ def two()
   seven
   # ^ function.method (because the `seven` above was in the scope of the lambda)
 end
+
+[1].each { it + 1 }
+#          ^ variable.parameter
+[1].each { _1 + 1 }
+#          ^ variable.parameter
+[1].each { it(1) + foo.it }
+#          ^ function.method
+#                      ^ function.method
+-> { it }
+#    ^ variable.parameter
+
+def nine
+  it = 1
+  [1].each { it }
+  #          ^ variable
+end

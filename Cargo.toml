@@ -1,7 +1,8 @@
 [package]
-name = "tree-sitter-ruby"
+# This fork's crate; the library keeps the upstream name, so `tree_sitter_ruby::LANGUAGE` works unchanged
+name = "tree-sitter-ruby-magikdidi24"
 description = "Ruby grammar for tree-sitter"
-version = "0.23.1"
+version = "0.27.0"
 authors = [
   "Max Brunsfeld <maxbrunsfeld@gmail.com>",
   "Amaan Qureshi <amaanq12@gmail.com>",
@@ -10,21 +11,30 @@ license = "MIT"
 readme = "README.md"
 keywords = ["incremental", "parsing", "tree-sitter", "ruby"]
 categories = ["parsing", "text-editors"]
-repository = "https://github.com/tree-sitter/tree-sitter-ruby"
-edition = "2021"
+repository = "https://github.com/Magikdidi24/tree-sitter-ruby"
+edition = "2024"
+rust-version = "1.90"
 autoexamples = false
 
 build = "bindings/rust/build.rs"
-include = ["LICENSE", "bindings/rust/*", "grammar.js", "queries/*", "src/*", "tree-sitter.json"]
+include = [
+  "LICENSE",
+  "bindings/rust/*",
+  "grammar.js",
+  "queries/*",
+  "src/*",
+  "tree-sitter.json",
+]
 
 [lib]
+name = "tree_sitter_ruby"
 path = "bindings/rust/lib.rs"
 
 [dependencies]
-tree-sitter-language = "0.1"
+tree-sitter-language = "0.1.8"
 
 [build-dependencies]
-cc = "1.1"
+cc = "1.11"
 
 [dev-dependencies]
-tree-sitter = "0.24"
+tree-sitter = "0.27.2"

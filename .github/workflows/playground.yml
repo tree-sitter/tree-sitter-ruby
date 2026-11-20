@@ -1,0 +1,85 @@
+name: Playground
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - grammar.js
+      - src/**
+      - test/**
+      - script/coverage.sh
+      - script/corpus_inputs.rb
+      - script/sanitize.c
+      - script/perf_history.py
+      - .github/workflows/playground.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deployment at a time, and the latest wins
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build the playground, the coverage badge and the performance history
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The performance history builds every release tag
+          fetch-depth: 0
+      # Upstream's last release is the first point of the performance history; this only reads it
+      - name: Fetch upstream v0.23.1
+        run: git fetch --no-tags --quiet https://github.com/tree-sitter/tree-sitter-ruby refs/tags/v0.23.1:refs/tags/v0.23.1
+      - name: Set up tree-sitter
+        uses: tree-sitter/setup-action/cli@faab9a23fa6195da0f1cf868219cc1e89f238d3d # v2
+        with:
+          tree-sitter-ref: v0.27.2
+      - name: Build the parser to wasm
+        run: tree-sitter build --wasm
+      - name: Export the playground
+        run: tree-sitter playground --export site
+      # The runtime's source comes from the Rust dev-dependency, checked against Cargo.lock
+      - name: Fetch the tree-sitter runtime
+        run: cargo fetch --locked
+      - name: Write the coverage badge
+        run: script/coverage.sh site/coverage.json
+      - name: Install valgrind
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq valgrind
+      - name: Set up ruby/spec
+        run: |
+          ref=$(sed -n 's/^ *RUBY_SPEC_REF: //p' .github/workflows/ci.yml)
+          git clone https://github.com/ruby/spec examples/ruby_spec --filter=blob:none --quiet
+          git -C examples/ruby_spec checkout --quiet "$ref"
+      # Counts already measured for a commit and corpus are kept, so only new commits are measured
+      - name: Restore the measured releases
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: perf-history
+          key: perf-history-${{github.sha}}
+          restore-keys: perf-history-
+      - name: Write the performance history
+        run: python3 script/perf_history.py site/perf.html perf-history examples/ruby_spec test/highlight
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deploy
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

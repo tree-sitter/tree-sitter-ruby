@@ -9,6 +9,18 @@ on:
       - test/**
       - bindings/**
       - binding.gyp
+      - script/**
+      - queries/**
+      - tree-sitter.json
+      - package.json
+      - Cargo.toml
+      - pyproject.toml
+      - setup.py
+      - go.mod
+      - Package.swift
+      - Gemfile
+      - Gemfile.lock
+      - .rubocop.yml
   pull_request:
     paths:
       - grammar.js
@@ -16,6 +28,25 @@ on:
       - test/**
       - bindings/**
       - binding.gyp
+      - script/**
+      - queries/**
+      - tree-sitter.json
+      - package.json
+      - Cargo.toml
+      - pyproject.toml
+      - setup.py
+      - go.mod
+      - Package.swift
+      - Gemfile
+      - Gemfile.lock
+      - .rubocop.yml
+
+permissions:
+  contents: read
+
+env:
+  # pinned: a new spec file must not break unrelated changes; bump it on purpose
+  RUBY_SPEC_REF: 0260823021feefce01cc18619f3e71825dd55219
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
@@ -28,34 +59,113 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-14]
+        os: [ubuntu-latest, windows-latest, macos-15-intel]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Set up tree-sitter
-        uses: tree-sitter/setup-action/cli@v1
+        uses: tree-sitter/setup-action/cli@faab9a23fa6195da0f1cf868219cc1e89f238d3d # v2
+        with:
+          # Must be the CLI that generated src/parser.c (checked by parser-test-action)
+          tree-sitter-ref: v0.27.2
       - name: Set up examples
         run: |
-          git clone https://github.com/ruby/spec examples/ruby_spec --single-branch --depth=1 --filter=blob:none
+          git clone https://github.com/ruby/spec examples/ruby_spec --filter=blob:none --quiet
+          git -C examples/ruby_spec checkout --quiet ${{env.RUBY_SPEC_REF}}
       - name: Run tests
-        uses: tree-sitter/parser-test-action@v2
+        uses: tree-sitter/parser-test-action@92e35c06b51ea26c80ffbd3cc8d9286d9110df17 # v3
         with:
+          abi-version: 15
           test-rust: true
           test-node: true
           test-python: true
           test-go: true
+          go-version: "1.23" # go-tree-sitter 0.25
           test-swift: true
       - name: Parse examples
-        uses: tree-sitter/parse-action@v4
+        uses: tree-sitter/parse-action@47beaa8ba0b5c8b44ef0879b2f647ca7f0a1257d # v5
         with:
           files: |
-            examples/*.rb
+            examples/**/*.rb
             !examples/ruby_spec/command_line/fixtures/bad_syntax.rb
+            !examples/ruby_spec/core/exception/fixtures/syntax_error.rb
             !examples/ruby_spec/command_line/fixtures/freeze_flag_required_diff_enc.rb
             !examples/ruby_spec/core/enumerable/shared/inject.rb
             !examples/ruby_spec/language/fixtures/freeze_magic_comment_required_diff_enc.rb
-            !examples/ruby_spec/language/string_spec.rb
-            !examples/ruby_spec/core/proc/ruby2_keywords_spec.rb
             !examples/ruby_spec/language/fixtures/utf16-be-nobom.rb
             !examples/ruby_spec/language/fixtures/utf16-le-nobom.rb
-            !examples/ruby_spec/language/lambda_spec.rb
+
+  prism:
+    name: Compare with Prism
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up tree-sitter
+        uses: tree-sitter/setup-action/cli@faab9a23fa6195da0f1cf868219cc1e89f238d3d # v2
+        with:
+          tree-sitter-ref: v0.27.2
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@f9c4492e86def3e644ab32a0ef185eda5b0c20d0 # v1.342.0
+        with:
+          ruby-version: "4.0"
+          bundler-cache: true
+      - name: Run RuboCop
+        run: bundle exec rubocop
+      - name: Set up ruby/spec
+        run: |
+          git clone https://github.com/ruby/spec examples/ruby_spec --filter=blob:none --quiet
+          git -C examples/ruby_spec checkout --quiet ${{env.RUBY_SPEC_REF}}
+      - name: Check the scanner's external tokens
+        run: ruby script/check_externals.rb
+      - name: Compare with Prism
+        run: bundle exec ruby script/prism_diff.rb --known script/prism_diff_known.txt examples/ruby_spec
+
+  perf:
+    name: Instruction count against the base
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Checkout the base
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{github.event.pull_request.base.sha}}
+          path: base
+          sparse-checkout: src
+      - name: Install valgrind
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq valgrind
+      # The runtime's source comes from the Rust dev-dependency, checked against Cargo.lock
+      - name: Fetch the tree-sitter runtime
+        run: cargo fetch --locked
+      - name: Set up ruby/spec
+        run: |
+          git clone https://github.com/ruby/spec examples/ruby_spec --filter=blob:none --quiet
+          git -C examples/ruby_spec checkout --quiet ${{env.RUBY_SPEC_REF}}
+      - name: Compare with the base
+        run: script/perf_guard.sh base examples/ruby_spec test/highlight
+
+  coverage:
+    name: Scanner coverage by the tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The runtime's source comes from the Rust dev-dependency, checked against Cargo.lock
+      - name: Fetch the tree-sitter runtime
+        run: cargo fetch --locked
+      - name: Measure the coverage
+        run: script/coverage.sh
+
+  warnings:
+    name: Scanner compiler warnings
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Build the scanner with every warning an error
+        run: |
+          for cc in gcc clang; do
+            "$cc" -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Werror -Isrc -c src/scanner.c -o /dev/null
+          done

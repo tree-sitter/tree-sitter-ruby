@@ -1,4 +1,18 @@
-((method) @local.scope
+; Scopes
+
+; `def`, `class`, `module` and `class << x` bodies do not see outer locals, but a superclass (`class A < base`) and
+; the object of `class << obj` are read outside
+([
+  (method)
+  (singleton_method)
+  (module)
+] @local.scope
+ (#set! local.scope-inherits false))
+
+([
+  (class body: (_) @local.scope)
+  (singleton_class body: (_) @local.scope)
+]
  (#set! local.scope-inherits false))
 
 [
@@ -6,6 +20,8 @@
   (block)
   (do_block)
 ] @local.scope
+
+; Definitions
 
 (block_parameter (identifier) @local.definition)
 (block_parameters (identifier) @local.definition)
@@ -17,6 +33,25 @@
 
 (keyword_parameter name: (identifier) @local.definition)
 (optional_parameter name: (identifier) @local.definition)
+
+(exception_variable (identifier) @local.definition)
+(for pattern: (identifier) @local.definition)
+
+; Pattern matching bindings: `in x`, `in [x, *y]`, `in {k: x, **z}`, `in {k:}`, `in {"k":}`, `in T => x`, `in (x)`,
+; `in _x | _y`, `v => x`, `v in x`; a pinned `^x` is a reference
+(in_clause pattern: (identifier) @local.definition)
+(match_pattern pattern: (identifier) @local.definition)
+(test_pattern pattern: (identifier) @local.definition)
+(array_pattern (identifier) @local.definition)
+(find_pattern (identifier) @local.definition)
+(keyword_pattern value: (identifier) @local.definition)
+(keyword_pattern key: (hash_key_symbol) @local.definition !value)
+(keyword_pattern key: (string . (string_content) @local.definition .) !value)
+(as_pattern name: (identifier) @local.definition)
+(alternative_pattern alternatives: (identifier) @local.definition)
+(parenthesized_pattern (identifier) @local.definition)
+
+; References
 
 (identifier) @local.reference
 

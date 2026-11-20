@@ -1,0 +1,12 @@
+{
+  "lint": {
+    "include": [
+      "grammar.js"
+    ],
+    "rules": {
+      "exclude": [
+        "no-control-regex"
+      ]
+    }
+  }
+}

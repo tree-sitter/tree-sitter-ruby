@@ -306,6 +306,35 @@ end
 
 (program (while (identifier) (do (redo))))
 
+==============================
+redo and retry with a modifier
+==============================
+
+loop do
+  redo if a
+end
+begin
+rescue
+  retry if b
+end
+
+---
+
+(program
+  (call
+    (identifier)
+    (do_block
+      (body_statement
+        (if_modifier
+          (redo)
+          (identifier)))))
+  (begin
+    (rescue
+      (then
+        (if_modifier
+          (retry)
+          (identifier))))))
+
 ===========
 empty begin
 ===========
@@ -361,6 +390,28 @@ end
   (begin (identifier)
     (ensure (identifier))))
 
+======================================
+begin and ensure followed by a comment
+======================================
+
+x = begin # start
+  1
+ensure # done
+  2
+end
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (begin
+      (comment)
+      (integer)
+      (ensure
+        (comment)
+        (integer)))))
+
 =======================
 begin with empty rescue
 =======================
@@ -384,6 +435,77 @@ end
   (begin (rescue))
   (begin (rescue (then)))
   (begin (rescue (then (identifier)))))
+
+==============================================
+begin with rescue after hash shorthand argument
+==============================================
+
+begin
+  foo key:
+rescue => e
+end
+
+foo key:
+  bar!
+
+foo key:
+  rescueé
+
+---
+
+(program
+  (begin
+    (call
+      (identifier)
+      (argument_list (pair (hash_key_symbol))))
+    (rescue (exception_variable (identifier))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (call (identifier)))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (identifier)))))
+
+==============================================================================
+hash shorthand argument followed by a line starting with ; or a rescue? method
+==============================================================================
+
+foo key:
+;
+foo key:
+rescue?
+foo key:
+rescue!
+
+---
+
+(program
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol))))
+  (empty_statement)
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (call
+          (identifier)))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (call
+          (identifier))))))
 
 ===========================
 begin with rescue with args
@@ -443,6 +565,30 @@ end
 ---
 
 (program (begin (rescue (exceptions (splat_argument (identifier))))))
+
+========================
+rescue into an attribute
+========================
+
+begin
+rescue => e.x
+end
+e -1
+
+---
+
+(program
+  (begin
+    (rescue
+      (exception_variable
+        (call
+          (identifier)
+          (identifier)))))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer)))))
 
 =================
 rescue modifier
@@ -560,6 +706,145 @@ return
 ---
 
 (program (return))
+
+========================================
+return with invalid syntax (parentheses with multiple values)
+========================================
+
+def f; return (1,2); end
+
+---
+
+(program
+  (method
+    name: (identifier)
+    body: (body_statement
+      (return
+        (argument_list
+          (parenthesized_statements
+            (ERROR (integer))
+            (integer)))))))
+
+========================================
+return with invalid syntax (parentheses with space-separated values)
+========================================
+
+def f; return (1 2); end
+
+---
+
+(program
+  (method
+    name: (identifier)
+    body: (body_statement
+      (return
+        (argument_list
+          (parenthesized_statements
+            (integer)
+            (ERROR (integer))))))))
+
+========================================
+return with invalid syntax (space-separated values without comma)
+========================================
+
+def f; return 1 2; end
+
+---
+
+(program
+  (method
+    name: (identifier )
+    body: (body_statement
+      (return
+        (argument_list
+          (integer )))
+      (ERROR
+        (integer )))))
+
+========================================
+return with valid syntax (comma-separated values)
+========================================
+
+def f; return 1, 2 ; end
+
+---
+
+(program
+  (method
+    name: (identifier)
+    body: (body_statement
+      (return
+        (argument_list
+          (integer)
+          (integer))))))
+
+========================================
+return with valid syntax (single value)
+========================================
+
+def f; return 1; end
+
+---
+
+(program
+  (method
+    name: (identifier)
+    body: (body_statement
+      (return
+        (argument_list
+          (integer))))))
+
+========================================
+return with valid syntax (single value in parentheses)
+========================================
+
+def f;return (1);end
+
+---
+
+(program
+  (method
+    name: (identifier)
+    body: (body_statement
+      (return
+        (argument_list
+          (parenthesized_statements
+            (integer)))))))
+
+==========================================================
+return, break and next with a percent string or regex value
+==========================================================
+
+def f
+  return %=a=
+end
+loop do
+  break %=a=
+  next / a/
+end
+
+---
+
+(program
+  (method
+    name: (identifier)
+    body: (body_statement
+      (return
+        (argument_list
+          (string
+            (string_content))))))
+  (call
+    method: (identifier)
+    block: (do_block
+      body: (body_statement
+        (break
+          (argument_list
+            (string
+              (string_content))))
+        (next
+          (argument_list
+            (regex
+              (string_content))))))))
 
 ====
 case
@@ -723,3 +1008,58 @@ end
         (identifier))
       (then
         (identifier)))))
+
+======================================
+return, break and next read an operand
+======================================
+
+def f
+  return[1]
+  return-1
+  return*a
+  return+1
+  return - (a + 1)
+end
+loop { break[1]; next-1 }
+
+---
+
+(program
+  (method
+    (identifier)
+    (body_statement
+      (return
+        (argument_list
+          (array
+            (integer))))
+      (return
+        (argument_list
+          (unary
+            (integer))))
+      (return
+        (argument_list
+          (splat_argument
+            (identifier))))
+      (return
+        (argument_list
+          (unary
+            (integer))))
+      (return
+        (argument_list
+          (unary
+            (parenthesized_statements
+              (binary
+                (identifier)
+                (integer))))))))
+  (call
+    (identifier)
+    (block
+      (block_body
+        (break
+          (argument_list
+            (array
+              (integer))))
+        (next
+          (argument_list
+            (unary
+              (integer))))))))

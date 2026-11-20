@@ -1,0 +1,40 @@
+name: ClusterFuzzLite PR fuzzing
+
+on:
+  pull_request:
+    paths:
+      - grammar.js
+      - src/**
+      - .clusterfuzzlite/**
+      - .github/workflows/cflite_pr.yml
+
+permissions:
+  contents: read
+  # Reads the corpus that the nightly batch fuzzing keeps as an artifact
+  actions: read
+
+jobs:
+  fuzz:
+    name: Fuzz the change (${{matrix.sanitizer}})
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{github.workflow}}-${{matrix.sanitizer}}-${{github.ref}}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer: [address, undefined]
+    steps:
+      - name: Build the fuzzer
+        uses: google/clusterfuzzlite/actions/build_fuzzers@884713a6c30a92e5e8544c39945cd7cb630abcd1 # v1
+        with:
+          language: c
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          sanitizer: ${{matrix.sanitizer}}
+      - name: Fuzz
+        uses: google/clusterfuzzlite/actions/run_fuzzers@884713a6c30a92e5e8544c39945cd7cb630abcd1 # v1
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          fuzz-seconds: 300
+          mode: code-change
+          sanitizer: ${{matrix.sanitizer}}

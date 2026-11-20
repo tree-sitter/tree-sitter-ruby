@@ -7,3 +7,19 @@ puts"hi"
 ---
 
 (program (call (identifier) (argument_list (string (string_content)))))
+
+==================================
+Single CR characters in a heredoc are content
+==================================
+
+x = <<~EOS
+  aEOS
+  EOSb
+  EOS
+EOS
+
+---
+
+(program
+  (assignment (identifier) (heredoc_beginning))
+  (heredoc_body (heredoc_content) (heredoc_end)))

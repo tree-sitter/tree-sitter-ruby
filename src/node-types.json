@@ -20,6 +20,10 @@
         "named": true
       },
       {
+        "type": "method",
+        "named": true
+      },
+      {
         "type": "operator_assignment",
         "named": true
       },
@@ -28,26 +32,12 @@
         "named": true
       },
       {
+        "type": "singleton_method",
+        "named": true
+      },
+      {
         "type": "unary",
         "named": true
-      }
-    ]
-  },
-  {
-    "type": "_call_operator",
-    "named": true,
-    "subtypes": [
-      {
-        "type": "&.",
-        "named": false
-      },
-      {
-        "type": ".",
-        "named": false
-      },
-      {
-        "type": "::",
-        "named": false
       }
     ]
   },
@@ -80,6 +70,10 @@
         "named": true
       },
       {
+        "type": "method",
+        "named": true
+      },
+      {
         "type": "next",
         "named": true
       },
@@ -89,6 +83,10 @@
       },
       {
         "type": "return",
+        "named": true
+      },
+      {
+        "type": "singleton_method",
         "named": true
       },
       {
@@ -1272,11 +1270,19 @@
         "required": false,
         "types": [
           {
-            "type": "_variable",
+            "type": "constant",
+            "named": true
+          },
+          {
+            "type": "identifier",
             "named": true
           },
           {
             "type": "operator",
+            "named": true
+          },
+          {
+            "type": "super",
             "named": true
           }
         ]
@@ -1286,8 +1292,16 @@
         "required": false,
         "types": [
           {
-            "type": "_call_operator",
-            "named": true
+            "type": "&.",
+            "named": false
+          },
+          {
+            "type": ".",
+            "named": false
+          },
+          {
+            "type": "::",
+            "named": false
           }
         ]
       },
@@ -2015,6 +2029,7 @@
   {
     "type": "heredoc_body",
     "named": true,
+    "extra": true,
     "fields": {},
     "children": {
       "multiple": true,
@@ -2293,7 +2308,18 @@
   {
     "type": "lambda_parameters",
     "named": true,
-    "fields": {},
+    "fields": {
+      "locals": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      }
+    },
     "children": {
       "multiple": true,
       "required": false,
@@ -2395,7 +2421,7 @@
         "required": false,
         "types": [
           {
-            "type": "_arg",
+            "type": "_expression",
             "named": true
           },
           {
@@ -2907,10 +2933,6 @@
         "required": true,
         "types": [
           {
-            "type": "_arg",
-            "named": true
-          },
-          {
             "type": "_statement",
             "named": true
           }
@@ -3073,7 +3095,7 @@
         "required": false,
         "types": [
           {
-            "type": "_arg",
+            "type": "_expression",
             "named": true
           },
           {
@@ -3883,7 +3905,8 @@
   },
   {
     "type": "comment",
-    "named": true
+    "named": true,
+    "extra": true
   },
   {
     "type": "def",
