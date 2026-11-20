@@ -6,6 +6,10 @@ on:
     paths:
       - grammar.js
       - src/**
+      - test/**
+      - script/coverage.sh
+      - script/corpus_inputs.rb
+      - script/sanitize.c
       - .github/workflows/playground.yml
   workflow_dispatch:
 
@@ -19,7 +23,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build the playground
+    name: Build the playground and the coverage badge
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -32,6 +36,11 @@ jobs:
         run: tree-sitter build --wasm
       - name: Export the playground
         run: tree-sitter playground --export site
+      # The runtime's source comes from the Rust dev-dependency, checked against Cargo.lock
+      - name: Fetch the tree-sitter runtime
+        run: cargo fetch --locked
+      - name: Write the coverage badge
+        run: script/coverage.sh site/coverage.json
       - name: Upload the site
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:

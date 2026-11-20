@@ -5,6 +5,7 @@
 [![npm][npm]](https://www.npmjs.com/package/@magikdidi24/tree-sitter-ruby)
 [![crates][crates]](https://crates.io/crates/tree-sitter-ruby-magikdidi24)
 [![pypi][pypi]](https://pypi.org/project/tree-sitter-ruby-magikdidi24/)
+[![coverage][coverage]](https://github.com/Magikdidi24/tree-sitter-ruby/actions/workflows/ci.yml)
 [![playground][playground]](https://magikdidi24.github.io/tree-sitter-ruby/)
 [![discord][discord]](https://discord.gg/w7nTvsVJhm)
 [![matrix][matrix]](https://matrix.to/#/#tree-sitter-chat:matrix.org)
@@ -75,8 +76,8 @@ deno lint
 ```
 
 `bundle exec ruby script/prism_diff.rb DIR` compares the trees with [Prism](https://github.com/ruby/prism) on the Ruby files in `DIR`.
-`script/coverage.sh` prints how much of the hand-written scanner the tests run (96 % of lines, 86 % of branches); CI
-shows it in the summary of the `coverage` job.
+`script/coverage.sh` prints how much of the hand-written scanner the tests run, by line and by branch; the coverage
+badge shows it for master.
 
 #### Local variables
 
@@ -94,6 +95,7 @@ a hash pattern (`in {"name":}`) still declares nothing, so there `name +1` stays
 [npm]: https://img.shields.io/npm/v/%40magikdidi24%2Ftree-sitter-ruby?logo=npm
 [crates]: https://img.shields.io/crates/v/tree-sitter-ruby-magikdidi24?logo=rust
 [pypi]: https://img.shields.io/pypi/v/tree-sitter-ruby-magikdidi24?logo=pypi
+[coverage]: https://img.shields.io/endpoint?url=https%3A%2F%2Fmagikdidi24.github.io%2Ftree-sitter-ruby%2Fcoverage.json
 [playground]: https://img.shields.io/badge/playground-try%20it-blue?logo=webassembly
 [discord]: https://img.shields.io/discord/1063097320771698699?logo=discord&label=discord
 [matrix]: https://img.shields.io/matrix/tree-sitter-chat%3Amatrix.org?logo=matrix&label=matrix
