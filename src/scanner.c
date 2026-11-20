@@ -79,6 +79,28 @@ static inline void skip(Scanner *scanner, TSLexer *lexer) {
 
 static inline void advance(TSLexer *lexer) { lexer->advance(lexer, false); }
 
+// Like Ruby, any non-ASCII character can be part of a heredoc word, whatever the host locale
+static inline bool is_heredoc_word_char(int32_t c) { return c >= 0x80 || iswalnum(c) || c == '_'; }
+
+// Heredoc words are kept as UTF-8, so a code point is never cut down to its low byte
+static inline uint32_t encode_utf8(int32_t c, char *out) {
+    if (c < 0x80) {
+        out[0] = (char)c;
+        return 1;
+    }
+    uint32_t n = c < 0x800 ? 2 : c < 0x10000 ? 3 : 4;
+    out[0] = (char)((0xF00 >> n) | (c >> (6 * (n - 1))));
+    for (uint32_t i = 1; i < n; i++) {
+        out[i] = (char)(0x80 | ((c >> (6 * (n - 1 - i))) & 0x3F));
+    }
+    return n;
+}
+
+static inline void push_utf8(String *word, int32_t c) {
+    char utf8[4];
+    array_extend(word, encode_utf8(c, utf8), utf8);
+}
+
 static inline void reset(Scanner *scanner) {
     array_delete(&scanner->literal_stack);
     for (uint32_t i = 0; i < scanner->open_heredocs.size; i++) {
@@ -608,20 +630,16 @@ static inline void scan_heredoc_word(TSLexer *lexer, Heredoc *heredoc) {
             quote = lexer->lookahead;
             advance(lexer);
             while (lexer->lookahead != quote && !lexer->eof(lexer)) {
-                array_push(&word, lexer->lookahead);
+                push_utf8(&word, lexer->lookahead);
                 advance(lexer);
             }
             advance(lexer);
             break;
 
         default:
-            if (iswalnum(lexer->lookahead) || lexer->lookahead == '_') {
-                array_push(&word, lexer->lookahead);
+            while (is_heredoc_word_char(lexer->lookahead)) {
+                push_utf8(&word, lexer->lookahead);
                 advance(lexer);
-                while (iswalnum(lexer->lookahead) || lexer->lookahead == '_') {
-                    array_push(&word, lexer->lookahead);
-                    advance(lexer);
-                }
             }
             break;
     }
@@ -707,9 +725,12 @@ static inline bool scan_heredoc_content(Scanner *scanner, TSLexer *lexer) {
             return true;
         }
 
-        if (lexer->lookahead == *array_get(&heredoc->word, position_in_word) && look_for_heredoc_end) {
+        char utf8[4];
+        uint32_t utf8_length = encode_utf8(lexer->lookahead, utf8);
+        if (look_for_heredoc_end && position_in_word + utf8_length <= heredoc->word.size &&
+            memcmp(&heredoc->word.contents[position_in_word], utf8, utf8_length) == 0) {
             advance(lexer);
-            position_in_word++;
+            position_in_word += utf8_length;
         } else {
             position_in_word = 0;
             look_for_heredoc_end = false;

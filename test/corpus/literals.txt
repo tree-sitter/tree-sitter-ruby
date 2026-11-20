@@ -1066,6 +1066,37 @@ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
     (heredoc_end)))
 
 ========================================
+heredoc with a non-ASCII end word
+========================================
+
+x = <<~é
+  hello
+é
+y = <<~'€'
+  a
+€
+z = <<~Ł
+  A
+Ł
+w = <<~EOS
+  Ņŏœ
+EOS
+v = 1
+
+---
+
+(program
+  (assignment (identifier) (heredoc_beginning))
+  (heredoc_body (heredoc_content) (heredoc_end))
+  (assignment (identifier) (heredoc_beginning))
+  (heredoc_body (heredoc_content) (heredoc_end))
+  (assignment (identifier) (heredoc_beginning))
+  (heredoc_body (heredoc_content) (heredoc_end))
+  (assignment (identifier) (heredoc_beginning))
+  (heredoc_body (heredoc_content) (heredoc_end))
+  (assignment (identifier) (integer)))
+
+========================================
 heredoc with interspersed end word
 ========================================
 
