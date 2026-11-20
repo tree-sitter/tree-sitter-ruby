@@ -783,7 +783,11 @@ static inline bool scan_heredoc_content(Scanner *scanner, TSLexer *lexer, const 
             if (!has_content) {
                 lexer->mark_end(lexer);
             }
-            if (lexer->lookahead == '\n' || lexer->lookahead == '\r' || lexer->eof(lexer)) {
+            // CR LF ends the line, a lone CR does not (`EOS\rx` is content, as in Ruby)
+            if (lexer->lookahead == '\r') {
+                advance(lexer);
+            }
+            if (lexer->lookahead == '\n' || lexer->eof(lexer)) {
                 if (!has_content) {
                     return end_heredoc(scanner, lexer, current);
                 }
@@ -792,6 +796,8 @@ static inline bool scan_heredoc_content(Scanner *scanner, TSLexer *lexer, const 
             }
             has_content = true;
             position_in_word = 0;
+            // The rest of the line is content: `EOSEOS` does not end at its second `EOS`
+            look_for_heredoc_end = false;
         }
 
         if (lexer->eof(lexer)) {
@@ -846,12 +852,14 @@ static inline bool scan_heredoc_content(Scanner *scanner, TSLexer *lexer, const 
                 }
                 if (lexer->lookahead == '\r') {
                     advance(lexer);
-                    if (lexer->lookahead == '\n') {
-                        advance(lexer);
+                    // A lone CR is content: the end word cannot start after it
+                    if (lexer->lookahead != '\n') {
+                        has_content = true;
+                        lexer->mark_end(lexer);
+                        continue;
                     }
-                } else {
-                    advance(lexer);
                 }
+                advance(lexer);
                 has_content = true;
                 look_for_heredoc_end = true;
                 while (lexer->lookahead == ' ' || lexer->lookahead == '\t') {
@@ -1316,8 +1324,13 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
     if (literal_valid) {
         Literal literal = {0};
         literal.nesting_depth = 1;
+        const int32_t quote = lexer->lookahead;
 
         if (scan_open_delimiter(scanner, lexer, &literal, valid_symbols)) {
+            if (binds && pattern && (quote == '"' || quote == '\'')) {
+                lexer->mark_end(lexer);
+                bind_string_key(scanner, lexer, quote);
+            }
             array_push(&scanner->literal_stack, literal);
             lexer->result_symbol = literal.type;
             return true;

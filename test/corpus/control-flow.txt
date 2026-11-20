@@ -306,6 +306,35 @@ end
 
 (program (while (identifier) (do (redo))))
 
+==============================
+redo and retry with a modifier
+==============================
+
+loop do
+  redo if a
+end
+begin
+rescue
+  retry if b
+end
+
+---
+
+(program
+  (call
+    (identifier)
+    (do_block
+      (body_statement
+        (if_modifier
+          (redo)
+          (identifier)))))
+  (begin
+    (rescue
+      (then
+        (if_modifier
+          (retry)
+          (identifier))))))
+
 ===========
 empty begin
 ===========
@@ -360,6 +389,28 @@ end
 (program
   (begin (identifier)
     (ensure (identifier))))
+
+======================================
+begin and ensure followed by a comment
+======================================
+
+x = begin # start
+  1
+ensure # done
+  2
+end
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (begin
+      (comment)
+      (integer)
+      (ensure
+        (comment)
+        (integer)))))
 
 =======================
 begin with empty rescue
@@ -421,6 +472,41 @@ foo key:
         (hash_key_symbol)
         (identifier)))))
 
+==============================================================================
+hash shorthand argument followed by a line starting with ; or a rescue? method
+==============================================================================
+
+foo key:
+;
+foo key:
+rescue?
+foo key:
+rescue!
+
+---
+
+(program
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol))))
+  (empty_statement)
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (call
+          (identifier)))))
+  (call
+    (identifier)
+    (argument_list
+      (pair
+        (hash_key_symbol)
+        (call
+          (identifier))))))
+
 ===========================
 begin with rescue with args
 ===========================
@@ -479,6 +565,30 @@ end
 ---
 
 (program (begin (rescue (exceptions (splat_argument (identifier))))))
+
+========================
+rescue into an attribute
+========================
+
+begin
+rescue => e.x
+end
+e -1
+
+---
+
+(program
+  (begin
+    (rescue
+      (exception_variable
+        (call
+          (identifier)
+          (identifier)))))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer)))))
 
 =================
 rescue modifier

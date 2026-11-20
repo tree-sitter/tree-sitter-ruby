@@ -820,6 +820,20 @@ short interpolation of a special global variable
     (interpolation
       (global_variable))))
 
+==============================================================
+short interpolation markers not followed by a name are content
+==============================================================
+
+"#@ #@@ #$- "
+
+---
+
+(program
+  (string
+    (string_content)
+    (string_content)
+    (string_content)))
+
 ===========================================
 percent q string with unbalanced delimiters
 ===========================================
@@ -1028,6 +1042,40 @@ foo("%s '%s' " %
         (array
           (identifier)
           (identifier))))))
+
+==============================================================
+operators after a string that look like the start of a literal
+==============================================================
+
+"a" / 2
+"a" %s
+"a" %w
+"%d" %1
+"%d" %n
+
+---
+
+(program
+  (binary
+    (string
+      (string_content))
+    (integer))
+  (binary
+    (string
+      (string_content))
+    (identifier))
+  (binary
+    (string
+      (string_content))
+    (identifier))
+  (binary
+    (string
+      (string_content))
+    (integer))
+  (binary
+    (string
+      (string_content))
+    (identifier)))
 
 ========================================
 percent strings delimited by whitespace
@@ -1958,6 +2006,94 @@ EOF
     (heredoc_content)
     (heredoc_end)))
 
+========================================
+heredoc line that repeats the end word is content
+========================================
+
+x = <<~EOS
+  EOSEOS
+  EOS
+y = <<A
+AA
+A
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (heredoc_beginning))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end))
+  (assignment
+    (identifier)
+    (heredoc_beginning))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end)))
+
+============================================================================
+heredoc with 3- and 4-byte characters, and a line starting like its end word
+============================================================================
+
+x = <<~終わり
+  日本語 🎉
+  終わ🎉
+  終わり
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (heredoc_beginning))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end)))
+
+==========================
+heredoc indented with tabs
+==========================
+
+x = <<~EOS
+	a
+		b
+	EOS
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (heredoc_beginning))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end)))
+
+============================================
+multi-line string in a heredoc interpolation
+============================================
+
+x = <<~A
+  #{"x
+  y"}
+A
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (heredoc_beginning))
+  (heredoc_body
+    (heredoc_content)
+    (interpolation
+      (string
+        (string_content)))
+    (heredoc_content)
+    (heredoc_end)))
+
 ==================
 backticks subshell
 ==================
@@ -2795,6 +2931,38 @@ f(defined?: 1)
       (pair
         (hash_key_symbol)
         (integer)))))
+
+===================================================
+names ending in ? or ! where a hash key could start
+===================================================
+
+foo(bar!)
+[bar!]
+foo(bar?)
+foo(a!=b)
+
+---
+
+(program
+  (call
+    (identifier)
+    (argument_list
+      (call
+        (identifier))))
+  (array
+    (call
+      (identifier)))
+  (call
+    (identifier)
+    (argument_list
+      (call
+        (identifier))))
+  (call
+    (identifier)
+    (argument_list
+      (binary
+        (identifier)
+        (identifier)))))
 
 ===================================
 symbols of special global variables
