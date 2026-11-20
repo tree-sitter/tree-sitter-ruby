@@ -895,7 +895,7 @@ static inline bool scan_literal_content(Scanner *scanner, TSLexer *lexer, const 
                             advance(lexer);
                         }
                     }
-                    array_pop(&scanner->literal_stack);
+                    (void)array_pop(&scanner->literal_stack);
                     lexer->result_symbol = STRING_END;
                     lexer->mark_end(lexer);
                 }

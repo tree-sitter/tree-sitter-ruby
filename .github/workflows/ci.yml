@@ -157,3 +157,15 @@ jobs:
         run: cargo fetch --locked
       - name: Measure the coverage
         run: script/coverage.sh
+
+  warnings:
+    name: Scanner compiler warnings
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Build the scanner with every warning an error
+        run: |
+          for cc in gcc clang; do
+            "$cc" -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Werror -Isrc -c src/scanner.c -o /dev/null
+          done

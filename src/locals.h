@@ -342,7 +342,7 @@ static inline bool scan_scope_start(Scanner *scanner, TSLexer *lexer) {
     }
     array_push(&scanner->scopes, (uint8_t)scanner->locals.size);
     if (!emit_zero_width(scanner, lexer, SCOPE_START)) {
-        array_pop(&scanner->scopes);
+        (void)array_pop(&scanner->scopes);
         return false;
     }
     return true;
