@@ -75,7 +75,7 @@ jobs:
       - name: Run tests
         uses: tree-sitter/parser-test-action@92e35c06b51ea26c80ffbd3cc8d9286d9110df17 # v3
         with:
-          abi-version: 14
+          abi-version: 15
           test-rust: true
           test-node: true
           test-python: true
