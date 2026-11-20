@@ -2,7 +2,10 @@
   "name": "@magikdidi24/tree-sitter-ruby",
   "version": "0.25.0",
   "description": "Ruby grammar for tree-sitter",
-  "repository": "https://github.com/Magikdidi24/tree-sitter-ruby",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Magikdidi24/tree-sitter-ruby.git"
+  },
   "license": "MIT",
   "author": {
     "name": "Rob Rix",
