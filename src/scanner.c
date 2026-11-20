@@ -1016,6 +1016,12 @@ static inline bool scan_heredoc_start(Scanner *scanner, TSLexer *lexer, const bo
     return emit(lexer, HEREDOC_START);
 }
 
+// A parameter is bound with `_parameter_start`, which the grammar has right before it: the parser shifts it more
+// cheaply than the `_local_variables` extra
+static inline TokenType binding(const bool *valid_symbols) {
+    return valid_symbols[PARAMETER_START] ? PARAMETER_START : LOCAL_VARIABLES;
+}
+
 static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols) {
     scanner->has_leading_whitespace = false;
     // Set by the LOCAL_VARIABLES token before `x` in `x +1`, cleared by any other token
@@ -1094,7 +1100,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
             return false;
         }
         Name name = scan_name(lexer);
-        return bind_name(scanner, lexer, &name) && emit_zero_width(scanner, lexer, LOCAL_VARIABLES);
+        return bind_name(scanner, lexer, &name) && emit_zero_width(scanner, lexer, binding(valid_symbols));
     }
     // Only where a binary operator may follow
     const bool after_local = binary_operator != 0 && lexer->lookahead == binary_operator &&
@@ -1262,7 +1268,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
             return bind_key(scanner, lexer, &name) && emit_zero_width(scanner, lexer, LOCAL_VARIABLES);
         }
         if (binds && local_start && bind_name(scanner, lexer, &name)) {
-            return emit_zero_width(scanner, lexer, LOCAL_VARIABLES);
+            return emit_zero_width(scanner, lexer, binding(valid_symbols));
         }
         if (starts_operand && (binary_operator != 0 || is_one_of(lexer->lookahead, " \t=,+-*/%^|&<>\\"))) {
             return scan_local_variable(scanner, lexer, valid_symbols, &name, binary_operator, opened);

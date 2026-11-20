@@ -129,7 +129,8 @@ module.exports = grammar({
     $._operand_next,
     // Zero-width, emitted before a name to record local variables: `x +1` is `x + 1` once `x` is one
     $._local_variables,
-    // Never produced by the scanner; tells it that a parameter name follows, which declares a local variable
+    // Zero-width, before a parameter name, which declares a local variable: valid where one follows, and cheaper for
+    // the parser than the `_local_variables` extra
     $._parameter_start,
     // Zero-width, right after a block or lambda opens (saves the local variables) and right after a scope closes
     // (restores them)
