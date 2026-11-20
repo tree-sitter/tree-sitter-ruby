@@ -39,7 +39,7 @@ Neovim with nvim-treesitter (`main` branch), then `:TSInstall! ruby`:
 vim.api.nvim_create_autocmd('User', { pattern = 'TSUpdate', callback = function()
   local info = require('nvim-treesitter.parsers').ruby.install_info
   info.url = 'https://github.com/Magikdidi24/tree-sitter-ruby'
-  info.revision = 'df14fbe651cb06eeec66ec9be0b9279035d06639' -- v0.26.0
+  info.revision = '6aa2b0e44833ab7d1d4e2564f73527317e568735' -- v0.27.0
 end })
 ```
 
@@ -48,14 +48,14 @@ Helix, in `languages.toml`, then `hx --grammar fetch && hx --grammar build`:
 ```toml
 [[grammar]]
 name = "ruby"
-source = { git = "https://github.com/Magikdidi24/tree-sitter-ruby", rev = "df14fbe651cb06eeec66ec9be0b9279035d06639" }
+source = { git = "https://github.com/Magikdidi24/tree-sitter-ruby", rev = "6aa2b0e44833ab7d1d4e2564f73527317e568735" }
 ```
 
 Emacs 30, then `M-x treesit-install-language-grammar RET ruby`:
 
 ```elisp
 (add-to-list 'treesit-language-source-alist
-             '(ruby "https://github.com/Magikdidi24/tree-sitter-ruby" "v0.26.0"))
+             '(ruby "https://github.com/Magikdidi24/tree-sitter-ruby" "v0.27.0"))
 ```
 
 #### Development
