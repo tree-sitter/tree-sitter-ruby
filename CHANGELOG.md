@@ -1,0 +1,41 @@
+# Changelog
+
+Changes of this fork since upstream 0.23.1. Releases: https://github.com/Magikdidi24/tree-sitter-ruby/releases
+
+## Unreleased
+
+- Packages are published with trusted publishing (OIDC): no registry token is stored in the repository.
+
+## 0.25.0 (2026-11-20)
+
+- `src/parser.c` is generated for ABI 15, read by tree-sitter 0.25 and newer runtimes (Neovim 0.11, py-tree-sitter 0.25,
+  node-tree-sitter 0.25, the Rust crate 0.25). It carries the grammar name, version and supertypes. Older runtimes need
+  `tree-sitter generate --abi 14`.
+- The Neovim, Helix and Zed Ruby queries all compile against this grammar.
+- Playground on GitHub Pages: https://magikdidi24.github.io/tree-sitter-ruby/
+- Packages under this fork's names, with the upstream import names (`tree_sitter_ruby`): `@magikdidi24/tree-sitter-ruby`
+  on npm, `tree-sitter-ruby-magikdidi24` on crates.io and PyPI. Go module `github.com/Magikdidi24/tree-sitter-ruby`.
+- CI parses the inputs that once crashed, hung or slowed the scanner under ASan and UBSan, with a 10 s limit per file.
+- Identifier characters are looked up in a table: 4.81 s instead of 4.88 s on 46 MB of real Ruby.
+
+## 0.24.1 (2026-11-19)
+
+- Like Ruby, `x +1` is `x + 1` when `x` is a local variable, and the call `x(+1)` otherwise; same for `-`, `*`, `**`,
+  `&`, `[`, `/`, `%` and `<<`. The scanner tracks assignments, parameters, `for` and `rescue =>` variables, numbered
+  parameters, and the scopes of blocks, lambdas, methods, classes and modules.
+- `def self(token)`, hash keys `defined?:`, `key?:` and `key!:`, symbols of special globals (`:$'`, `:$-w`), and
+  `return[1]`, `return-1`, `break[1]` with an operand.
+- `locals.scm`: a superclass and the object of `class << obj` are read in the outer scope.
+- tree-sitter CLI 0.27.2, `deno lint` instead of ESLint, Rust 1.90, no `wheel` build dependency.
+- CI actions pinned to commits, read-only tokens, CodeQL on the scanner, Dependabot.
+- Prism agrees on 6685 of 6689 files from stdlib, gems and ruby/spec.
+
+## 0.24.0 (2026-10-25)
+
+- Every upstream issue open at the time handled: 21 fixed (heredocs, ERB comments, anonymous `&` block arguments,
+  multi-byte symbols, `%` literals, Ruby 4.0 leading `||`/`and`/`or`, a scanner crash on deserialize, ...), 4 closed
+  as wontfix with a reason.
+- Better highlights, locals and tags, and a new `injections.scm` (regex, heredocs labelled SQL, GraphQL, HTML, Bash,
+  Ruby).
+- Rust edition 2024 (Rust 1.85), go-tree-sitter 0.25 (Go 1.23), Python 3.10.
+- In `node-types.json`, `call.operator` is now `"." | "&." | "::"`.

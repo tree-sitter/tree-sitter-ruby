@@ -21,6 +21,36 @@ pip install git+https://github.com/Magikdidi24/tree-sitter-ruby@v0.25.0
 go get github.com/Magikdidi24/tree-sitter-ruby@v0.25.0
 ```
 
+#### Editors
+
+Editors fetch upstream's grammar by default; point them at this repository instead. They need a tree-sitter 0.25 or
+newer runtime (ABI 15). The editors' own Ruby queries work with this grammar.
+
+Neovim with nvim-treesitter (`main` branch), then `:TSInstall! ruby`:
+
+```lua
+vim.api.nvim_create_autocmd('User', { pattern = 'TSUpdate', callback = function()
+  local info = require('nvim-treesitter.parsers').ruby.install_info
+  info.url = 'https://github.com/Magikdidi24/tree-sitter-ruby'
+  info.revision = '9f675174553fc7f89ed656163d460d738b97828f' -- v0.25.0
+end })
+```
+
+Helix, in `languages.toml`, then `hx --grammar fetch && hx --grammar build`:
+
+```toml
+[[grammar]]
+name = "ruby"
+source = { git = "https://github.com/Magikdidi24/tree-sitter-ruby", rev = "9f675174553fc7f89ed656163d460d738b97828f" }
+```
+
+Emacs 30, then `M-x treesit-install-language-grammar RET ruby`:
+
+```elisp
+(add-to-list 'treesit-language-source-alist
+             '(ruby "https://github.com/Magikdidi24/tree-sitter-ruby" "v0.25.0"))
+```
+
 #### Development
 
 The parser is generated for ABI 15, which tree-sitter 0.25 and newer runtimes read (Neovim 0.11, py-tree-sitter 0.25,
