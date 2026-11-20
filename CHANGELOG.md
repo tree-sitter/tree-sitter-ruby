@@ -2,6 +2,11 @@
 
 Changes of this fork since upstream 0.23.1. Releases: https://github.com/Magikdidi24/tree-sitter-ruby/releases
 
+## Unreleased
+
+- Tests run 97.7 % of the scanner's lines and 92.5 % of its branches (CI fails below 97.5 % and 92.0 %), and found two
+  heredoc bugs, now fixed: a lone CR or a line that repeats the end word (`EOSEOS`) ended the body.
+
 ## 0.26.0 (2026-11-20)
 
 - Packages are published with trusted publishing (OIDC): no registry token is stored in the repository.
