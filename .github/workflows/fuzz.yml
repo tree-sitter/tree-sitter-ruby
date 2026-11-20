@@ -14,6 +14,9 @@ on:
       - src/**
       - script/adversarial.rb
       - script/sanitize.c
+  # Nightly: an hour of fuzzing from the corpus kept by earlier nights
+  schedule:
+    - cron: "17 3 * * *"
 
 permissions:
   contents: read
@@ -24,10 +27,25 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Restore the corpus of earlier nights
+        if: github.event_name == 'schedule'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: fuzz-corpus
+          key: fuzz-corpus-${{github.run_id}}
+          restore-keys: fuzz-corpus-
+      - name: Seed the corpus
+        if: github.event_name == 'schedule'
+        run: mkdir -p fuzz-corpus && cp test/highlight/* fuzz-corpus/
       - name: Run fuzzer
         uses: tree-sitter/fuzz-action@6a1dcff00aefd038ba418bd63732a9add4901266 # v4
         with:
-          corpus: test/highlight
+          corpus: ${{github.event_name == 'schedule' && 'fuzz-corpus' || 'test/highlight'}}
+          max-time: ${{github.event_name == 'schedule' && 3600 || 60}}
+      # libFuzzer writes the inputs it finds to out/ in the action's directory, not to the corpus it reads
+      - name: Keep the new inputs
+        if: github.event_name == 'schedule'
+        run: cp -r "$GITHUB_WORKSPACE"/../../_actions/tree-sitter/fuzz-action/*/out/. fuzz-corpus/
 
   sanitizers:
     name: ASan and UBSan on the inputs that once broke the scanner
