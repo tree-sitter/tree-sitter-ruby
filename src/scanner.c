@@ -783,7 +783,11 @@ static inline bool scan_heredoc_content(Scanner *scanner, TSLexer *lexer, const 
             if (!has_content) {
                 lexer->mark_end(lexer);
             }
-            if (lexer->lookahead == '\n' || lexer->lookahead == '\r' || lexer->eof(lexer)) {
+            // CR LF ends the line, a lone CR does not (`EOS\rx` is content, as in Ruby)
+            if (lexer->lookahead == '\r') {
+                advance(lexer);
+            }
+            if (lexer->lookahead == '\n' || lexer->eof(lexer)) {
                 if (!has_content) {
                     return end_heredoc(scanner, lexer, current);
                 }
@@ -848,12 +852,14 @@ static inline bool scan_heredoc_content(Scanner *scanner, TSLexer *lexer, const 
                 }
                 if (lexer->lookahead == '\r') {
                     advance(lexer);
-                    if (lexer->lookahead == '\n') {
-                        advance(lexer);
+                    // A lone CR is content: the end word cannot start after it
+                    if (lexer->lookahead != '\n') {
+                        has_content = true;
+                        lexer->mark_end(lexer);
+                        continue;
                     }
-                } else {
-                    advance(lexer);
                 }
+                advance(lexer);
                 has_content = true;
                 look_for_heredoc_end = true;
                 while (lexer->lookahead == ' ' || lexer->lookahead == '\t') {
