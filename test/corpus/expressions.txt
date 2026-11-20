@@ -575,6 +575,49 @@ a...b
     (identifier)
     (identifier)))
 
+=====================================
+range ending a line
+=====================================
+
+r = 0..
+r = 1..2
+x = (a..
+     b)
+y = (1..
+)
+def f
+  2...
+end
+
+---
+
+(program
+  (assignment
+    left: (identifier)
+    right: (range
+      begin: (integer)
+      end: (assignment
+        left: (identifier)
+        right: (range
+          begin: (integer)
+          end: (integer)))))
+  (assignment
+    left: (identifier)
+    right: (parenthesized_statements
+      (range
+        begin: (identifier)
+        end: (identifier))))
+  (assignment
+    left: (identifier)
+    right: (parenthesized_statements
+      (range
+        begin: (integer))))
+  (method
+    name: (identifier)
+    body: (body_statement
+      (range
+        begin: (integer)))))
+
 ==========
 boolean or
 ==========
