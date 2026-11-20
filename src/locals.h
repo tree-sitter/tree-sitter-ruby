@@ -194,7 +194,9 @@ static inline bool scan_local_variable(Scanner *scanner, TSLexer *lexer, const b
         uint8_t kind = name_is(name, "def") ? DEF : name_is(name, "class") ? CLASS : name_is(name, "module") ? MODULE : 0;
         // shortcut: the same keyword again before any other scanner token (`def a; def b`) opens no scope, as if it
         // were this one scanned twice; its variables then stay until the outer scope ends
-        if (kind && kind != opened && scanner->scopes.size < MAX_SCOPES) {
+        // With no scope and no local open, there is nothing to hide, and the `end` clears the locals anyway
+        if (kind && kind != opened && scanner->scopes.size < MAX_SCOPES &&
+            (scanner->scopes.size > 0 || scanner->locals.size > 0)) {
             array_push(&scanner->scopes, (uint8_t)(scanner->locals.size | HIDES_OUTER));
             scanner->opened = kind;
             changed = true;

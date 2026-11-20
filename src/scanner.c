@@ -1070,6 +1070,9 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
         }
         if (scanner->scopes.size > 0 && (*array_back(&scanner->scopes) & HIDES_OUTER)) {
             *array_back(&scanner->scopes) |= ENDLESS;
+        } else if (scanner->scopes.size == 0) {
+            // A `def` with nothing to hide opened no scope: its locals started at 0
+            array_push(&scanner->scopes, (uint8_t)(HIDES_OUTER | ENDLESS));
         }
         return emit_zero_width(scanner, lexer, ENDLESS_METHOD);
     }
