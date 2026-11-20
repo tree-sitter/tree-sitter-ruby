@@ -133,13 +133,13 @@ static inline bool emit(TSLexer *lexer, TokenType type) {
     return true;
 }
 
+// Cleared, not freed: deserialize runs before every scan
 static inline void reset(Scanner *scanner) {
-    array_delete(&scanner->literal_stack);
+    array_clear(&scanner->literal_stack);
     for (uint32_t i = 0; i < scanner->open_heredocs.size; i++) {
         array_delete(&array_get(&scanner->open_heredocs, i)->word);
     }
-    array_delete(&scanner->open_heredocs);
-    // Cleared, not freed: deserialize runs before every scan
+    array_clear(&scanner->open_heredocs);
     array_clear(&scanner->locals);
     array_clear(&scanner->scopes);
     scanner->binary_operator = 0;
@@ -1324,6 +1324,8 @@ void tree_sitter_ruby_external_scanner_deserialize(void *payload, const char *bu
 void tree_sitter_ruby_external_scanner_destroy(void *payload) {
     Scanner *scanner = (Scanner *)payload;
     reset(scanner);
+    array_delete(&scanner->literal_stack);
+    array_delete(&scanner->open_heredocs);
     array_delete(&scanner->locals);
     array_delete(&scanner->scopes);
     ts_free(scanner);
