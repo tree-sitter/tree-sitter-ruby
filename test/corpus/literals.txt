@@ -1285,6 +1285,28 @@ return
   (return))
 
 ========================================
+heredoc with a plain hash before an interpolation
+========================================
+
+x = <<~MSG
+  #{a}##{b} is not a comment
+MSG
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (heredoc_beginning))
+  (heredoc_body
+    (heredoc_content)
+    (interpolation (identifier))
+    (heredoc_content)
+    (interpolation (identifier))
+    (heredoc_content)
+    (heredoc_end)))
+
+========================================
 heredocs with in args, pairs, and arrays
 ========================================
 

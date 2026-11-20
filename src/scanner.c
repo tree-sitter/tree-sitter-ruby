@@ -735,6 +735,9 @@ static inline bool scan_heredoc_content(Scanner *scanner, TSLexer *lexer) {
                 if (scan_short_interpolation(lexer, has_content, HEREDOC_CONTENT)) {
                     return true;
                 }
+                // A plain `#` is content
+                has_content = true;
+                lexer->mark_end(lexer);
             } else if (lexer->lookahead == '\r' || lexer->lookahead == '\n') {
                 if (lexer->lookahead == '\r') {
                     advance(lexer);
