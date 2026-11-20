@@ -1,17 +1,10 @@
 name: CodeQL
 
+# Every commit and pull request, so OpenSSF Scorecard sees static analysis on all of them
 on:
   push:
     branches: [master]
-    paths:
-      - src/scanner.c
-      - src/locals.h
-      - .github/workflows/codeql.yml
   pull_request:
-    paths:
-      - src/scanner.c
-      - src/locals.h
-      - .github/workflows/codeql.yml
   schedule:
     - cron: "17 3 * * 1"
 

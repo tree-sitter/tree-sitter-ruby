@@ -46,7 +46,7 @@ updates:
       gomod:
         patterns: ["*"]
   - package-ecosystem: pip
-    directory: /
+    directories: [/, /.github]
     schedule:
       interval: weekly
     commit-message:

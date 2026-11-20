@@ -24,7 +24,7 @@ previous=$(node -p 'require("./package.json").version')
 
 "$ts" version "$version"
 cargo update --workspace --offline --quiet
-npm install --package-lock-only --legacy-peer-deps --ignore-scripts --silent
+npm version "$version" --no-git-tag-version --allow-same-version >/dev/null
 "$ts" generate --abi 15
 sed -i "s/^## Unreleased$/## $version ($(date +%F))/" CHANGELOG.md
 "$ts" test >/dev/null
