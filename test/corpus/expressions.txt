@@ -265,6 +265,39 @@ or!
   (call
     (identifier)))
 
+=========================================================================================
+identifiers starting with and/or and a digit, capital, underscore or multi-byte character
+=========================================================================================
+
+x = 1
+and1 = 2
+andFoo = 3
+and_x = 4
+andé = 5
+or_y = 6
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (integer))
+  (assignment
+    (identifier)
+    (integer))
+  (assignment
+    (identifier)
+    (integer))
+  (assignment
+    (identifier)
+    (integer))
+  (assignment
+    (identifier)
+    (integer))
+  (assignment
+    (identifier)
+    (integer)))
+
 ========
 defined?
 ========
@@ -3233,6 +3266,19 @@ foo
   (regex
     (string_content)))
 
+===================================
+division with a tab after the slash
+===================================
+
+foo /	2
+
+---
+
+(program
+  (binary
+    (identifier)
+    (integer)))
+
 ===============================
 forward slash operator as method
 ===============================
@@ -3354,6 +3400,37 @@ x <<y
   (binary
     (identifier)
     (identifier)))
+
+=============================================================================
+operators after a local variable that look like a literal or a unary operator
+=============================================================================
+
+x = 4
+w = 3
+x %w
+x --1
+x ++1
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (integer))
+  (assignment
+    (identifier)
+    (integer))
+  (binary
+    (identifier)
+    (identifier))
+  (binary
+    (identifier)
+    (unary
+      (integer)))
+  (binary
+    (identifier)
+    (unary
+      (integer))))
 
 ==============================================
 operator after a parameter is binary
@@ -3522,6 +3599,41 @@ m -1
   (binary
     (identifier)
     (integer)))
+
+====================================================================
+multiple assignment to instance, global, constant and scoped targets
+====================================================================
+
+a, @b, $c, D = 1, 2, 3, 4
+a -1
+e, f::G = 1, 2
+
+---
+
+(program
+  (assignment
+    (left_assignment_list
+      (identifier)
+      (instance_variable)
+      (global_variable)
+      (constant))
+    (right_assignment_list
+      (integer)
+      (integer)
+      (integer)
+      (integer)))
+  (binary
+    (identifier)
+    (integer))
+  (assignment
+    (left_assignment_list
+      (identifier)
+      (scope_resolution
+        (identifier)
+        (constant)))
+    (right_assignment_list
+      (integer)
+      (integer))))
 
 ==============================================
 variables of a block or lambda end with it
@@ -3693,6 +3805,30 @@ b +1
       (unary
         (integer)))))
 
+================================================
+an endless method in a block ends with the block
+================================================
+
+proc { def f(x) = x }; x -1
+
+---
+
+(program
+  (call
+    (identifier)
+    (block
+      (block_body
+        (method
+          (identifier)
+          (method_parameters
+            (identifier))
+          (identifier)))))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer)))))
+
 ==============================================
 a pattern after an endless method binds outside it
 ==============================================
@@ -3774,6 +3910,68 @@ x \
       (rest_assignment
         (identifier)))
     (integer))
+  (binary
+    (identifier)
+    (integer))
+  (assignment
+    (identifier)
+    (integer))
+  (binary
+    (identifier)
+    (integer)))
+
+=======================================================================
+names like numbered parameters, and tabs after for and after a variable
+=======================================================================
+
+foo -1
+ab -1
+_a -1
+_0 -1
+[1].map { _1 -1 }
+for	i in b
+end
+i -1
+y	= 1
+y -1
+
+---
+
+(program
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer))))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer))))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer))))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer))))
+  (call
+    (array
+      (integer))
+    (identifier)
+    (block
+      (block_body
+        (binary
+          (identifier)
+          (integer)))))
+  (for
+    (identifier)
+    (in
+      (identifier))
+    (do))
   (binary
     (identifier)
     (integer))
@@ -3968,6 +4166,62 @@ end
       (binary
         (identifier)
         (integer)))))
+
+===============================================================
+hash pattern keys before a tab, then, and, or, and keyword keys
+===============================================================
+
+case h
+in {k:	} then k -1
+in a: then a -1
+in {if:}
+end
+h in b: and b -1
+h in c: or c -1
+
+---
+
+(program
+  (case_match
+    (identifier)
+    (in_clause
+      (hash_pattern
+        (keyword_pattern
+          (hash_key_symbol)))
+      (then
+        (binary
+          (identifier)
+          (integer))))
+    (in_clause
+      (hash_pattern
+        (keyword_pattern
+          (hash_key_symbol)))
+      (then
+        (binary
+          (identifier)
+          (integer))))
+    (in_clause
+      (hash_pattern
+        (keyword_pattern
+          (hash_key_symbol)))))
+  (binary
+    (test_pattern
+      (identifier)
+      (hash_pattern
+        (keyword_pattern
+          (hash_key_symbol))))
+    (binary
+      (identifier)
+      (integer)))
+  (binary
+    (test_pattern
+      (identifier)
+      (hash_pattern
+        (keyword_pattern
+          (hash_key_symbol))))
+    (binary
+      (identifier)
+      (integer))))
 
 ==============================================
 pinned values, constants, hash arguments and strings declare nothing
@@ -4210,6 +4464,35 @@ end
           (unary
             (integer)))))))
 
+===========================================
+a comparison after a comma declares nothing
+===========================================
+
+case x
+when a, b == c then 1
+end
+b -1
+
+---
+
+(program
+  (case
+    (identifier)
+    (when
+      (pattern
+        (identifier))
+      (pattern
+        (binary
+          (identifier)
+          (identifier)))
+      (then
+        (integer))))
+  (call
+    (identifier)
+    (argument_list
+      (unary
+        (integer)))))
+
 ==============================================
 local variables end with their scope
 ==============================================
@@ -4440,6 +4723,106 @@ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
       (identifier)
       (identifier))
     (integer))
+  (heredoc_body
+    (heredoc_content)
+    (heredoc_end)))
+
+================================================
+more than 63 local variables or 32 nested scopes
+================================================
+
+def f(a00, a01, a02, a03, a04, a05, a06, a07, a08, a09, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29, a30, a31, a32, a33, a34, a35, a36, a37, a38, a39, a40, a41, a42, a43, a44, a45, a46, a47, a48, a49, a50, a51, a52, a53, a54, a55, a56, a57, a58, a59, a60, a61, a62, a63)
+end
+proc { proc { proc { proc { proc { proc { proc { proc { proc { proc { proc { proc { proc { proc { proc { proc { proc { proc { proc { proc { proc { proc { proc { proc { proc { proc { proc { proc { proc { proc { proc { proc { proc { def f = 1 } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } } }
+
+---
+
+(program
+  (method
+    (identifier)
+    (method_parameters
+      (identifier) (identifier) (identifier) (identifier) (identifier) (identifier) (identifier) (identifier)
+      (identifier) (identifier) (identifier) (identifier) (identifier) (identifier) (identifier) (identifier)
+      (identifier) (identifier) (identifier) (identifier) (identifier) (identifier) (identifier) (identifier)
+      (identifier) (identifier) (identifier) (identifier) (identifier) (identifier) (identifier) (identifier)
+      (identifier) (identifier) (identifier) (identifier) (identifier) (identifier) (identifier) (identifier)
+      (identifier) (identifier) (identifier) (identifier) (identifier) (identifier) (identifier) (identifier)
+      (identifier) (identifier) (identifier) (identifier) (identifier) (identifier) (identifier) (identifier)
+      (identifier) (identifier) (identifier) (identifier) (identifier) (identifier) (identifier) (identifier)))
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (call (identifier) (block (block_body
+  (method (identifier) (integer))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+
+===================================================
+bindings and block scopes past the state size limit
+===================================================
+
+x = 1
+foo(<<AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA); proc { |*a| }; case 1; in {k:} then 1; in Integer => y then 2; end
+body
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+---
+
+(program
+  (assignment
+    (identifier)
+    (integer))
+  (call
+    (identifier)
+    (argument_list
+      (heredoc_beginning)))
+  (call
+    (identifier)
+    (block
+      (block_parameters
+        (splat_parameter
+          (identifier)))))
+  (case_match
+    (integer)
+    (in_clause
+      (hash_pattern
+        (keyword_pattern
+          (hash_key_symbol)))
+      (then
+        (integer)))
+    (in_clause
+      (as_pattern
+        (constant)
+        (identifier))
+      (then
+        (integer))))
   (heredoc_body
     (heredoc_content)
     (heredoc_end)))

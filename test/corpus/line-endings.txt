@@ -37,3 +37,32 @@ foo
   (assignment (identifier) (heredoc_beginning))
   (heredoc_body (heredoc_content) (heredoc_end))
   (identifier))
+
+=======================
+CRLF line continuations
+=======================
+
+foo \
+  1
+x = 1
+x \
++1
+foo /
+  2
+
+---
+
+(program
+  (call
+    (identifier)
+    (argument_list
+      (integer)))
+  (assignment
+    (identifier)
+    (integer))
+  (binary
+    (identifier)
+    (integer))
+  (binary
+    (identifier)
+    (integer)))

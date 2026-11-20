@@ -153,6 +153,40 @@ def f = x if y
     condition: (identifier))
 )
 
+==========================================================================
+"end"-less method body with a word that ends it, as a key or a method name
+==========================================================================
+
+def f = puts if: 1
+def g = puts end?
+def h = puts end!
+
+---
+
+(program
+  (method
+    (identifier)
+    (call
+      (identifier)
+      (argument_list
+        (pair
+          (hash_key_symbol)
+          (integer)))))
+  (method
+    (identifier)
+    (call
+      (identifier)
+      (argument_list
+        (call
+          (identifier)))))
+  (method
+    (identifier)
+    (call
+      (identifier)
+      (argument_list
+        (call
+          (identifier))))))
+
 ===========================
 method as attribute setter
 ===========================
