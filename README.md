@@ -6,6 +6,7 @@
 [![crates][crates]](https://crates.io/crates/tree-sitter-ruby-magikdidi24)
 [![pypi][pypi]](https://pypi.org/project/tree-sitter-ruby-magikdidi24/)
 [![coverage][coverage]](https://github.com/Magikdidi24/tree-sitter-ruby/actions/workflows/ci.yml)
+[![openssf best practices][bestpractices]](https://www.bestpractices.dev/projects/16944)
 [![scorecard][scorecard]](https://scorecard.dev/viewer/?uri=github.com/Magikdidi24/tree-sitter-ruby)
 [![performance][performance]](https://magikdidi24.github.io/tree-sitter-ruby/perf.html)
 [![playground][playground]](https://magikdidi24.github.io/tree-sitter-ruby/)
@@ -100,6 +101,7 @@ a hash pattern (`in {"name":}`) still declares nothing, so there `name +1` stays
 [crates]: https://img.shields.io/crates/v/tree-sitter-ruby-magikdidi24?logo=rust
 [pypi]: https://img.shields.io/pypi/v/tree-sitter-ruby-magikdidi24?logo=pypi
 [coverage]: https://img.shields.io/endpoint?url=https%3A%2F%2Fmagikdidi24.github.io%2Ftree-sitter-ruby%2Fcoverage.json
+[bestpractices]: https://www.bestpractices.dev/projects/16944/badge
 [scorecard]: https://api.scorecard.dev/projects/github.com/Magikdidi24/tree-sitter-ruby/badge
 [performance]: https://img.shields.io/badge/performance-history-blue
 [playground]: https://img.shields.io/badge/playground-try%20it-blue?logo=webassembly
