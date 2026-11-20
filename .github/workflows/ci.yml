@@ -145,3 +145,15 @@ jobs:
           git -C examples/ruby_spec checkout --quiet ${{env.RUBY_SPEC_REF}}
       - name: Compare with the base
         run: script/perf_guard.sh base examples/ruby_spec test/highlight
+
+  coverage:
+    name: Scanner coverage by the tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The runtime's source comes from the Rust dev-dependency, checked against Cargo.lock
+      - name: Fetch the tree-sitter runtime
+        run: cargo fetch --locked
+      - name: Measure the coverage
+        run: script/coverage.sh
