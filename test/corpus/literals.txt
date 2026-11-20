@@ -289,6 +289,28 @@ $VERBOSE
   (global_variable)
   (global_variable))
 
+=======================================
+global variables with non-ASCII names
+=======================================
+
+$한글 = 1
+$é = $_x
+$-é
+"#$한글 #$é"
+"#ŀa #Ĥ!"
+
+---
+
+(program
+  (assignment (global_variable) (integer))
+  (assignment (global_variable) (global_variable))
+  (global_variable)
+  (string
+    (interpolation (global_variable))
+    (string_content)
+    (interpolation (global_variable)))
+  (string (string_content)))
+
 =======
 integer
 =======

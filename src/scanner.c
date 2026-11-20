@@ -631,7 +631,7 @@ static inline void scan_heredoc_word(TSLexer *lexer, Heredoc *heredoc) {
 }
 
 static inline bool scan_short_interpolation(TSLexer *lexer, const bool has_content, const TSSymbol content_symbol) {
-    char start = (char)lexer->lookahead;
+    int32_t start = lexer->lookahead;
     if (start == '@' || start == '$') {
         if (has_content) {
             lexer->result_symbol = content_symbol;
@@ -641,14 +641,18 @@ static inline bool scan_short_interpolation(TSLexer *lexer, const bool has_conte
         advance(lexer);
         bool is_short_interpolation = false;
         if (start == '$') {
-            if (strchr("!@&`'+~=/\\,;.<>*$?:\"", lexer->lookahead) != NULL) {
+            if (lexer->lookahead > 0 && lexer->lookahead < 0x80 &&
+                strchr("!@&`'+~=/\\,;.<>*$?:\"", (char)lexer->lookahead) != NULL) {
                 is_short_interpolation = true;
             } else {
+                // Like Ruby, any non-ASCII character can start a global variable name
                 if (lexer->lookahead == '-') {
                     advance(lexer);
-                    is_short_interpolation = iswalpha(lexer->lookahead) || lexer->lookahead == '_';
+                    is_short_interpolation =
+                        lexer->lookahead >= 0x80 || iswalpha(lexer->lookahead) || lexer->lookahead == '_';
                 } else {
-                    is_short_interpolation = iswalnum(lexer->lookahead) || lexer->lookahead == '_';
+                    is_short_interpolation =
+                        lexer->lookahead >= 0x80 || iswalnum(lexer->lookahead) || lexer->lookahead == '_';
                 }
             }
         }
