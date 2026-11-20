@@ -667,8 +667,22 @@ static inline bool scan_short_interpolation(TSLexer *lexer, const bool has_conte
     return false;
 }
 
-static inline bool scan_heredoc_content(Scanner *scanner, TSLexer *lexer) {
-    Heredoc *heredoc = array_get(&scanner->open_heredocs, 0);
+// Index of the heredoc whose body is being read (open_heredocs.size if none): heredocs opened in its
+// interpolations sit before it, waiting for the end of the line
+static inline uint32_t current_heredoc_index(Scanner *scanner) {
+    uint32_t index = 0;
+    while (index < scanner->open_heredocs.size && !array_get(&scanner->open_heredocs, index)->started) {
+        index++;
+    }
+    return index;
+}
+
+static inline bool scan_heredoc_content(Scanner *scanner, TSLexer *lexer, const bool *valid_symbols) {
+    uint32_t current = current_heredoc_index(scanner);
+    if (current == scanner->open_heredocs.size) {
+        current = 0;
+    }
+    Heredoc *heredoc = array_get(&scanner->open_heredocs, current);
     size_t position_in_word = 0;
     bool look_for_heredoc_end = true;
     bool has_content = false;
@@ -686,7 +700,7 @@ static inline bool scan_heredoc_content(Scanner *scanner, TSLexer *lexer) {
                     lexer->result_symbol = HEREDOC_CONTENT;
                 } else {
                     array_delete(&heredoc->word);
-                    array_erase(&scanner->open_heredocs, 0);
+                    array_erase(&scanner->open_heredocs, current);
                     lexer->result_symbol = HEREDOC_BODY_END;
                 }
                 return true;
@@ -701,7 +715,7 @@ static inline bool scan_heredoc_content(Scanner *scanner, TSLexer *lexer) {
                 lexer->result_symbol = HEREDOC_CONTENT;
             } else {
                 array_delete(&heredoc->word);
-                array_erase(&scanner->open_heredocs, 0);
+                array_erase(&scanner->open_heredocs, current);
                 lexer->result_symbol = HEREDOC_BODY_END;
             }
             return true;
@@ -736,6 +750,16 @@ static inline bool scan_heredoc_content(Scanner *scanner, TSLexer *lexer) {
                     return true;
                 }
             } else if (lexer->lookahead == '\r' || lexer->lookahead == '\n') {
+                // A nested heredoc body starts at the end of the line that opened it
+                if (current > 0 && valid_symbols[HEREDOC_BODY_START]) {
+                    if (has_content) {
+                        lexer->result_symbol = HEREDOC_CONTENT;
+                    } else {
+                        array_get(&scanner->open_heredocs, 0)->started = true;
+                        lexer->result_symbol = HEREDOC_BODY_START;
+                    }
+                    return true;
+                }
                 if (lexer->lookahead == '\r') {
                     advance(lexer);
                     if (lexer->lookahead == '\n') {
@@ -846,7 +870,7 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
             return scan_literal_content(scanner, lexer);
         }
         if ((valid_symbols[HEREDOC_CONTENT] || valid_symbols[HEREDOC_BODY_END]) && scanner->open_heredocs.size > 0) {
-            return scan_heredoc_content(scanner, lexer);
+            return scan_heredoc_content(scanner, lexer, valid_symbols);
         }
     }
 
@@ -1063,7 +1087,8 @@ static inline bool scan(Scanner *scanner, TSLexer *lexer, const bool *valid_symb
                 array_delete(&heredoc.word);
                 return false;
             }
-            array_push(&scanner->open_heredocs, heredoc);
+            // A heredoc opened inside another heredoc's body is read before the rest of that body
+            array_insert(&scanner->open_heredocs, current_heredoc_index(scanner), heredoc);
             lexer->result_symbol = HEREDOC_START;
             return true;
         }
