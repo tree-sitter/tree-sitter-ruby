@@ -5,6 +5,9 @@ Changes of this fork since upstream 0.23.1. Releases: https://github.com/Magikdi
 ## Unreleased
 
 - A string key in a hash pattern binds its name, as in Ruby: after `in {"name":}`, `name +1` is `name + 1`.
+- `highlights.scm`: a block's implicit parameter, `it` or `_1` to `_9`, is a parameter, no longer a method call.
+- `locals.scm`: `in {name:}`, `in {"name":}`, `in (x)` and `in _a | _b` define their names, so later uses are variables;
+  a key without a value is highlighted as the variable it binds.
 
 ## 0.26.0 (2026-11-20)
 
