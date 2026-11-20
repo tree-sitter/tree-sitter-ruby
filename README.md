@@ -52,7 +52,7 @@ Emacs 30, then `M-x treesit-install-language-grammar RET ruby`:
 
 ```elisp
 (add-to-list 'treesit-language-source-alist
-             '(ruby "https://github.com/Magikdidi24/tree-sitter-ruby" "v0.25.0"))
+             '(ruby "https://github.com/Magikdidi24/tree-sitter-ruby" "v0.26.0"))
 ```
 
 #### Development
