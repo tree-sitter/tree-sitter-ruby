@@ -243,11 +243,14 @@ module.exports = grammar({
     // Above MATCH: `def f = x in pat` matches the whole def, as in Ruby.
     _body_expr: $ => prec(PREC.MATCH + 1,
       seq(
-        optional($._endless_method),
-        '=',
+        $._endless_eq,
         field('body', $._arg_rhs),
       ),
     ),
+
+    // A rule of its own, so that the body after it is one set of parser states, not one with `_endless_method` and
+    // one without
+    _endless_eq: $ => seq(optional($._endless_method), '='),
 
     // `def foo = bar baz`: like parse.y's `endless_command`, a command body is only
     // allowed where a command is, so these live in `_expression`, not `_primary`.
@@ -258,8 +261,7 @@ module.exports = grammar({
     _command_method_rest: $ => prec(1, seq(
       field('name', $._method_name),
       optional(field('parameters', alias($.parameters, $.method_parameters))),
-      optional($._endless_method),
-      '=',
+      $._endless_eq,
       field('body', $._command_rhs),
     )),
 

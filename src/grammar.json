@@ -506,20 +506,8 @@
         "type": "SEQ",
         "members": [
           {
-            "type": "CHOICE",
-            "members": [
-              {
-                "type": "SYMBOL",
-                "name": "_endless_method"
-              },
-              {
-                "type": "BLANK"
-              }
-            ]
-          },
-          {
-            "type": "STRING",
-            "value": "="
+            "type": "SYMBOL",
+            "name": "_endless_eq"
           },
           {
             "type": "FIELD",
@@ -531,6 +519,27 @@
           }
         ]
       }
+    },
+    "_endless_eq": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_endless_method"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": "="
+        }
+      ]
     },
     "command_method": {
       "type": "SEQ",
@@ -646,20 +655,8 @@
             ]
           },
           {
-            "type": "CHOICE",
-            "members": [
-              {
-                "type": "SYMBOL",
-                "name": "_endless_method"
-              },
-              {
-                "type": "BLANK"
-              }
-            ]
-          },
-          {
-            "type": "STRING",
-            "value": "="
+            "type": "SYMBOL",
+            "name": "_endless_eq"
           },
           {
             "type": "FIELD",
