@@ -7256,7 +7256,7 @@
         "members": [
           {
             "type": "PATTERN",
-            "value": "[A-Z]"
+            "value": "\\p{Uppercase}"
           },
           {
             "type": "PATTERN",
@@ -7275,7 +7275,7 @@
             "members": [
               {
                 "type": "PATTERN",
-                "value": "[A-Z]"
+                "value": "\\p{Uppercase}"
               },
               {
                 "type": "PATTERN",
@@ -7301,7 +7301,7 @@
         "members": [
           {
             "type": "PATTERN",
-            "value": "[^\\x00-\\x1F\\sA-Z0-9:;`\"'@$#.,|^&<=>+\\-*/\\\\%?!~()\\[\\]{}]"
+            "value": "[^\\x00-\\x1F\\s\\p{Uppercase}0-9:;`\"'@$#.,|^&<=>+\\-*/\\\\%?!~()\\[\\]{}]"
           },
           {
             "type": "PATTERN",
@@ -7320,7 +7320,7 @@
             "members": [
               {
                 "type": "PATTERN",
-                "value": "[^\\x00-\\x1F\\sA-Z0-9:;`\"'@$#.,|^&<=>+\\-*/\\\\%?!~()\\[\\]{}]"
+                "value": "[^\\x00-\\x1F\\s\\p{Uppercase}0-9:;`\"'@$#.,|^&<=>+\\-*/\\\\%?!~()\\[\\]{}]"
               },
               {
                 "type": "PATTERN",

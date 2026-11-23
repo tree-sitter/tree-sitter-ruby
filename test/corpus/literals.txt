@@ -2300,3 +2300,21 @@ Cß
   (class_variable)
   (simple_symbol)
   (identifier))
+
+====================
+non-ascii constants
+====================
+
+ÜBER = 1
+Ⓐ
+class Мир; end
+
+---
+
+(program
+  (assignment
+    left: (constant)
+    right: (integer))
+  (constant)
+  (class
+    name: (constant)))
