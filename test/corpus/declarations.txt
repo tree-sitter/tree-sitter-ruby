@@ -68,6 +68,21 @@ end
 
 (program (method (setter (identifier))))
 
+=====================================
+method as attribute setter (constant)
+=====================================
+
+def XMLDocument=(doc)
+end
+
+def Version = "1.0"
+
+---
+
+(program
+  (method (setter (constant)) (method_parameters (identifier)))
+  (method (constant) (string (string_content))))
+
 ==============================
 method definition of operators
 ==============================

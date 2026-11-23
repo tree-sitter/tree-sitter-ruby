@@ -1045,7 +1045,7 @@ module.exports = grammar({
       $.global_variable,
     ),
 
-    setter: $ => seq(field('name', $.identifier), token.immediate('=')),
+    setter: $ => seq(field('name', choice($.identifier, $.constant)), token.immediate('=')),
 
     undef: $ => seq('undef', commaSep1($._method_name)),
     alias: $ => seq(
