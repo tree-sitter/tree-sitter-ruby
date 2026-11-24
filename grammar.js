@@ -31,7 +31,8 @@ const PREC = {
 };
 
 const IDENTIFIER_CHARS = /[^\x00-\x1F\s:;`"'@$#.,|^&<=>+\-*/\\%?!~()\[\]{}]*/;
-const LOWER_ALPHA_CHAR = /[^\x00-\x1F\sA-Z0-9:;`"'@$#.,|^&<=>+\-*/\\%?!~()\[\]{}]/;
+const UPPER_ALPHA_CHAR = /\p{Uppercase}/;
+const LOWER_ALPHA_CHAR = /[^\x00-\x1F\s\p{Uppercase}0-9:;`"'@$#.,|^&<=>+\-*/\\%?!~()\[\]{}]/;
 const ALPHA_CHAR = /[^\x00-\x1F\s0-9:;`"'@$#.,|^&<=>+\-*/\\%?!~()\[\]{}]/;
 
 module.exports = grammar({
@@ -1082,8 +1083,8 @@ module.exports = grammar({
     false: _ => 'false',
     nil: _ => 'nil',
 
-    constant: _ => token(seq(/[A-Z]/, IDENTIFIER_CHARS)),
-    constant_suffix: $ => choice(token(seq(/[A-Z]/, IDENTIFIER_CHARS, /[?]/)), $._constant_suffix),
+    constant: _ => token(seq(UPPER_ALPHA_CHAR, IDENTIFIER_CHARS)),
+    constant_suffix: $ => choice(token(seq(UPPER_ALPHA_CHAR, IDENTIFIER_CHARS, /[?]/)), $._constant_suffix),
     identifier: _ => token(seq(LOWER_ALPHA_CHAR, IDENTIFIER_CHARS)),
     identifier_suffix: $ => choice(token(seq(LOWER_ALPHA_CHAR, IDENTIFIER_CHARS, /[?]/)), $._identifier_suffix),
     instance_variable: _ => token(seq('@', ALPHA_CHAR, IDENTIFIER_CHARS)),
